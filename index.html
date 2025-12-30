@@ -27,11 +27,15 @@
 
       --arab:#7a5a34;
 
-      /* تكبير تلقائي حسب الشاشة */
-      --s: clamp(14px, 1.7vw, 28px);
+      /* وضع ممر 65 إنش: أحجام أكبر */
+      --s: clamp(16px, 2.15vw, 34px);
+
+      /* زمن تحريك الشريط */
+      --tickerSpeed: 28s;
     }
 
     *{ box-sizing:border-box; }
+
     body{
       margin:0;
       height:100vh;
@@ -42,7 +46,7 @@
       font-family: "HacenScreen", system-ui, Tahoma, Arial, sans-serif;
     }
 
-    /* خلفية عربيسك للحواف (SVG مكرر) */
+    /* إطار عام + ملمس خفيف جدًا للخلفية */
     .frame{
       height:100vh;
       width:100vw;
@@ -52,16 +56,16 @@
       justify-content:center;
       padding: clamp(10px, 1.8vw, 22px);
       background:
-        /* حواف يمين ويسار */
         linear-gradient(90deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         var(--bg);
     }
 
+    /* حواف عربيسك جانبية */
     .arab-border{
       position:absolute;
       top:0; bottom:0;
-      width: clamp(22px, 3.2vw, 48px);
+      width: clamp(22px, 3.2vw, 52px);
       opacity:.9;
       background-color: transparent;
       background-image: url("data:image/svg+xml;utf8,\
@@ -73,43 +77,120 @@
       background-repeat: repeat-y;
       background-size: 100% auto;
       filter: saturate(1.1);
+      pointer-events:none;
     }
     .arab-border.right{ right:0; }
     .arab-border.left{ left:0; transform: scaleX(-1); }
 
+    /* اللوحة */
     .board{
-      width:min(980px, 100%);
+      width:min(1100px, 100%);
       height:100%;
-      background: rgba(246,242,234,.86);
+      background: rgba(246,242,234,.90);
       border: 3px solid var(--line);
       box-shadow: 0 18px 70px rgba(0,0,0,.14);
       position:relative;
       display:flex;
       flex-direction:column;
-      padding: clamp(12px, 2vw, 22px);
+      padding: clamp(12px, 2vw, 24px);
+      border-radius: 16px;
+      overflow:hidden;
+      isolation:isolate;
     }
 
-    /* شريط علوي مثل اللوحة */
+    /* زخرفة زوايا (Corner ornaments) */
+    .board::before,
+    .board::after{
+      content:"";
+      position:absolute;
+      inset:0;
+      pointer-events:none;
+      z-index:0;
+      opacity:.28;
+      background-repeat:no-repeat;
+      background-size: 170px 170px, 170px 170px, 170px 170px, 170px 170px;
+      background-position:
+        top 8px right 8px,
+        top 8px left 8px,
+        bottom 8px right 8px,
+        bottom 8px left 8px;
+      background-image:
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'>\
+<path d='M160 20c-35 0-60 25-60 60 0 10 2 19 6 27-8-4-17-6-27-6-35 0-60 25-60 60' fill='none' stroke='%237a5a34' stroke-width='8' stroke-linecap='round'/>\
+<path d='M160 20c-22 10-35 28-36 60' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/>\
+<circle cx='160' cy='20' r='6' fill='%237a5a34'/>\
+</svg>"),
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'>\
+<g transform='translate(180,0) scale(-1,1)'>\
+<path d='M160 20c-35 0-60 25-60 60 0 10 2 19 6 27-8-4-17-6-27-6-35 0-60 25-60 60' fill='none' stroke='%237a5a34' stroke-width='8' stroke-linecap='round'/>\
+<path d='M160 20c-22 10-35 28-36 60' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/>\
+<circle cx='160' cy='20' r='6' fill='%237a5a34'/>\
+</g></svg>"),
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'>\
+<g transform='translate(0,180) scale(1,-1)'>\
+<path d='M160 20c-35 0-60 25-60 60 0 10 2 19 6 27-8-4-17-6-27-6-35 0-60 25-60 60' fill='none' stroke='%237a5a34' stroke-width='8' stroke-linecap='round'/>\
+<path d='M160 20c-22 10-35 28-36 60' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/>\
+<circle cx='160' cy='20' r='6' fill='%237a5a34'/>\
+</g></svg>"),
+        url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='180' height='180' viewBox='0 0 180 180'>\
+<g transform='translate(180,180) scale(-1,-1)'>\
+<path d='M160 20c-35 0-60 25-60 60 0 10 2 19 6 27-8-4-17-6-27-6-35 0-60 25-60 60' fill='none' stroke='%237a5a34' stroke-width='8' stroke-linecap='round'/>\
+<path d='M160 20c-22 10-35 28-36 60' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/>\
+<circle cx='160' cy='20' r='6' fill='%237a5a34'/>\
+</g></svg>");
+    }
+
+    /* ملمس خفيف جدًا (noise) فوق الخلفية */
+    .grain{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      pointer-events:none;
+      opacity:.06;
+      background-image:url("data:image/svg+xml;utf8,\
+<svg xmlns='http://www.w3.org/2000/svg' width='200' height='200'>\
+<filter id='n'>\
+<feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/>\
+</filter>\
+<rect width='200' height='200' filter='url(%23n)' opacity='.35'/>\
+</svg>");
+      background-size: 220px 220px;
+      mix-blend-mode:multiply;
+    }
+
+    .content{
+      position:relative;
+      z-index:1;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+    }
+
+    /* شريط علوي */
     .topbar{
       background: linear-gradient(90deg, var(--top2), var(--top), var(--top2));
       color:#fff;
-      border-radius: 10px;
-      padding: calc(var(--s)*0.55) calc(var(--s)*0.7);
+      border-radius: 12px;
+      padding: calc(var(--s)*0.62) calc(var(--s)*0.8);
       display:flex;
       align-items:center;
       justify-content:space-between;
-      gap:10px;
+      gap:12px;
     }
     .topbar .right{
-      display:flex; align-items:center; gap:10px;
-      font-weight:900;
-      font-size: calc(var(--s)*0.95);
+      display:flex; align-items:center; gap:12px;
+      font-weight:1000;
+      font-size: calc(var(--s)*1.05);
       line-height:1.1;
     }
     .logo{
-      width: calc(var(--s)*2.0);
-      height: calc(var(--s)*2.0);
-      border-radius: 10px;
+      width: calc(var(--s)*2.1);
+      height: calc(var(--s)*2.1);
+      border-radius: 12px;
       overflow:hidden;
       background: rgba(255,255,255,.2);
       border: 1px solid rgba(255,255,255,.35);
@@ -118,23 +199,39 @@
     }
     .logo img{ width:100%; height:100%; object-fit:cover; display:block; }
     .topbar .left{
-      font-weight:900;
-      font-size: calc(var(--s)*0.85);
+      font-weight:1000;
+      font-size: calc(var(--s)*0.90);
       opacity:.95;
       text-align:left;
       white-space:nowrap;
     }
 
+    /* زر شاشة كاملة */
+    .fs{
+      position:absolute;
+      top: 16px;
+      left: 16px;
+      border:1px solid rgba(255,255,255,.35);
+      background: rgba(255,255,255,.18);
+      color:#fff;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-weight:1000;
+      cursor:pointer;
+      z-index:3;
+    }
+    .fs:active{ transform: translateY(1px); }
+
     /* الساعة */
     .clock{
       text-align:center;
-      margin-top: calc(var(--s)*0.8);
+      margin-top: calc(var(--s)*0.85);
       font-weight: 1000;
       letter-spacing: 1px;
       color:#111;
     }
     .clock .t{
-      font-size: clamp(72px, 10vw, 140px);
+      font-size: clamp(78px, 10.5vw, 150px);
       line-height:1;
     }
 
@@ -150,99 +247,168 @@
       justify-content:center;
       gap: calc(var(--s)*1.0);
       flex-wrap:wrap;
-      font-size: clamp(22px, 3.2vw, 44px);
+      font-size: clamp(22px, 3.1vw, 46px);
     }
     .meta .row2{
-      margin-top: calc(var(--s)*0.25);
-      font-size: clamp(18px, 2.4vw, 34px);
+      margin-top: calc(var(--s)*0.22);
+      font-size: clamp(18px, 2.3vw, 34px);
       color:#222;
     }
 
-    /* أوقات الصلاة */
+    /* أوقات الصلاة - عمود واحد */
     .times{
-      margin-top: calc(var(--s)*0.9);
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap: calc(var(--s)*0.6) calc(var(--s)*1.2);
-      align-items:start;
-      padding: calc(var(--s)*0.5) calc(var(--s)*0.6);
-    }
-
-    .col{
+      margin-top: calc(var(--s)*0.95);
       display:flex;
       flex-direction:column;
-      gap: calc(var(--s)*0.55);
-      font-size: clamp(22px, 3.4vw, 46px);
-      font-weight: 1000;
+      gap: calc(var(--s)*0.52);
+      padding: calc(var(--s)*0.55) calc(var(--s)*0.65);
+      border-radius: 14px;
     }
 
     .item{
       display:flex;
-      align-items:baseline;
+      align-items:center;
       justify-content:space-between;
       border-bottom: 2px solid rgba(155,120,80,.25);
-      padding-bottom: calc(var(--s)*0.25);
+      padding: calc(var(--s)*0.18) 0 calc(var(--s)*0.25);
+      font-size: clamp(26px, 3.4vw, 54px);
+      font-weight:1000;
     }
     .item .name{ color:#111; }
     .item .val{
       color: var(--red);
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.5px;
-      min-width: 6ch;
+      min-width: 7ch;
       text-align:left;
     }
 
-    /* فاصل سفلي */
-    .bottom{
-      margin-top:auto;
-      padding-top: calc(var(--s)*0.6);
-      border-top: 3px solid rgba(155,120,80,.35);
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap:10px;
-      font-weight:900;
-      color:#111;
-      font-size: calc(var(--s)*0.95);
+    /* تمييز الصلاة القادمة */
+    .item.next{
+      border-bottom-color: rgba(201,28,28,.35);
+      background: rgba(201,28,28,.06);
+      border-radius: 12px;
+      padding-inline: calc(var(--s)*0.25);
+      outline: 3px solid rgba(201,28,28,.18);
     }
-    .bottom .small{
-      color: var(--muted);
-      font-weight:900;
-      font-size: calc(var(--s)*0.85);
+    .badge-next{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      font-size: .70em;
+      color:#7b542a;
+      opacity:.95;
+      margin-inline-start: 10px;
+      white-space:nowrap;
+    }
+    .badge-dot{
+      width:10px;height:10px;border-radius:50%;
+      background: #c9a14a;
+      box-shadow: 0 0 0 6px rgba(201,161,74,.18);
+      flex:0 0 auto;
     }
 
-    /* تنبيه قبل الأذان */
+    /* شريط تنبيه قبل الأذان + عدّاد */
     .alert{
       position:absolute;
-      left: 14px;
-      right: 14px;
-      bottom: 14px;
-      padding: 12px 14px;
-      border-radius: 12px;
+      left: 18px;
+      right: 18px;
+      bottom: 86px; /* فوق الشريط السفلي */
+      padding: 14px 16px;
+      border-radius: 14px;
       border: 2px solid rgba(160,120,40,.35);
-      background: rgba(255, 215, 90, .35);
+      background: rgba(255, 215, 90, .32);
       color:#2a1b06;
       font-weight:1000;
       text-align:center;
-      font-size: calc(var(--s)*1.0);
+      font-size: calc(var(--s)*1.05);
       display:none;
       backdrop-filter: blur(6px);
+      z-index:4;
+    }
+    .alert.silent{
+      background: rgba(160, 210, 255, .22);
+      border-color: rgba(90,150,210,.35);
+      color:#0b1d2a;
     }
 
-    /* زر شاشة كاملة */
-    .fs{
+    /* تهنئة عيد الميلاد */
+    .birthday{
       position:absolute;
-      top: 16px;
-      left: 16px;
-      border:1px solid rgba(255,255,255,.35);
-      background: rgba(255,255,255,.18);
-      color:#fff;
-      border-radius: 12px;
-      padding: 8px 12px;
+      inset: 20% 10%;
+      background: linear-gradient(135deg,#fff7e6,#ffe3b3);
+      border: 3px solid #c9a14a;
+      border-radius: 26px;
+      text-align:center;
+      padding: clamp(18px, 3vw, 46px);
+      font-size: clamp(30px,4vw,66px);
       font-weight:1000;
-      cursor:pointer;
+      box-shadow: 0 30px 80px rgba(0,0,0,.25);
+      display:none;
+      z-index:5;
     }
-    .fs:active{ transform: translateY(1px); }
+    .birthday .sub{
+      margin-top: 10px;
+      font-size: .70em;
+      color:#2a1b06;
+      opacity:.95;
+    }
+
+    /* أسفل: شريط متحرك */
+    .tickerWrap{
+      margin-top:auto;
+      border-top: 3px solid rgba(155,120,80,.35);
+      padding-top: calc(var(--s)*0.55);
+      display:flex;
+      align-items:center;
+      gap:12px;
+    }
+    .tz{
+      font-weight:1000;
+      color: var(--muted);
+      font-size: calc(var(--s)*0.85);
+      white-space:nowrap;
+      padding-inline: 10px;
+    }
+    .ticker{
+      position:relative;
+      flex:1 1 auto;
+      overflow:hidden;
+      border-radius: 12px;
+      background: rgba(155,120,80,.10);
+      border: 2px solid rgba(155,120,80,.22);
+      height: calc(var(--s)*2.05);
+      display:flex;
+      align-items:center;
+    }
+    .ticker .track{
+      display:inline-flex;
+      align-items:center;
+      gap: 34px;
+      white-space:nowrap;
+      padding-inline: 18px;
+      font-weight:1000;
+      font-size: calc(var(--s)*0.95);
+      color:#111;
+      animation: tickerMove var(--tickerSpeed) linear infinite;
+    }
+    @keyframes tickerMove{
+      0%{ transform: translateX(-10%); }
+      100%{ transform: translateX(110%); }
+    }
+
+    .lastUpdate{
+      font-weight:1000;
+      color: var(--muted);
+      font-size: calc(var(--s)*0.82);
+      white-space:nowrap;
+      padding-inline: 10px;
+    }
+
+    /* شاشة “صديقة للتلفزيون”: تقليل اللمعان */
+    @media (prefers-reduced-motion: reduce){
+      .ticker .track{ animation:none; }
+    }
   </style>
 </head>
 
@@ -252,52 +418,57 @@
     <div class="arab-border left"></div>
 
     <div class="board">
+      <div class="grain"></div>
+
       <button class="fs" id="fsBtn">📺 شاشة كاملة</button>
 
-      <div class="topbar">
-        <div class="right">
-          <div class="logo"><img id="logoImg" src="logo.png" alt="logo"></div>
-          <div>
-            توقيت مدرسة الغزالي<br/>
-            باقة الغربية
+      <div class="content">
+        <div class="topbar">
+          <div class="right">
+            <div class="logo"><img id="logoImg" src="logo.png" alt="logo"></div>
+            <div>
+              توقيت مدرسة الغزالي<br/>
+              باقة الغربية
+            </div>
           </div>
-        </div>
-        <div class="left" id="locText">باقـة الغربية - إسرائيل</div>
-      </div>
-
-      <div class="clock">
-        <div class="t" id="clockText">00:00:00</div>
-      </div>
-
-      <div class="meta">
-        <div class="row1">
-          <div id="dowText">—</div>
-          <div id="monthText">—</div>
-        </div>
-        <div class="row2" id="gregText">—</div>
-        <div class="row2" id="hijriText" style="margin-top:8px;">—</div>
-      </div>
-
-      <div class="times" aria-label="أوقات الأذان فقط">
-        <div class="col">
-          <div class="item"><span class="name">الفجر</span><span class="val" id="fajr">--:--</span></div>
-          <div class="item"><span class="name">الظهر</span><span class="val" id="dhuhr">--:--</span></div>
-          <div class="item"><span class="name">العصر</span><span class="val" id="asr">--:--</span></div>
+          <div class="left" id="locText">باقـة الغربية - إسرائيل</div>
         </div>
 
-        <div class="col">
-          <div class="item"><span class="name">المغرب</span><span class="val" id="maghrib">--:--</span></div>
-          <div class="item"><span class="name">العشاء</span><span class="val" id="isha">--:--</span></div>
-          <div class="item"><span class="name">الشروق</span><span class="val" id="sunrise">--:--</span></div>
+        <div class="clock">
+          <div class="t" id="clockText">00:00:00</div>
         </div>
-      </div>
 
-      <div class="bottom">
-        <div class="small" id="noteText">فروقات محلية مفعّلة: فجر +2، ظهر +1، عصر +3، مغرب +10</div>
-        <div class="small" id="tzText">Asia/Jerusalem</div>
-      </div>
+        <div class="meta">
+          <div class="row1">
+            <div id="dowText">—</div>
+            <div id="monthText">—</div>
+          </div>
+          <div class="row2" id="gregText">—</div>
+          <div class="row2" id="hijriText" style="margin-top:8px;">—</div>
+        </div>
 
-      <div class="alert" id="alertBar"></div>
+        <div class="times" aria-label="أوقات الأذان فقط (عمود واحد)">
+          <div class="item" data-key="Fajr"><span class="name">الفجر</span><span class="val" id="fajr">--:--</span></div>
+          <div class="item" data-key="Sunrise"><span class="name">الشروق</span><span class="val" id="sunrise">--:--</span></div>
+          <div class="item" data-key="Dhuhr"><span class="name">الظهر</span><span class="val" id="dhuhr">--:--</span></div>
+          <div class="item" data-key="Asr"><span class="name">العصر</span><span class="val" id="asr">--:--</span></div>
+          <div class="item" data-key="Maghrib"><span class="name">المغرب</span><span class="val" id="maghrib">--:--</span></div>
+          <div class="item" data-key="Isha"><span class="name">العشاء</span><span class="val" id="isha">--:--</span></div>
+        </div>
+
+        <div class="tickerWrap">
+          <div class="tz" id="tzText">Asia/Jerusalem</div>
+
+          <div class="ticker" aria-label="شريط رسائل المدرسة">
+            <div class="track" id="tickerTrack">—</div>
+          </div>
+
+          <div class="lastUpdate" id="lastUpdateText">—</div>
+        </div>
+
+        <div class="alert" id="alertBar"></div>
+        <div class="birthday" id="birthdayBox"></div>
+      </div>
     </div>
   </div>
 
@@ -311,8 +482,8 @@
     lon: 35.0405,
     tz: "Asia/Jerusalem",
 
-    // طريقة الحساب (يمكن تغييرها لاحقًا إن رغبت)
-    method: 3, // Muslim World League غالبًا مناسب
+    // طريقة الحساب (يمكن تغييرها لاحقًا)
+    method: 3,
 
     // فروقاتك بالدقائق
     offsets: {
@@ -333,15 +504,39 @@
       Isha: 10
     },
 
-    beep: true
+    // صوت التنبيه (اختياري)
+    beep: true,
+
+    // ملف أعياد الميلاد (CSV)
+    birthdaysFile: "birthdays.csv",
+
+    // كل كم دقيقة تظهر تهنئة
+    birthdayEveryMinutes: 20,
+
+    // رسائل الشريط السفلي (تتناوب تلقائيًا)
+    tickerMessages: [
+      "🌟 صباح الخير يا أبطال الغزالي",
+      "📚 تذكير: نعتني بكتبنا ونحافظ على صفوفنا",
+      "✅ سلوك اليوم: نحترم دور غيرنا",
+      "🧼 نغسل أيدينا قبل الأكل وبعده",
+      "🤝 معًا نصنع يومًا جميلًا في مدرسة الغزالي"
+    ],
+
+    // سرعة حركة الشريط (ثواني)
+    tickerSpeedSeconds: 28,
+
+    // نافذة ظهور تنبيه ما قبل الأذان (ثواني)
+    preAlertWindowSeconds: 20,
+
+    // زمن بقاء التنبيه ظاهرًا (ثواني)
+    alertShowSeconds: 12
   };
 
   const $ = (id)=>document.getElementById(id);
   function pad(n){ return String(n).padStart(2,"0"); }
   function cleanHHMM(s){ return (s||"").replace(/[^\d:]/g,"").slice(0,5); }
 
-  function nowTZ(){
-    // نعرض الوقت حسب منطقة القدس
+  function nowPartsTZ(){
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone: CONFIG.tz, hour:"2-digit", minute:"2-digit", second:"2-digit", hourCycle:"h23"
     }).formatToParts(new Date());
@@ -352,8 +547,15 @@
     };
   }
 
+  function formatDateKey(d){
+    const day = new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d);
+    const month = new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d);
+    const year = new Intl.DateTimeFormat("en-GB",{year:"numeric",timeZone:CONFIG.tz}).format(d);
+    return `${day}-${month}-${year}`; // DD-MM-YYYY
+  }
+
   function setClockAndDates(){
-    const {hh,mm,ss} = nowTZ();
+    const {hh,mm,ss} = nowPartsTZ();
     $("clockText").textContent = `${hh}:${mm}:${ss}`;
 
     const d = new Date();
@@ -361,7 +563,7 @@
     $("monthText").textContent = new Intl.DateTimeFormat("ar", { month:"long", timeZone: CONFIG.tz }).format(d);
 
     const greg = new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit", timeZone: CONFIG.tz }).format(d);
-    $("gregText").textContent = greg; // مثل 2017-09-19
+    $("gregText").textContent = greg;
   }
 
   function addMinutesToHHMM(hhmm, addMin){
@@ -373,88 +575,43 @@
     return `${pad(base.getHours())}:${pad(base.getMinutes())}`;
   }
 
-  function toDateKey(d){
-    const day = new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d);
-    const month = new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d);
-    const year = new Intl.DateTimeFormat("en-GB",{year:"numeric",timeZone:CONFIG.tz}).format(d);
-    return `${day}-${month}-${year}`; // DD-MM-YYYY
-  }
-
   async function fetchTimings(){
-    const dateKey = toDateKey(new Date());
+    const dateKey = formatDateKey(new Date());
     const url =
       `https://api.aladhan.com/v1/timings/${dateKey}` +
       `?latitude=${encodeURIComponent(CONFIG.lat)}` +
       `&longitude=${encodeURIComponent(CONFIG.lon)}` +
       `&method=${encodeURIComponent(CONFIG.method)}`;
 
-    const r = await fetch(url);
+    const r = await fetch(url, { cache: "no-store" });
     if(!r.ok) throw new Error("Fetch failed");
     const j = await r.json();
     if(j.code !== 200) throw new Error("Bad response");
     return j.data;
   }
 
-  let timingsAdj = null;
-  let fired = new Set();
+  // ===== التخزين المحلي للمواقيت (صمود عند انقطاع النت)
+  const LS_KEY = "ghazali_timings_cache_v1";
 
-  function parseToday(hhmm, dayOffset=0){
-    const clean = cleanHHMM(hhmm);
-    const [h,m] = clean.split(":").map(Number);
-    const now = new Date();
-    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
-    d.setDate(d.getDate() + dayOffset);
-    return d;
-  }
-
-  function beep(){
-    if(!CONFIG.beep) return;
+  function saveCache(payload){
     try{
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = "sine";
-      o.frequency.value = 880;
-      g.gain.value = 0.06;
-      o.connect(g); g.connect(ctx.destination);
-      o.start();
-      setTimeout(()=>{ o.stop(); ctx.close(); }, 350);
+      localStorage.setItem(LS_KEY, JSON.stringify(payload));
     }catch{}
   }
-
-  function showAlert(text){
-    const el = $("alertBar");
-    el.textContent = text;
-    el.style.display = "block";
-    beep();
-    setTimeout(()=>{ el.style.display="none"; }, 12000);
+  function readCache(){
+    try{
+      const raw = localStorage.getItem(LS_KEY);
+      if(!raw) return null;
+      return JSON.parse(raw);
+    }catch{ return null; }
   }
 
-  function handlePreAlerts(){
-    if(!timingsAdj) return;
-
-    const now = new Date();
-    const keys = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
-
-    for(const k of keys){
-      const mins = CONFIG.preAlertMinutes[k];
-      if(mins == null) continue;
-
-      const at = parseToday(timingsAdj[k], 0);
-      const pre = new Date(at.getTime() - mins*60*1000);
-
-      const stamp = `${new Date().toDateString()}|${k}|${mins}`;
-      if(fired.has(stamp)) continue;
-
-      if(Math.abs(now - pre) <= 15000){
-        const nameAr = ({Fajr:"الفجر",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"})[k] || k;
-        showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`);
-        fired.add(stamp);
-      }
-    }
-  }
+  let timingsAdj = null;
+  let hijriText = "—";
+  let lastLoadedDateKey = null;
 
   function fillTimes(){
+    if(!timingsAdj) return;
     $("fajr").textContent = timingsAdj.Fajr;
     $("dhuhr").textContent = timingsAdj.Dhuhr;
     $("asr").textContent = timingsAdj.Asr;
@@ -463,22 +620,239 @@
     $("sunrise").textContent = timingsAdj.Sunrise;
   }
 
-  async function load(){
-    $("locText").textContent = CONFIG.label;
-    $("tzText").textContent = CONFIG.tz;
+  function setLastUpdateLabel(ts){
+    if(!ts){
+      $("lastUpdateText").textContent = "";
+      return;
+    }
+    const d = new Date(ts);
+    const hh = new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:CONFIG.tz}).format(d);
+    $("lastUpdateText").textContent = `آخر تحديث: ${hh}`;
+  }
 
-    const data = await fetchTimings();
+  // ===== تحديد الصلاة القادمة
+  const ORDER = ["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
+  const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 
-    // هجري مثل: 18 ذو الحجة 1438
-    const h = data.date?.hijri;
+  function parseTodayHHMM(hhmm){
+    const clean = cleanHHMM(hhmm);
+    const [h,m] = clean.split(":").map(Number);
+    const now = new Date();
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+    return d;
+  }
+
+  function getNextPrayer(){
+    if(!timingsAdj) return null;
+    const now = new Date();
+
+    for(const k of ORDER){
+      const at = parseTodayHHMM(timingsAdj[k]);
+      if(at > now) return { key:k, at };
+    }
+    // إذا انتهت صلوات اليوم: القادم فجر الغد
+    const atTomorrow = parseTodayHHMM(timingsAdj["Fajr"]);
+    atTomorrow.setDate(atTomorrow.getDate() + 1);
+    return { key:"Fajr", at: atTomorrow };
+  }
+
+  function updateNextHighlight(){
+    const next = getNextPrayer();
+    const items = document.querySelectorAll(".times .item");
+    items.forEach(it=>{
+      it.classList.remove("next");
+      const badge = it.querySelector(".badge-next");
+      if(badge) badge.remove();
+    });
+    if(!next) return;
+
+    const el = document.querySelector(`.times .item[data-key="${next.key}"]`);
+    if(!el) return;
+
+    el.classList.add("next");
+    const badge = document.createElement("span");
+    badge.className = "badge-next";
+    badge.innerHTML = `<span class="badge-dot"></span> التالي`;
+    el.querySelector(".name").appendChild(badge);
+  }
+
+  // ===== تنبيه قبل الأذان + عدّاد
+  let fired = new Set();
+
+  function beep(){
+    if(!CONFIG.beep) return;
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      const g = ctx.createGain();
+      o.type = "sine";
+      o.frequency.value = 660;   // ألطف من 880
+      g.gain.value = 0.04;       // أخف
+      o.connect(g); g.connect(ctx.destination);
+      o.start();
+      setTimeout(()=>{ o.stop(); ctx.close(); }, 260);
+    }catch{}
+  }
+
+  function showAlert(text, silent=false){
+    const el = $("alertBar");
+    el.textContent = text;
+    el.classList.toggle("silent", !!silent);
+    el.style.display = "block";
+    if(!silent) beep();
+    setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
+  }
+
+  function getDiffSeconds(a, b){ return Math.floor((a - b) / 1000); }
+
+  function handlePreAlertsAndCountdown(){
+    if(!timingsAdj) return;
+
+    const now = new Date();
+    const keys = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+    const next = getNextPrayer();
+
+    // عداد تنازلي للصلاة القادمة إذا كانت ضمن نطاق التنبيه
+    if(next && CONFIG.preAlertMinutes[next.key] != null){
+      const mins = CONFIG.preAlertMinutes[next.key];
+      const secLeft = Math.floor((next.at - now) / 1000);
+      const inRange = secLeft <= mins*60 && secLeft >= 0;
+
+      if(inRange){
+        const mm = Math.floor(secLeft/60);
+        const ss = secLeft % 60;
+        const nAr = NAME_AR[next.key] || next.key;
+        showAlert(`⏳ باقي ${mm}:${pad(ss)} على أذان ${nAr}`, true); // صامت (وميض لطيف)
+      }
+    }
+
+    // تنبيه لحظة الوصول لنقطة "قبل الأذان"
+    for(const k of keys){
+      const mins = CONFIG.preAlertMinutes[k];
+      if(mins == null) continue;
+
+      let at = parseTodayHHMM(timingsAdj[k]);
+      // إذا كنا بعد وقت الصلاة، لا نطلق تنبيه "قبلها" لليوم نفسه
+      // (لتجنب إطلاق متأخر)
+      if(at < now) continue;
+
+      const pre = new Date(at.getTime() - mins*60*1000);
+      const stamp = `${formatDateKey(now)}|${k}|${mins}`;
+      if(fired.has(stamp)) continue;
+
+      const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
+      if(Math.abs(now - pre) <= windowMs){
+        const nameAr = NAME_AR[k] || k;
+        showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
+        fired.add(stamp);
+      }
+    }
+  }
+
+  // ===== الشريط السفلي (Ticker)
+  let tickerIndex = 0;
+  function setTickerText(msg){
+    const track = $("tickerTrack");
+    // نكرر النص مرتين لتحسين الحركة على الشريط
+    track.textContent = `• ${msg} • ${msg} • ${msg}`;
+  }
+  function startTicker(){
+    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
+    setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
+    setInterval(()=>{
+      tickerIndex++;
+      setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
+    }, 18 * 1000); // تبديل الرسالة كل 18 ثانية
+  }
+
+  // ===== أعياد الميلاد
+  let birthdayList = [];
+  let todaysBirthdays = [];
+  let birthdayCursor = 0;
+
+  async function loadBirthdaysCSV(path){
+    const r = await fetch(path, { cache: "no-store" });
+    if(!r.ok) throw new Error("Cannot load birthdays.csv");
+    const text = await r.text();
+
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if(lines.length < 2) return [];
+
+    const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
+    const idx = (h)=>headers.indexOf(h);
+
+    const out = [];
+    for(const line of lines){
+      const parts = line.split(",").map(x=>x.trim());
+      const name = parts[idx("name")] || "";
+      const role = parts[idx("role")] || "";
+      const day  = Number(parts[idx("day")] || 0);
+      const month= Number(parts[idx("month")] || 0);
+      if(name && day && month) out.push({name, role, day, month});
+    }
+    return out;
+  }
+
+  function getTodayDM(){
+    const d = new Date();
+    const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
+    const month = Number(new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
+    return {day, month};
+  }
+
+  function showBirthdayCard(person){
+    const box = $("birthdayBox");
+    const role = String(person.role || "").trim();
+    const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
+
+    box.innerHTML = `
+      <div>🎉 كل عام وأنت بخير</div>
+      <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
+        <strong>${person.name}</strong>
+      </div>
+      <div class="sub">
+        ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 نتمنى لك يومًا سعيدًا في مدرسة الغزالي"}
+      </div>
+    `;
+    box.style.display = "block";
+    setTimeout(()=> box.style.display="none", 12000);
+  }
+
+  function refreshTodaysBirthdays(){
+    const {day, month} = getTodayDM();
+    todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
+    birthdayCursor = 0;
+  }
+
+  function startBirthdayLoop(){
+    refreshTodaysBirthdays();
+    if(!todaysBirthdays.length) return;
+
+    // أول ظهور بعد دقيقتين من التشغيل (حتى لا يزاحم البداية)
+    setTimeout(()=>{
+      showBirthdayCard(todaysBirthdays[birthdayCursor++ % todaysBirthdays.length]);
+    }, 2 * 60 * 1000);
+
+    // ثم كل 20 دقيقة
+    setInterval(()=>{
+      refreshTodaysBirthdays(); // لو تغيّر اليوم أثناء التشغيل
+      if(!todaysBirthdays.length) return;
+      showBirthdayCard(todaysBirthdays[birthdayCursor++ % todaysBirthdays.length]);
+    }, CONFIG.birthdayEveryMinutes * 60 * 1000);
+  }
+
+  // ===== تحميل المواقيت + كاش
+  function applyData(data, fromCache=false){
+    // هجري
+    const h = data?.date?.hijri;
     if(h){
-      const hijri = `${h.day} ${h.month?.ar || ""} ${h.year}`;
-      $("hijriText").textContent = hijri;
-    } else {
+      hijriText = `${h.day} ${h.month?.ar || ""} ${h.year}`;
+      $("hijriText").textContent = hijriText;
+    }else{
       $("hijriText").textContent = "—";
     }
 
-    // تطبيق الفروقات
+    // مواقيت + فروقات
     const t = data.timings;
     timingsAdj = {
       Fajr:    addMinutesToHHMM(t.Fajr,    CONFIG.offsets.Fajr || 0),
@@ -490,9 +864,39 @@
     };
 
     fillTimes();
+    updateNextHighlight();
+
+    if(fromCache){
+      // لا نغيّر آخر تحديث هنا (نستخدم المخزن)
+    }
   }
 
-  // شاشة كاملة
+  async function loadTimings(){
+    const dateKey = formatDateKey(new Date());
+    lastLoadedDateKey = dateKey;
+
+    try{
+      const data = await fetchTimings();
+      applyData(data, false);
+
+      const nowTs = Date.now();
+      saveCache({ dateKey, data, updatedAt: nowTs });
+      setLastUpdateLabel(nowTs);
+
+    }catch(e){
+      // fallback للكاش
+      const cached = readCache();
+      if(cached && cached.data){
+        applyData(cached.data, true);
+        setLastUpdateLabel(cached.updatedAt || null);
+      }else{
+        // إذا لا يوجد كاش: اترك القيم كما هي
+        setLastUpdateLabel(null);
+      }
+    }
+  }
+
+  // ===== شاشة كاملة
   $("fsBtn").addEventListener("click", ()=>{
     if(!document.fullscreenElement){
       document.documentElement.requestFullscreen?.();
@@ -505,11 +909,43 @@
   const logo = $("logoImg");
   logo.onerror = ()=>{ logo.style.display="none"; };
 
-  setClockAndDates();
-  setInterval(()=>{ setClockAndDates(); handlePreAlerts(); }, 1000);
+  // ثوابت عرض
+  $("locText").textContent = CONFIG.label;
+  $("tzText").textContent = CONFIG.tz;
 
-  load().catch(console.error);
-  setInterval(()=>load().catch(()=>{}), 6*60*60*1000);
+  // الشريط
+  startTicker();
+
+  // الساعة والتاريخ
+  setClockAndDates();
+  setInterval(()=>{
+    setClockAndDates();
+
+    // تحديث تمييز الصلاة القادمة كل ثانية
+    updateNextHighlight();
+
+    // تنبيه قبل الأذان + عدّاد
+    handlePreAlertsAndCountdown();
+
+    // عند تغيير اليوم (منتصف الليل بتوقيت القدس): إعادة تحميل
+    const dk = formatDateKey(new Date());
+    if(lastLoadedDateKey && dk !== lastLoadedDateKey){
+      fired = new Set(); // إعادة السماح للتنبيهات لليوم الجديد
+      loadTimings();
+    }
+  }, 1000);
+
+  // تحميل المواقيت الآن ثم دوريًا
+  loadTimings();
+  setInterval(()=>loadTimings(), 6*60*60*1000);
+
+  // أعياد الميلاد
+  loadBirthdaysCSV(CONFIG.birthdaysFile)
+    .then(list => {
+      birthdayList = list;
+      startBirthdayLoop();
+    })
+    .catch(()=>{ /* لا شيء */ });
 </script>
 </body>
 </html>
