@@ -193,19 +193,19 @@
 
     .clock{
       text-align:center;
-      margin-top: calc(var(--s)*0.85);
+      margin-top: calc(var(--s)*0.60); /* Reduced slightly to fit weather */
       font-weight: 1000;
       letter-spacing: 1px;
       color:#111;
     }
     .clock .t{
-      font-size: clamp(78px, 10.5vw, 150px);
+      font-size: clamp(70px, 10vw, 140px); /* Slightly smaller max to fit weather */
       line-height:1;
     }
 
     .meta{
       text-align:center;
-      margin-top: calc(var(--s)*0.35);
+      margin-top: calc(var(--s)*0.25);
       font-weight: 1000;
       line-height:1.2;
     }
@@ -214,16 +214,38 @@
       justify-content:center;
       gap: calc(var(--s)*1.0);
       flex-wrap:wrap;
-      font-size: clamp(22px, 3.1vw, 46px);
+      font-size: clamp(20px, 2.8vw, 42px);
     }
     .meta .row2{
-      margin-top: calc(var(--s)*0.22);
-      font-size: clamp(18px, 2.3vw, 34px);
+      margin-top: calc(var(--s)*0.15);
+      font-size: clamp(16px, 2.1vw, 32px);
       color:#222;
     }
 
+    /* Weather Widget Style */
+    .weather-row {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 15px;
+      margin-top: 10px;
+      margin-bottom: 5px;
+      background-color: rgba(123, 84, 42, 0.08);
+      width: fit-content;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 6px 20px;
+      border-radius: 50px;
+      border: 1px solid rgba(123, 84, 42, 0.15);
+      color: #7b542a;
+      font-weight: 1000;
+      font-size: clamp(16px, 2.0vw, 30px);
+    }
+    .w-icon { font-size: 1.3em; margin-top:-4px; }
+    .w-temp { direction: ltr; font-weight:1000; }
+
     .times{
-      margin-top: calc(var(--s)*0.95);
+      margin-top: calc(var(--s)*0.55);
       display:flex;
       flex-direction:column;
       gap: calc(var(--s)*0.52);
@@ -237,7 +259,7 @@
       justify-content:space-between;
       border-bottom: 2px solid rgba(155,120,80,.25);
       padding: calc(var(--s)*0.18) 0 calc(var(--s)*0.25);
-      font-size: clamp(26px, 3.4vw, 54px);
+      font-size: clamp(24px, 3.2vw, 50px);
       font-weight:1000;
       transition: all 0.5s ease;
     }
@@ -383,7 +405,6 @@
       opacity:.95;
     }
 
-    /* الشريط السفلي أصبح واسعًا الآن */
     .tickerWrap{
       margin-top:auto;
       border-top: 3px solid rgba(155,120,80,.35);
@@ -401,7 +422,6 @@
       height: calc(var(--s)*2.05);
       display:flex;
       align-items:center;
-      /* أزلت الهوامش الداخلية ليكون النص عريضًا */
     }
     .ticker .track{
       display:inline-flex;
@@ -452,6 +472,12 @@
           </div>
           <div class="row2" id="gregText">—</div>
           <div class="row2" id="hijriText" style="margin-top:8px;">—</div>
+          
+          <div class="weather-row" id="weatherWrap" style="display:none">
+            <span id="wIcon" class="w-icon">⛅</span>
+            <span id="wTemp" class="w-temp">--°C</span>
+            <span id="wDesc" class="w-desc">--</span>
+          </div>
         </div>
 
         <div class="times" aria-label="أوقات الأذان">
@@ -536,17 +562,13 @@
   function pad(n){ return String(n).padStart(2,"0"); }
   function cleanHHMM(s){ return (s||"").replace(/[^\d:]/g,"").slice(0,5); }
 
-  // دالة جديدة: الحصول على تاريخ اليوم (سلسلة نصية) بناءً على توقيت القدس فقط
-  // Returns "DD-MM-YYYY" based on Jerusalem time, ignoring local device time
   function getZonedDateStr(){
     const d = new Date();
-    // en-GB gives DD/MM/YYYY. We use that format to match API checks
     return new Intl.DateTimeFormat("en-GB", {
       day: "2-digit", month: "2-digit", year: "numeric", timeZone: CONFIG.tz
     }).format(d).split("/").join("-");
   }
 
-  // دالة للحصول على التاريخ بتنسيق YYYY-MM-DD لمقارنة التغييرات
   function getZonedISODate(){
     return new Intl.DateTimeFormat("en-CA", {
       year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
@@ -584,9 +606,7 @@
   }
 
   async function fetchTimings(){
-    // نستخدم التاريخ الحالي حسب توقيت القدس لتحديد أي شهر نحمل
     const d = new Date();
-    // الحصول على الشهر والسنة عبر formatter لضمان الدقة
     const parts = new Intl.DateTimeFormat("en-US", {
       year: "numeric", month: "numeric", timeZone: CONFIG.tz
     }).formatToParts(d);
@@ -616,12 +636,7 @@
 
   function applyData(monthData){
     if(!Array.isArray(monthData)) return;
-
-    // هنا التغيير الجوهري: نستخدم getZonedDateStr لضمان أننا نبحث عن "تاريخ القدس"
-    // بغض النظر عما يظنه الحاسوب عن تاريخه
-    const todayStr = getZonedDateStr(); // e.g. "30-12-2025"
-    
-    // API Aladhan puts date in 'DD-MM-YYYY' format inside gregorian.date
+    const todayStr = getZonedDateStr(); 
     const todayEntry = monthData.find(d => d.date.gregorian.date === todayStr);
 
     if(!todayEntry) return;
@@ -667,11 +682,6 @@
     const clean = cleanHHMM(hhmm);
     const [h,m] = clean.split(":").map(Number);
     const now = new Date();
-    // Note: We construct a date object using local system YMD but correct H:M
-    // Ideally we strictly follow TZ, but for comparison "now" is also local system time in JS runtime.
-    // However, since we sync the displayed time to TZ, the diff will be correct relative to visual.
-    // For strictness, we trust the JS runtime handles timezone if system is set correctly, 
-    // but here we just need relative diffs.
     return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
   }
 
@@ -759,9 +769,7 @@
     if(mins == null) return;
     const pre = new Date(next.at.getTime() - mins*60*1000);
     
-    // منع التكرار باستخدام التاريخ المقدسي
-    // Fix: Use Zoned Date string for the stamp key
-    const dateKey = getZonedDateStr(); // "30-12-2025"
+    const dateKey = getZonedDateStr();
     const stamp = `${dateKey}|${next.key}|${mins}`;
     
     if(fired.has(stamp)) return;
@@ -812,7 +820,6 @@
     return out;
   }
   
-  // Use TZ aware date for birthdays too
   function getTodayDM_TZ(){
     const d = new Date();
     const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
@@ -902,12 +909,46 @@
     }, CONFIG.verseChangeMinutes * 60 * 1000);
   }
 
+  // Weather Logic
+  function wmoToText(code){
+    // تبسيط رموز الطقس للأطفال
+    // 0: Clear, 1-3: Partly Cloudy, 45-48: Fog
+    // 51-55: Drizzle, 61-65: Rain, 71-77: Snow, 95+: Thunder
+    if(code === 0) return { t:"مشمس وصافٍ", i:"☀️" };
+    if(code >= 1 && code <= 3) return { t:"غائم جزئيًا", i:"⛅" };
+    if(code >= 45 && code <= 48) return { t:"ضبابي", i:"🌫️" };
+    if(code >= 51 && code <= 55) return { t:"رذاذ خفيف", i:"🌦️" };
+    if(code >= 61 && code <= 67) return { t:"ماطر", i:"🌧️" };
+    if(code >= 71 && code <= 77) return { t:"مثلج", i:"🌨️" };
+    if(code >= 80 && code <= 82) return { t:"زخات مطر", i:"🌦️" };
+    if(code >= 95) return { t:"عاصف وماطر", i:"⛈️" };
+    return { t:"صافٍ", i:"☀️" };
+  }
+
+  async function fetchWeather(){
+    try{
+      const url = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}&current_weather=true`;
+      const r = await fetch(url);
+      const j = await r.json();
+      if(j.current_weather){
+        const {temperature, weathercode} = j.current_weather;
+        const info = wmoToText(weathercode);
+        $("wIcon").textContent = info.i;
+        $("wTemp").textContent = `${Math.round(temperature)}°C`;
+        $("wDesc").textContent = info.t;
+        $("weatherWrap").style.display = "flex";
+      }
+    }catch(e){
+      console.log("Weather error", e);
+      $("weatherWrap").style.display = "none";
+    }
+  }
+
   // Load Logic: Calendar (Month)
   async function loadTimings(){
     try{
       const data = await fetchTimings();
       applyData(data);
-      // حفظ الشهر في الكاش
       saveCache({ monthKey: getZonedDateStr().substring(3), data, updatedAt: Date.now() });
     }catch{
       const cached = readCache();
@@ -942,17 +983,20 @@
 
   // Initial Load
   loadTimings();
+  fetchWeather();
 
-  // 4. تحديث البيانات كل 6 ساعات
+  // Timings refresh every 6 hours
   setInterval(()=>loadTimings(), 6 * 60 * 60 * 1000);
+  
+  // Weather refresh every 30 minutes
+  setInterval(()=>fetchWeather(), 30 * 60 * 1000);
 
   // Check date change based on Jerusalem Time
-  let lastDayStr = getZonedISODate(); // "2025-12-30"
+  let lastDayStr = getZonedISODate();
   setInterval(()=>{
     const currentDayStr = getZonedISODate();
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
-      // عند تغير اليوم، نقوم بإعادة تحميل البيانات (أو إعادة تطبيقها من الذاكرة)
       loadTimings(); 
     }
   }, 60000);
