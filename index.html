@@ -1,0 +1,531 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>لوحة مواقيت الصلاة</title>
+
+  <style>
+    :root{
+      --bg:#f7fbff;
+      --panel:#ffffff;
+      --ink:#0b1b2b;
+      --muted:#5d6b7a;
+      --accent:#1f8a3b;
+      --accent2:#0f6c2a;
+      --line:#d9e6f2;
+      --highlight:#e9fff0;
+      --shadow: 0 18px 50px rgba(10,30,60,.12);
+    }
+    body{
+      margin:0;
+      font-family: system-ui, "Segoe UI", Tahoma, Arial, sans-serif;
+      background: radial-gradient(1200px 800px at 50% -200px, #dff3ff 0%, var(--bg) 50%, #f6fff8 100%);
+      color:var(--ink);
+      display:flex;
+      min-height:100vh;
+      align-items:center;
+      justify-content:center;
+      padding:22px;
+    }
+    .board{
+      width:min(980px, 96vw);
+      background:var(--panel);
+      border:1px solid var(--line);
+      border-radius:18px;
+      box-shadow:var(--shadow);
+      overflow:hidden;
+    }
+
+    /* Top bar */
+    .topbar{
+      display:flex;
+      gap:14px;
+      align-items:stretch;
+      padding:14px 16px;
+      background:linear-gradient(90deg, #0f6c2a 0%, #1f8a3b 55%, #2ca44a 100%);
+      color:#fff;
+    }
+    .brand{
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      gap:4px;
+      min-width:220px;
+    }
+    .brand .title{ font-weight:800; letter-spacing:.2px; }
+    .brand .sub{ opacity:.9; font-size:13px; }
+    .meta{
+      margin-inline-start:auto;
+      display:flex;
+      flex-direction:column;
+      justify-content:center;
+      text-align:left; /* لأن RTL */
+      gap:4px;
+      min-width:280px;
+    }
+    .meta .loc{ font-weight:700; }
+    .meta .small{ font-size:13px; opacity:.92; }
+
+    /* Main grid */
+    .main{
+      display:grid;
+      grid-template-columns: 1.05fr .95fr;
+      gap:14px;
+      padding:16px;
+    }
+    @media (max-width: 860px){
+      .main{ grid-template-columns:1fr; }
+      .meta{ min-width:auto; }
+      .brand{ min-width:auto; }
+    }
+
+    .clockCard{
+      border:1px solid var(--line);
+      border-radius:16px;
+      padding:16px;
+      background:linear-gradient(180deg, #ffffff 0%, #fbfeff 100%);
+    }
+    .bigTime{
+      font-size: clamp(44px, 6vw, 74px);
+      font-weight:900;
+      letter-spacing:1px;
+      text-align:center;
+      padding:10px 0 2px;
+    }
+    .dateRow{
+      display:flex;
+      flex-wrap:wrap;
+      gap:10px;
+      justify-content:center;
+      align-items:center;
+      color:var(--muted);
+      font-weight:600;
+      padding-bottom:10px;
+    }
+    .pill{
+      border:1px solid var(--line);
+      background:#fff;
+      border-radius:999px;
+      padding:8px 12px;
+      font-size:13px;
+    }
+    .nextBox{
+      margin-top:12px;
+      border:1px dashed #bfe7c8;
+      background:var(--highlight);
+      border-radius:14px;
+      padding:12px 14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .nextBox .label{ color:var(--accent2); font-weight:900; }
+    .nextBox .value{ font-weight:900; }
+    .nextBox .count{ font-variant-numeric: tabular-nums; font-weight:900; }
+
+    .tableCard{
+      border:1px solid var(--line);
+      border-radius:16px;
+      overflow:hidden;
+    }
+    .tableHead{
+      background:#f0fbf4;
+      border-bottom:1px solid var(--line);
+      padding:12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+    }
+    .tableHead .h{ font-weight:900; color:var(--accent2); }
+    .tableHead .method{ font-size:12px; color:var(--muted); }
+
+    table{
+      width:100%;
+      border-collapse:collapse;
+      font-variant-numeric: tabular-nums;
+    }
+    th, td{
+      padding:12px 14px;
+      border-bottom:1px solid var(--line);
+      font-size:15px;
+    }
+    th{
+      text-align:right;
+      color:var(--muted);
+      font-weight:800;
+      background:#fbfdff;
+    }
+    tr.highlight{
+      background: #eafff1;
+    }
+    td.time{
+      text-align:left;
+      font-weight:900;
+      white-space:nowrap;
+    }
+
+    /* Bottom ticker */
+    .ticker{
+      border-top:1px solid var(--line);
+      background:#0b1b2b;
+      color:#e9f2ff;
+      padding:10px 14px;
+      display:flex;
+      gap:10px;
+      align-items:center;
+      justify-content:space-between;
+      font-size:13px;
+    }
+    .ticker .left{ opacity:.95; }
+    .ticker .right{ font-weight:800; }
+    .warn{
+      color:#b30000;
+      font-weight:900;
+      text-align:center;
+      padding:10px 16px 0;
+      display:none;
+    }
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:10px;
+      padding:10px 12px;
+      background:#0f6c2a;
+      color:#fff;
+      font-weight:800;
+      cursor:pointer;
+    }
+    .btn:active{ transform:translateY(1px); }
+  </style>
+</head>
+
+<body>
+  <div class="board">
+    <div class="topbar">
+      <div class="brand">
+        <div class="title">مواقيت الصلاة</div>
+        <div class="sub" id="subTitle">لوحة تلقائية حسب موقع فتح الصفحة</div>
+      </div>
+
+      <div class="meta">
+        <div class="loc" id="locationText">... جاري تحديد الموقع</div>
+        <div class="small" id="tzText">...</div>
+      </div>
+    </div>
+
+    <div class="warn" id="warn"></div>
+
+    <div class="main">
+      <div class="clockCard">
+        <div class="bigTime" id="bigTime">00:00:00</div>
+        <div class="dateRow">
+          <span class="pill" id="weekdayPill">—</span>
+          <span class="pill" id="gregPill">—</span>
+          <span class="pill" id="hijriPill">—</span>
+        </div>
+
+        <div class="nextBox">
+          <div>
+            <div class="label">الصلاة القادمة</div>
+            <div class="value" id="nextPrayerName">—</div>
+          </div>
+          <div style="text-align:left">
+            <div class="label">المتبقي</div>
+            <div class="count" id="countdown">—</div>
+          </div>
+        </div>
+
+        <div style="margin-top:14px; display:flex; gap:10px; justify-content:center; flex-wrap:wrap;">
+          <button class="btn" id="refreshBtn">تحديث المواقيت</button>
+          <button class="btn" id="askGeoBtn" style="background:#1f8a3b;">تحديد موقعي</button>
+        </div>
+      </div>
+
+      <div class="tableCard">
+        <div class="tableHead">
+          <div class="h">جدول الصلوات</div>
+          <div class="method" id="methodText">—</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>الصلاة</th>
+              <th style="text-align:left">الوقت</th>
+            </tr>
+          </thead>
+          <tbody id="prayerRows"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div class="ticker">
+      <div class="left" id="tickerLeft">يتم التحديث تلقائيًا وفق موقع الجهاز</div>
+      <div class="right" id="tickerRight">—</div>
+    </div>
+  </div>
+
+<script>
+  // ===== Helpers =====
+  const $ = (id)=>document.getElementById(id);
+
+  const PRAYERS = [
+    { key:"Fajr",    ar:"الفجر" },
+    { key:"Sunrise", ar:"الشروق" },
+    { key:"Dhuhr",   ar:"الظهر" },
+    { key:"Asr",     ar:"العصر" },
+    { key:"Maghrib", ar:"المغرب" },
+    { key:"Isha",    ar:"العشاء" }
+  ];
+
+  function pad(n){ return String(n).padStart(2,"0"); }
+
+  function formatHMS(d){
+    return `${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
+  }
+
+  function toDateKey(d){ // DD-MM-YYYY for AlAdhan /timings/{date}
+    return `${pad(d.getDate())}-${pad(d.getMonth()+1)}-${d.getFullYear()}`;
+  }
+
+  function parseTimeToday(hhmm){
+    // "05:12" or "05:12 (EET)" sometimes; we strip non-digits/colon
+    const clean = hhmm.replace(/[^\d:]/g,"").slice(0,5);
+    const [h,m] = clean.split(":").map(Number);
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+  }
+
+  function diffToHMS(ms){
+    const total = Math.max(0, Math.floor(ms/1000));
+    const h = Math.floor(total/3600);
+    const m = Math.floor((total%3600)/60);
+    const s = total%60;
+    if (h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    return `${pad(m)}:${pad(s)}`;
+  }
+
+  // ===== Clock loop =====
+  function startClock(){
+    const tick = ()=>{
+      const now = new Date();
+      $("bigTime").textContent = formatHMS(now);
+
+      const weekday = new Intl.DateTimeFormat("ar", { weekday:"long" }).format(now);
+      $("weekdayPill").textContent = weekday;
+
+      const g = new Intl.DateTimeFormat("ar", { day:"2-digit", month:"2-digit", year:"numeric" }).format(now);
+      $("gregPill").textContent = `ميلادي: ${g}`;
+
+      $("tickerRight").textContent = new Intl.DateTimeFormat("ar", { hour:"2-digit", minute:"2-digit", second:"2-digit" }).format(now);
+    };
+    tick();
+    setInterval(tick, 1000);
+  }
+
+  // ===== Location =====
+  async function getByIP(){
+    // fallback if user denies GPS
+    const r = await fetch("https://ipapi.co/json/");
+    if(!r.ok) throw new Error("IP lookup failed");
+    const j = await r.json();
+    return { lat: j.latitude, lon: j.longitude, label: `${j.country_name || ""} - ${j.city || ""}`.trim() };
+  }
+
+  function getByGPS(){
+    return new Promise((resolve, reject)=>{
+      if(!navigator.geolocation) return reject(new Error("Geolocation not supported"));
+      navigator.geolocation.getCurrentPosition(
+        pos => resolve({ lat: pos.coords.latitude, lon: pos.coords.longitude }),
+        err => reject(err),
+        { enableHighAccuracy:true, timeout:12000, maximumAge: 60_000 }
+      );
+    });
+  }
+
+  async function reverseGeocode(lat, lon){
+    // Optional: nice city/country label
+    try{
+      const url = `https://nominatim.openstreetmap.org/reverse?format=jsonv2&lat=${lat}&lon=${lon}`;
+      const r = await fetch(url, { headers: { "Accept":"application/json" } });
+      if(!r.ok) throw new Error("reverse failed");
+      const j = await r.json();
+      const a = j.address || {};
+      const city = a.city || a.town || a.village || a.county || "";
+      const country = a.country || "";
+      const label = [country, city].filter(Boolean).join(" - ");
+      return label || "—";
+    }catch{
+      return "—";
+    }
+  }
+
+  // ===== Prayer times via AlAdhan =====
+  let state = {
+    lat:null, lon:null,
+    timings:null,
+    hijriText:"—",
+    methodName:"—",
+    next:{ name:"—", at:null },
+    timer:null
+  };
+
+  async function fetchTimingsForDate(lat, lon, dateObj, method=4){
+    const dateKey = toDateKey(dateObj);
+    const url = `https://api.aladhan.com/v1/timings/${dateKey}?latitude=${encodeURIComponent(lat)}&longitude=${encodeURIComponent(lon)}&method=${method}`;
+    const r = await fetch(url);
+    if(!r.ok) throw new Error("Failed to fetch timings");
+    const j = await r.json();
+    if(j.code !== 200) throw new Error("Bad response");
+    return j.data;
+  }
+
+  function renderTable(timings){
+    const tbody = $("prayerRows");
+    tbody.innerHTML = "";
+    for(const p of PRAYERS){
+      const tr = document.createElement("tr");
+      tr.dataset.key = p.key;
+
+      const tdName = document.createElement("td");
+      tdName.textContent = p.ar;
+
+      const tdTime = document.createElement("td");
+      tdTime.className = "time";
+      tdTime.textContent = (timings[p.key] || "—").replace(/[^\d:]/g,"").slice(0,5);
+
+      tr.appendChild(tdName);
+      tr.appendChild(tdTime);
+      tbody.appendChild(tr);
+    }
+  }
+
+  function pickNextPrayer(timings, now = new Date()){
+    const entries = PRAYERS.map(p=>{
+      const t = parseTimeToday(timings[p.key]);
+      return { key:p.key, ar:p.ar, at:t };
+    });
+
+    // next within today
+    let next = entries.find(e => e.at > now);
+
+    // if after Isha, next is tomorrow Fajr (we will handle by fetching tomorrow separately)
+    return next || { key:"Fajr", ar:"الفجر", at:null, needsTomorrow:true };
+  }
+
+  async function loadAndRender(method=4){
+    $("warn").style.display = "none";
+    $("methodText").textContent = `طريقة الحساب: ${method}`;
+
+    const lat = state.lat, lon = state.lon;
+    if(lat == null || lon == null) throw new Error("No coordinates");
+
+    // Today
+    const todayData = await fetchTimingsForDate(lat, lon, new Date(), method);
+
+    state.timings = todayData.timings;
+
+    const hijri = todayData.date?.hijri;
+    if(hijri){
+      const hText = `${hijri.day} ${hijri.month?.ar || hijri.month?.en || ""} ${hijri.year} هـ`;
+      $("hijriPill").textContent = `هجري: ${hText}`;
+      state.hijriText = hText;
+    }else{
+      $("hijriPill").textContent = "هجري: —";
+    }
+
+    // Method name (if available)
+    const mName = todayData.meta?.method?.name;
+    if(mName) $("methodText").textContent = `طريقة الحساب: ${mName}`;
+
+    renderTable(state.timings);
+
+    // next prayer logic
+    const now = new Date();
+    let next = pickNextPrayer(state.timings, now);
+
+    if(next.needsTomorrow){
+      const tomorrow = new Date(now);
+      tomorrow.setDate(now.getDate()+1);
+      const tomorrowData = await fetchTimingsForDate(lat, lon, tomorrow, method);
+      const fajrAt = (()=> {
+        const clean = (tomorrowData.timings.Fajr || "00:00").replace(/[^\d:]/g,"").slice(0,5);
+        const [h,m] = clean.split(":").map(Number);
+        return new Date(tomorrow.getFullYear(), tomorrow.getMonth(), tomorrow.getDate(), h, m, 0, 0);
+      })();
+      next = { key:"Fajr", ar:"الفجر", at: fajrAt };
+    }
+
+    state.next = next;
+    $("nextPrayerName").textContent = next.ar;
+
+    // highlight row
+    [...$("prayerRows").querySelectorAll("tr")].forEach(tr => tr.classList.remove("highlight"));
+    const tr = $("prayerRows").querySelector(`tr[data-key="${next.key}"]`);
+    if(tr) tr.classList.add("highlight");
+
+    // countdown
+    if(state.timer) clearInterval(state.timer);
+    const updateCountdown = ()=>{
+      const now2 = new Date();
+      let target = state.next.at;
+      if(!target){
+        $("countdown").textContent = "—";
+        return;
+      }
+      const ms = target - now2;
+      $("countdown").textContent = diffToHMS(ms);
+
+      // if passed (edge case), refresh
+      if(ms <= 0){
+        loadAndRender(method).catch(()=>{});
+      }
+    };
+    updateCountdown();
+    state.timer = setInterval(updateCountdown, 1000);
+  }
+
+  async function detectLocation(){
+    $("locationText").textContent = "… جاري تحديد الموقع";
+    $("tzText").textContent = "";
+    try{
+      // Prefer GPS
+      const gps = await getByGPS();
+      state.lat = gps.lat;
+      state.lon = gps.lon;
+      const label = await reverseGeocode(state.lat, state.lon);
+      $("locationText").textContent = label !== "—" ? label : `Lat ${state.lat.toFixed(3)} , Lon ${state.lon.toFixed(3)}`;
+    }catch(e){
+      // fallback IP
+      const ip = await getByIP();
+      state.lat = ip.lat;
+      state.lon = ip.lon;
+      $("locationText").textContent = ip.label || `Lat ${state.lat.toFixed(3)} , Lon ${state.lon.toFixed(3)}`;
+    }
+
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "—";
+    $("tzText").textContent = `المنطقة الزمنية: ${tz}`;
+
+    await loadAndRender(4); // method 4 default
+    $("tickerLeft").textContent = "تم التحديث حسب موقع الجهاز";
+  }
+
+  // ===== Events =====
+  $("refreshBtn").addEventListener("click", ()=> loadAndRender(4).catch(showError));
+  $("askGeoBtn").addEventListener("click", ()=> detectLocation().catch(showError));
+
+  function showError(err){
+    const w = $("warn");
+    w.style.display = "block";
+    w.textContent = "تعذّر جلب المواقيت. جرّب تحديث الصفحة أو السماح بالوصول للموقع.";
+    console.error(err);
+  }
+
+  // Start
+  startClock();
+  detectLocation().catch(showError);
+</script>
+</body>
+</html>
