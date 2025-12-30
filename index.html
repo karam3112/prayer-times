@@ -522,7 +522,6 @@
     birthdaysFile: "birthdays.csv",
     birthdayEveryMinutes: 20,
 
-    // آيات (مراجع) بالترتيب
     versesFile: "verses.json",
     verseChangeMinutes: 5,
     verseSpeedSeconds: 40,
@@ -532,7 +531,22 @@
       "📚 تذكير: نعتني بكتبنا ونحافظ على صفوفنا",
       "✅ سلوك اليوم: نحترم دور غيرنا",
       "🧼 نغسل أيدينا قبل الأكل وبعده",
-      "🤝 معًا نصنع يومًا جميلًا في مدرسة الغزالي"
+      "🤝 معًا نصنع يومًا جميلًا في مدرسة الغزالي",
+      "😊 الابتسامة كلمة طيبة لا تكلّف شيئًا",
+      "🧠 نتعلّم اليوم شيئًا جديدًا… خطوة خطوة",
+      "🎒 نحافظ على أغراضنا وأغراض غيرنا",
+      "🕊️ الهدوء طريقنا للنجاح",
+      "💬 نستخدم كلمات لطيفة مع أصدقائنا",
+      "🧹 النظافة مسؤولية الجميع",
+      "👂 نستمع جيدًا لنعرف أكثر",
+      "🏫 مدرستنا بيتنا الثاني",
+      "✨ الاختلاف بيننا قوة وجمال",
+      "✋ نرفع أيدينا قبل الكلام",
+      "⭐ كل واحد منا مميّز بطريقته",
+      "📖 القراءة تفتح لنا عوالم جديدة",
+      "🧩 نساعد بعضنا لننجح معًا",
+      "⏰ نلتزم بالوقت احترامًا للجميع",
+      "🌱 اليوم فرصة جديدة لعمل الخير"
     ],
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
@@ -663,6 +677,9 @@
 
   let fired = new Set();
 
+  // يمنع الكتابة فوق التنبيه "الحقيقي" (10 دقائق) أثناء عرضه
+  let hardAlertUntil = 0;
+
   function beep(){
     if(!CONFIG.beep) return;
     try{
@@ -683,17 +700,22 @@
     el.textContent = text;
     el.classList.toggle("silent", !!silent);
     el.style.display = "block";
-    if(!silent) beep();
+
+    if(!silent){
+      beep();
+      hardAlertUntil = Date.now() + (CONFIG.alertShowSeconds * 1000);
+    }
+
     setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
   }
-  
-  function setPersistentCountdown(text){
-	const el = $("alertBar");
-	el.classList.add("silent");     // شكل هادئ
-	el.style.display = "block";     // ثابت دائمًا
-	el.textContent = text;          // تحديث النص فقط
-  }
 
+  function setPersistentCountdown(text){
+    if(Date.now() < hardAlertUntil) return; // لا تكتب فوق التنبيه الحقيقي
+    const el = $("alertBar");
+    el.classList.add("silent");
+    el.style.display = "block";
+    el.textContent = text;
+  }
 
   function formatRemainingTime(sec){
     if(sec < 0) return "";
@@ -703,34 +725,35 @@
     return `${minutes} دقائق`;
   }
 
-	function handlePreAlertsAndCountdown(){
-	if(!timingsAdj) return;
-	const now = new Date();
-	const next = getNextPrayer();
-	if(!next) return;
+  function handlePreAlertsAndCountdown(){
+    if(!timingsAdj) return;
 
-  // ===== 1) عدّاد ثابت (بدون وميض)
-  const secLeft = Math.floor((next.at - now) / 1000);
-  if(secLeft >= 0){
-    const remainingText = formatRemainingTime(secLeft);
-    setPersistentCountdown(`⏳ الوقت المتبقي للأذان القادم: ${remainingText}`);
-  }
+    const now = new Date();
+    const next = getNextPrayer();
+    if(!next) return;
 
-  // ===== 2) التنبيه الحقيقي قبل الأذان (يبقى كما هو - مع صوت)
-  const mins = CONFIG.preAlertMinutes[next.key];
-  if(mins != null){
-    const pre = new Date(next.at.getTime() - mins*60*1000);
-    const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
-    if(!fired.has(stamp)){
-      const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
-      if(Math.abs(now - pre) <= windowMs){
-        const nameAr = NAME_AR[next.key] || next.key;
-        showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
-        fired.add(stamp);
+    // 1) عدّاد ثابت بدون وميض
+    const secLeft = Math.floor((next.at - now) / 1000);
+    if(secLeft >= 0){
+      const remainingText = formatRemainingTime(secLeft);
+      setPersistentCountdown(`⏳ الوقت المتبقي للأذان القادم: ${remainingText}`);
+    }
+
+    // 2) التنبيه الحقيقي قبل الأذان
+    const mins = CONFIG.preAlertMinutes[next.key];
+    if(mins != null){
+      const pre = new Date(next.at.getTime() - mins*60*1000);
+      const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
+      if(!fired.has(stamp)){
+        const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
+        if(Math.abs(now - pre) <= windowMs){
+          const nameAr = NAME_AR[next.key] || next.key;
+          showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
+          fired.add(stamp);
+        }
       }
     }
   }
-}
 
   // ===== Ticker
   let tickerIndex = 0;
@@ -834,7 +857,6 @@
   }
 
   async function fetchVerseText(surah, ayah){
-    // نجلب النص من مصدر خارجي (حتى لا نكتب النص داخل الكود)
     const url = `https://api.alquran.cloud/v1/ayah/${surah}:${ayah}/ar`;
     const r = await fetch(url, { cache: "no-store" });
     if(!r.ok) throw new Error("Verse fetch failed");
@@ -846,7 +868,6 @@
   function setVerseTrackText(text, ref){
     const el = $("verseTrack");
     const label = `(${ref.surah}:${ref.ayah})`;
-    // نكرر النص لتنعيم الحركة على الشريط
     el.textContent = `• ${text} ${label} • ${text} ${label}`;
   }
 
@@ -862,7 +883,6 @@
         setVerseTrackText(`مرجع الآية ${ref.surah}:${ref.ayah}`, ref);
       }
     }catch{
-      // إذا لا يوجد إنترنت: نعرض المرجع فقط
       setVerseTrackText(`مرجع الآية ${ref.surah}:${ref.ayah}`, ref);
     }
     setVerseIndex(idx);
@@ -940,7 +960,6 @@
 
   startTicker();
 
-  // clock loop
   setClockAndDates();
   setInterval(()=>{
     setClockAndDates();
