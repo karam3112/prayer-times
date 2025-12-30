@@ -32,7 +32,7 @@
 
       /* زمن تحريك الشريط */
       --tickerSpeed: 28s;
-      --verseSpeed: 15s;
+      --verseSpeed: 40s;
     }
 
     *{ box-sizing:border-box; }
@@ -297,9 +297,22 @@
       flex:0 0 auto;
     }
 
+    /* شريط العدّاد (ثابت) */
+    .countdown{
+      margin-top: calc(var(--s)*0.55);
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(90,150,210,.35);
+      background: rgba(160, 210, 255, .22);
+      color:#0b1d2a;
+      font-weight:1000;
+      text-align:center;
+      font-size: calc(var(--s)*1.05);
+    }
+
     /* سطر الآية (يمر ببطء) */
     .verseWrap{
-      margin-top: calc(var(--s)*0.55);
+      margin-top: calc(var(--s)*0.45);
       display:flex;
       align-items:center;
       gap:12px;
@@ -318,7 +331,8 @@
       border-radius: 12px;
       background: rgba(122,90,52,.08);
       border: 2px solid rgba(122,90,52,.18);
-      height: calc(var(--s)*2.0);
+      height: calc(var(--s)*2.55);  /* أعلى ومريح */
+      padding-block: 6px;           /* نفس بصري */
       display:flex;
       align-items:center;
     }
@@ -326,10 +340,11 @@
       display:inline-flex;
       align-items:center;
       white-space:nowrap;
-      padding-inline: 18px;
+      padding-inline: 22px;
       font-weight:1000;
       font-size: calc(var(--s)*0.98);
       color:#111;
+      line-height:1.2;
       animation: verseMove var(--verseSpeed) linear infinite;
     }
     @keyframes verseMove{
@@ -337,6 +352,7 @@
       100%{ transform: translateX(110%); }
     }
 
+    /* تنبيه قبل الأذان (يظهر فوق كل شيء) */
     .alert{
       position:absolute;
       left: 18px;
@@ -352,12 +368,7 @@
       font-size: calc(var(--s)*1.05);
       display:none;
       backdrop-filter: blur(6px);
-      z-index:4;
-    }
-    .alert.silent{
-      background: rgba(160, 210, 255, .22);
-      border-color: rgba(90,150,210,.35);
-      color:#0b1d2a;
+      z-index:6;
     }
 
     .birthday{
@@ -372,7 +383,7 @@
       font-weight:1000;
       box-shadow: 0 30px 80px rgba(0,0,0,.25);
       display:none;
-      z-index:5;
+      z-index:7;
     }
     .birthday .sub{
       margin-top: 10px;
@@ -431,8 +442,15 @@
       padding-inline: 10px;
     }
 
+    /* نحترم إعداد النظام لتقليل الحركة... */
     @media (prefers-reduced-motion: reduce){
-      .ticker .track, .verseTrack{ animation:none; }
+      .ticker .track{ animation:none; }
+      /* الآية سنجبرها على الحركة لاحقاً */
+    }
+
+    /* ...لكن نجبر حركة الآية دائمًا */
+    .verseTrack{
+      animation: verseMove var(--verseSpeed) linear infinite !important;
     }
   </style>
 </head>
@@ -452,11 +470,10 @@
           <div class="right">
             <div class="logo"><img id="logoImg" src="logo.png" alt="logo"></div>
             <div>
-              توقيت مدرسة الغزالي<br/>
-              باقة الغربية
+              توقيت مدرسة الغزالي
             </div>
           </div>
-          <div class="left" id="locText">باقـة الغربية - إسرائيل</div>
+          <div class="left" id="locText">باقة الغربية</div>
         </div>
 
         <div class="clock">
@@ -481,8 +498,11 @@
           <div class="item" data-key="Isha"><span class="name">العشاء</span><span class="val" id="isha">--:--</span></div>
         </div>
 
+        <!-- العدّاد الثابت فوق الآية -->
+        <div class="countdown" id="countdownText">⏳ الوقت المتبقي للأذان القادم: —</div>
+
         <!-- سطر آية يمر ببطء -->
-        <div class="verseWrap" aria-label="آية اليوم (تتبدل كل 5 دقائق)">
+        <div class="verseWrap" aria-label="آية (تتبدل كل 5 دقائق)">
           <div class="verseLabel">📖 آية</div>
           <div class="verseBar">
             <div class="verseTrack" id="verseTrack">—</div>
@@ -507,14 +527,13 @@
 
 <script>
   const CONFIG = {
-    label: "باقـة الغربية - إسرائيل",
+    label: "باقة الغربية",
     lat: 32.4169,
     lon: 35.0405,
     tz: "Asia/Jerusalem",
     method: 3,
 
     offsets: { Fajr: 2, Dhuhr: 1, Asr: 3, Maghrib: 10, Isha: 0, Sunrise: 0 },
-
     preAlertMinutes: { Fajr: 10, Dhuhr: 10, Asr: 10, Maghrib: 10, Isha: 10 },
 
     beep: true,
@@ -523,8 +542,8 @@
     birthdayEveryMinutes: 20,
 
     versesFile: "verses.json",
-    verseChangeMinutes: 40,
-    verseSpeedSeconds: 22,
+    verseChangeMinutes: 5,
+    verseSpeedSeconds: 40,
 
     tickerMessages: [
       "🌟 صباح الخير يا أبطال الغزالي",
@@ -549,6 +568,7 @@
       "🌱 اليوم فرصة جديدة لعمل الخير"
     ],
     tickerSpeedSeconds: 28,
+
     preAlertWindowSeconds: 20,
     alertShowSeconds: 12
   };
@@ -676,8 +696,6 @@
   }
 
   let fired = new Set();
-
-  // يمنع الكتابة فوق التنبيه "الحقيقي" (10 دقائق) أثناء عرضه
   let hardAlertUntil = 0;
 
   function beep(){
@@ -695,26 +713,13 @@
     }catch{}
   }
 
-  function showAlert(text, silent=false){
+  function showAlert(text){
     const el = $("alertBar");
     el.textContent = text;
-    el.classList.toggle("silent", !!silent);
     el.style.display = "block";
-
-    if(!silent){
-      beep();
-      hardAlertUntil = Date.now() + (CONFIG.alertShowSeconds * 1000);
-    }
-
+    beep();
+    hardAlertUntil = Date.now() + (CONFIG.alertShowSeconds * 1000);
     setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
-  }
-
-  function setPersistentCountdown(text){
-    if(Date.now() < hardAlertUntil) return; // لا تكتب فوق التنبيه الحقيقي
-    const el = $("alertBar");
-    el.classList.add("silent");
-    el.style.display = "block";
-    el.textContent = text;
   }
 
   function formatRemainingTime(sec){
@@ -725,33 +730,36 @@
     return `${minutes} دقائق`;
   }
 
-  function handlePreAlertsAndCountdown(){
+  function updateCountdown(){
+    if(!timingsAdj) return;
+    const now = new Date();
+    const next = getNextPrayer();
+    if(!next) return;
+    const secLeft = Math.floor((next.at - now) / 1000);
+    if(secLeft >= 0){
+      $("countdownText").textContent = `⏳ الوقت المتبقي للأذان القادم: ${formatRemainingTime(secLeft)}`;
+    }
+  }
+
+  function handlePreAlerts(){
     if(!timingsAdj) return;
 
     const now = new Date();
     const next = getNextPrayer();
     if(!next) return;
 
-    // 1) عدّاد ثابت بدون وميض
-    const secLeft = Math.floor((next.at - now) / 1000);
-    if(secLeft >= 0){
-      const remainingText = formatRemainingTime(secLeft);
-      setPersistentCountdown(`⏳ الوقت المتبقي للأذان القادم: ${remainingText}`);
-    }
-
-    // 2) التنبيه الحقيقي قبل الأذان
     const mins = CONFIG.preAlertMinutes[next.key];
-    if(mins != null){
-      const pre = new Date(next.at.getTime() - mins*60*1000);
-      const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
-      if(!fired.has(stamp)){
-        const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
-        if(Math.abs(now - pre) <= windowMs){
-          const nameAr = NAME_AR[next.key] || next.key;
-          showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
-          fired.add(stamp);
-        }
-      }
+    if(mins == null) return;
+
+    const pre = new Date(next.at.getTime() - mins*60*1000);
+    const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
+    if(fired.has(stamp)) return;
+
+    const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
+    if(Math.abs(now - pre) <= windowMs){
+      const nameAr = NAME_AR[next.key] || next.key;
+      showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`);
+      fired.add(stamp);
     }
   }
 
@@ -837,7 +845,7 @@
     }, CONFIG.birthdayEveryMinutes * 60 * 1000);
   }
 
-  // ===== Verses (ordered, change every 5 minutes)
+  // ===== Verses (ordered, change every 5 minutes) - بدون رقم السورة/الآية
   const VERSE_LS = "ghazali_verse_index_v1";
   let verseRefs = [];
 
@@ -865,10 +873,9 @@
     return text;
   }
 
-  function setVerseTrackText(text, ref){
+  function setVerseTrackText(text){
     const el = $("verseTrack");
-    const label = `(${ref.surah}:${ref.ayah})`;
-    el.textContent = `• ${text} ${label} • ${text} ${label}`;
+    el.textContent = `• ${text} • ${text}`;
   }
 
   async function showVerseAt(index){
@@ -877,13 +884,9 @@
     const ref = verseRefs[idx];
     try{
       const text = await fetchVerseText(ref.surah, ref.ayah);
-      if(text){
-        setVerseTrackText(text, ref);
-      }else{
-        setVerseTrackText(`مرجع الآية ${ref.surah}:${ref.ayah}`, ref);
-      }
+      setVerseTrackText(text || "—");
     }catch{
-      setVerseTrackText(`مرجع الآية ${ref.surah}:${ref.ayah}`, ref);
+      setVerseTrackText("—");
     }
     setVerseIndex(idx);
   }
@@ -919,6 +922,7 @@
 
     fillTimes();
     updateNextHighlight();
+    updateCountdown();
   }
 
   async function loadTimings(){
@@ -964,7 +968,8 @@
   setInterval(()=>{
     setClockAndDates();
     updateNextHighlight();
-    handlePreAlertsAndCountdown();
+    updateCountdown();
+    handlePreAlerts();
 
     const dk = formatDateKey(new Date());
     if(lastLoadedDateKey && dk !== lastLoadedDateKey){
@@ -986,6 +991,3 @@
 </script>
 </body>
 </html>
-
-
-
