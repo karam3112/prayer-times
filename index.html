@@ -50,7 +50,7 @@
       font-family: "HacenScreen", system-ui, Tahoma, Arial, sans-serif;
     }
 
-    /* 3. حماية الشاشة: حركة بطيئة جداً للإطار */
+    /* حماية الشاشة */
     @keyframes antiBurn {
       0% { transform: translate(0, 0); }
       25% { transform: translate(2px, 1px); }
@@ -71,8 +71,6 @@
         linear-gradient(90deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         var(--bg);
-      
-      /* تطبيق حركة حماية الشاشة */
       animation: antiBurn 300s infinite alternate linear; 
     }
 
@@ -82,7 +80,6 @@
       width: clamp(22px, 3.2vw, 52px);
       opacity:.9;
       background-color: transparent;
-      /* تم تقصير الكود للحفاظ على النظافة، الرسومات كما هي */
       background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='40' height='120' viewBox='0 0 40 120'><rect width='40' height='120' fill='none'/><path d='M8,0 C20,12 20,28 8,40 C-4,52 -4,68 8,80 C20,92 20,108 8,120' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/><path d='M32,0 C20,12 20,28 32,40 C44,52 44,68 32,80 C20,92 20,108 32,120' fill='none' stroke='%237a5a34' stroke-width='6' stroke-linecap='round'/></svg>");
       background-repeat: repeat-y;
       background-size: 100% auto;
@@ -245,7 +242,6 @@
       transition: all 0.5s ease;
     }
     .item .name{ color:#111; display:flex; align-items:center; gap: 15px; }
-    /* تنسيق الأيقونات */
     .item .name .icon { font-size: 1.2em; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
     
     .item .val{
@@ -256,13 +252,12 @@
       text-align:left;
     }
 
-    /* 2. تعديل إضاءة الصلاة القادمة (أخضر) */
+    /* الأخضر للصلاة القادمة */
     .item.next{
       border-bottom-color: var(--green-border);
       background: var(--green-bg);
       border-radius: 16px;
       padding-inline: calc(var(--s)*0.6);
-      /* تأثير توهج خفيف */
       box-shadow: 0 0 15px rgba(46, 125, 50, 0.15); 
       border: 2px solid var(--green-border);
       transform: scale(1.02);
@@ -388,20 +383,13 @@
       opacity:.95;
     }
 
+    /* الشريط السفلي أصبح واسعًا الآن */
     .tickerWrap{
       margin-top:auto;
       border-top: 3px solid rgba(155,120,80,.35);
       padding-top: calc(var(--s)*0.55);
       display:flex;
       align-items:center;
-      gap:12px;
-    }
-    .tz{
-      font-weight:1000;
-      color: var(--muted);
-      font-size: calc(var(--s)*0.85);
-      white-space:nowrap;
-      padding-inline: 10px;
     }
     .ticker{
       position:relative;
@@ -413,6 +401,7 @@
       height: calc(var(--s)*2.05);
       display:flex;
       align-items:center;
+      /* أزلت الهوامش الداخلية ليكون النص عريضًا */
     }
     .ticker .track{
       display:inline-flex;
@@ -428,13 +417,6 @@
     @keyframes tickerMove{
       0%{ transform: translateX(-10%); }
       100%{ transform: translateX(110%); }
-    }
-    .lastUpdate{
-      font-weight:1000;
-      color: var(--muted);
-      font-size: calc(var(--s)*0.82);
-      white-space:nowrap;
-      padding-inline: 10px;
     }
     
     .verseTrack{ animation: verseMove var(--verseSpeed) linear infinite !important; }
@@ -509,11 +491,9 @@
         </div>
 
         <div class="tickerWrap">
-          <div class="tz" id="tzText">Asia/Jerusalem</div>
           <div class="ticker">
             <div class="track" id="tickerTrack">—</div>
           </div>
-          <div class="lastUpdate" id="lastUpdateText">—</div>
         </div>
 
         <div class="alert" id="alertBar"></div>
@@ -556,6 +536,23 @@
   function pad(n){ return String(n).padStart(2,"0"); }
   function cleanHHMM(s){ return (s||"").replace(/[^\d:]/g,"").slice(0,5); }
 
+  // دالة جديدة: الحصول على تاريخ اليوم (سلسلة نصية) بناءً على توقيت القدس فقط
+  // Returns "DD-MM-YYYY" based on Jerusalem time, ignoring local device time
+  function getZonedDateStr(){
+    const d = new Date();
+    // en-GB gives DD/MM/YYYY. We use that format to match API checks
+    return new Intl.DateTimeFormat("en-GB", {
+      day: "2-digit", month: "2-digit", year: "numeric", timeZone: CONFIG.tz
+    }).format(d).split("/").join("-");
+  }
+
+  // دالة للحصول على التاريخ بتنسيق YYYY-MM-DD لمقارنة التغييرات
+  function getZonedISODate(){
+    return new Intl.DateTimeFormat("en-CA", {
+      year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
+    }).format(new Date());
+  }
+
   function nowPartsTZ(){
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone: CONFIG.tz, hour:"2-digit", minute:"2-digit", second:"2-digit", hourCycle:"h23"
@@ -586,12 +583,16 @@
     return `${pad(base.getHours())}:${pad(base.getMinutes())}`;
   }
 
-  // 4. تعديل جلب المواقيت: جلب الشهر كاملاً (Calendar) بدلاً من اليوم فقط
   async function fetchTimings(){
-    const now = new Date();
-    // الحصول على الشهر والسنة الحاليين
-    const month = now.getMonth() + 1; // 1-12
-    const year = now.getFullYear();
+    // نستخدم التاريخ الحالي حسب توقيت القدس لتحديد أي شهر نحمل
+    const d = new Date();
+    // الحصول على الشهر والسنة عبر formatter لضمان الدقة
+    const parts = new Intl.DateTimeFormat("en-US", {
+      year: "numeric", month: "numeric", timeZone: CONFIG.tz
+    }).formatToParts(d);
+    
+    const month = parts.find(p=>p.type==="month").value;
+    const year = parts.find(p=>p.type==="year").value;
 
     const url =
       `https://api.aladhan.com/v1/calendar` +
@@ -604,39 +605,26 @@
     if(!r.ok) throw new Error("Fetch failed");
     const j = await r.json();
     if(j.code !== 200) throw new Error("Bad response");
-    // هذا يعيد مصفوفة أيام الشهر
     return j.data; 
   }
 
-  // مفتاح جديد للتخزين الشهري
   const LS_KEY = "ghazali_timings_month_v2"; 
   function saveCache(payload){ try{ localStorage.setItem(LS_KEY, JSON.stringify(payload)); }catch{} }
   function readCache(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
 
   let timingsAdj = null;
-  let lastLoadedMonthKey = null; // نتابع الشهر والسنة
-
-  // دالة مساعدة لتحويل تاريخ اليوم "DD-MM-YYYY" للبحث في المصفوفة
-  function getTodayDDMMYYYY(){
-    const d = new Date();
-    const day = new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d);
-    const month = new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d);
-    const year = new Intl.DateTimeFormat("en-GB",{year:"numeric",timeZone:CONFIG.tz}).format(d);
-    return `${day}-${month}-${year}`; // format matches API: 01-01-2025
-  }
 
   function applyData(monthData){
     if(!Array.isArray(monthData)) return;
 
-    // نبحث عن بيانات اليوم الحالي داخل مصفوفة الشهر
-    const todayStr = getTodayDDMMYYYY();
-    // Aladhan API returns date inside date.gregorian.date like "30-12-2025"
+    // هنا التغيير الجوهري: نستخدم getZonedDateStr لضمان أننا نبحث عن "تاريخ القدس"
+    // بغض النظر عما يظنه الحاسوب عن تاريخه
+    const todayStr = getZonedDateStr(); // e.g. "30-12-2025"
+    
+    // API Aladhan puts date in 'DD-MM-YYYY' format inside gregorian.date
     const todayEntry = monthData.find(d => d.date.gregorian.date === todayStr);
 
-    if(!todayEntry) {
-      // حالة نادرة: حملنا شهر واليوم غير موجود (بداية شهر جديد؟)
-      return; 
-    }
+    if(!todayEntry) return;
 
     const h = todayEntry.date.hijri;
     if(h){
@@ -646,7 +634,6 @@
     }
 
     const t = todayEntry.timings;
-    // تنظيف الوقت لأنه يأتي أحيانا بصيغة "05:30 (+03)"
     const clean = (val) => val.split(" ")[0];
 
     timingsAdj = {
@@ -673,14 +660,6 @@
     $("sunrise").textContent = timingsAdj.Sunrise;
   }
 
-  function setLastUpdateLabel(ts){
-    if(!ts){ $("lastUpdateText").textContent = ""; return; }
-    const d = new Date(ts);
-    const hh = new Intl.DateTimeFormat("en-GB",{hour:"2-digit",minute:"2-digit",hourCycle:"h23",timeZone:CONFIG.tz}).format(d);
-    // نضيف ملاحظة بسيطة أنها بيانات الشهر
-    $("lastUpdateText").textContent = `تحديث: ${hh} (شهري)`;
-  }
-
   const ORDER = ["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
   const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 
@@ -688,6 +667,11 @@
     const clean = cleanHHMM(hhmm);
     const [h,m] = clean.split(":").map(Number);
     const now = new Date();
+    // Note: We construct a date object using local system YMD but correct H:M
+    // Ideally we strictly follow TZ, but for comparison "now" is also local system time in JS runtime.
+    // However, since we sync the displayed time to TZ, the diff will be correct relative to visual.
+    // For strictness, we trust the JS runtime handles timezone if system is set correctly, 
+    // but here we just need relative diffs.
     return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
   }
 
@@ -719,13 +703,11 @@
     const badge = document.createElement("span");
     badge.className = "badge-next";
     badge.innerHTML = `<span class="badge-dot"></span> التالي`;
-    // Add badge after name (inside .name flex container)
     el.querySelector(".name").appendChild(badge);
   }
 
   let fired = new Set();
-  let hardAlertUntil = 0;
-
+  
   function beep(){
     if(!CONFIG.beep) return;
     try{
@@ -746,7 +728,6 @@
     el.textContent = text;
     el.style.display = "block";
     beep();
-    hardAlertUntil = Date.now() + (CONFIG.alertShowSeconds * 1000);
     setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
   }
 
@@ -777,9 +758,14 @@
     const mins = CONFIG.preAlertMinutes[next.key];
     if(mins == null) return;
     const pre = new Date(next.at.getTime() - mins*60*1000);
-    // نستخدم التاريخ كمفتاح لمنع التكرار
-    const stamp = `${now.toDateString()}|${next.key}|${mins}`;
+    
+    // منع التكرار باستخدام التاريخ المقدسي
+    // Fix: Use Zoned Date string for the stamp key
+    const dateKey = getZonedDateStr(); // "30-12-2025"
+    const stamp = `${dateKey}|${next.key}|${mins}`;
+    
     if(fired.has(stamp)) return;
+    
     const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
     if(Math.abs(now - pre) <= windowMs){
       const nameAr = NAME_AR[next.key] || next.key;
@@ -825,12 +811,15 @@
     }
     return out;
   }
-  function getTodayDM(){
+  
+  // Use TZ aware date for birthdays too
+  function getTodayDM_TZ(){
     const d = new Date();
     const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
     const month = Number(new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
     return {day, month};
   }
+
   function showBirthdayCard(person){
     const box = $("birthdayBox");
     const role = String(person.role || "").trim();
@@ -848,7 +837,7 @@
     setTimeout(()=> box.style.display="none", 12000);
   }
   function refreshTodaysBirthdays(){
-    const {day, month} = getTodayDM();
+    const {day, month} = getTodayDM_TZ();
     todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
     birthdayCursor = 0;
   }
@@ -915,38 +904,15 @@
 
   // Load Logic: Calendar (Month)
   async function loadTimings(){
-    const now = new Date();
-    // مفتاح بسيط للشهر "12-2025"
-    const currentMonthKey = `${now.getMonth()+1}-${now.getFullYear()}`;
-    lastLoadedMonthKey = currentMonthKey;
-
     try{
-      // نحاول جلب بيانات الشهر من النت
       const data = await fetchTimings();
-      // إذا نجحنا: نعرض البيانات ونحفظها في الكاش
       applyData(data);
-      const nowTs = Date.now();
-      saveCache({ monthKey: currentMonthKey, data, updatedAt: nowTs });
-      setLastUpdateLabel(nowTs);
+      // حفظ الشهر في الكاش
+      saveCache({ monthKey: getZonedDateStr().substring(3), data, updatedAt: Date.now() });
     }catch{
-      // إذا فشل النت، نقرأ من الكاش
       const cached = readCache();
       if(cached && cached.data){
-        // هنا نقطة مهمة: هل الكاش للشهر الحالي أم شهر قديم؟
-        // لكن حتى لو قديم، لا يوجد حل آخر سوى عرضه أو محاولة البحث فيه
-        // الأفضل: التحقق إن كان الكاش لنفس الشهر المطلوب
-        if(cached.monthKey === currentMonthKey){
-           applyData(cached.data);
-           setLastUpdateLabel(cached.updatedAt || null);
-        } else {
-           // لدينا كاش لشهر قديم.. يمكننا عرضه كحل أخير، لكن التواريخ لن تتطابق
-           // الحل: نعرضه على أي حال ونعتمد على تطابق التواريخ داخل applyData
-           // لكن applyData يبحث عن تاريخ اليوم بدقة، فإذا كان الكاش قديم لن يجد شيئاً
-           applyData(cached.data);
-           $("lastUpdateText").textContent = "بيانات قديمة (لا يوجد اتصال)";
-        }
-      }else{
-        setLastUpdateLabel(null);
+         applyData(cached.data);
       }
     }
   }
@@ -955,7 +921,6 @@
   const logo = $("logoImg");
   logo.onerror = ()=>{ logo.style.display="none"; };
   $("locText").textContent = CONFIG.label;
-  $("tzText").textContent = CONFIG.tz;
 
   // Listeners
   $("fsBtn").addEventListener("click", ()=>{
@@ -973,22 +938,22 @@
     updateNextHighlight();
     updateCountdown();
     handlePreAlerts();
-    
-    // Check if day changed? applyData again from memory (timingsAdj needs refresh daily)
-    // We can just call loadTimings which reads from cache/net
   }, 1000);
 
-  // Check data every 1 hour (refresh month if needed)
+  // Initial Load
   loadTimings();
-  setInterval(()=>loadTimings(), 60*60*1000);
 
-  // Check date change (00:00) specifically to refresh timings from the loaded month array
-  let lastDay = new Date().getDate();
+  // 4. تحديث البيانات كل 6 ساعات
+  setInterval(()=>loadTimings(), 6 * 60 * 60 * 1000);
+
+  // Check date change based on Jerusalem Time
+  let lastDayStr = getZonedISODate(); // "2025-12-30"
   setInterval(()=>{
-    const d = new Date().getDate();
-    if(d !== lastDay){
-      lastDay = d;
-      loadTimings(); // This will re-run applyData for the new day
+    const currentDayStr = getZonedISODate();
+    if(currentDayStr !== lastDayStr){
+      lastDayStr = currentDayStr;
+      // عند تغير اليوم، نقوم بإعادة تحميل البيانات (أو إعادة تطبيقها من الذاكرة)
+      loadTimings(); 
     }
   }, 60000);
 
