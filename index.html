@@ -686,6 +686,14 @@
     if(!silent) beep();
     setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
   }
+  
+  function setPersistentCountdown(text){
+	const el = $("alertBar");
+	el.classList.add("silent");     // شكل هادئ
+	el.style.display = "block";     // ثابت دائمًا
+	el.textContent = text;          // تحديث النص فقط
+  }
+
 
   function formatRemainingTime(sec){
     if(sec < 0) return "";
@@ -695,32 +703,34 @@
     return `${minutes} دقائق`;
   }
 
-  function handlePreAlertsAndCountdown(){
-    if(!timingsAdj) return;
-    const now = new Date();
-    const next = getNextPrayer();
-    if(!next) return;
+	function handlePreAlertsAndCountdown(){
+	if(!timingsAdj) return;
+	const now = new Date();
+	const next = getNextPrayer();
+	if(!next) return;
 
-    const secLeft = Math.floor((next.at - now) / 1000);
-    if(secLeft >= 0){
-      const remainingText = formatRemainingTime(secLeft);
-      showAlert(`⏳ الوقت المتبقي للأذان القادم: ${remainingText}`, true);
-    }
+  // ===== 1) عدّاد ثابت (بدون وميض)
+  const secLeft = Math.floor((next.at - now) / 1000);
+  if(secLeft >= 0){
+    const remainingText = formatRemainingTime(secLeft);
+    setPersistentCountdown(`⏳ الوقت المتبقي للأذان القادم: ${remainingText}`);
+  }
 
-    const mins = CONFIG.preAlertMinutes[next.key];
-    if(mins != null){
-      const pre = new Date(next.at.getTime() - mins*60*1000);
-      const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
-      if(!fired.has(stamp)){
-        const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
-        if(Math.abs(now - pre) <= windowMs){
-          const nameAr = NAME_AR[next.key] || next.key;
-          showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
-          fired.add(stamp);
-        }
+  // ===== 2) التنبيه الحقيقي قبل الأذان (يبقى كما هو - مع صوت)
+  const mins = CONFIG.preAlertMinutes[next.key];
+  if(mins != null){
+    const pre = new Date(next.at.getTime() - mins*60*1000);
+    const stamp = `${formatDateKey(now)}|${next.key}|${mins}`;
+    if(!fired.has(stamp)){
+      const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
+      if(Math.abs(now - pre) <= windowMs){
+        const nameAr = NAME_AR[next.key] || next.key;
+        showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`, false);
+        fired.add(stamp);
       }
     }
   }
+}
 
   // ===== Ticker
   let tickerIndex = 0;
