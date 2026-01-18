@@ -71,7 +71,7 @@
         linear-gradient(90deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         var(--bg);
-      animation: antiBurn 300s infinite alternate linear; 
+      animation: antiBurn 300s infinite alternate linear;
     }
 
     .arab-border{
@@ -193,13 +193,13 @@
 
     .clock{
       text-align:center;
-      margin-top: calc(var(--s)*0.60); /* Reduced slightly to fit weather */
+      margin-top: calc(var(--s)*0.60);
       font-weight: 1000;
       letter-spacing: 1px;
       color:#111;
     }
     .clock .t{
-      font-size: clamp(70px, 10vw, 140px); /* Slightly smaller max to fit weather */
+      font-size: clamp(70px, 10vw, 140px);
       line-height:1;
     }
 
@@ -244,6 +244,30 @@
     .w-icon { font-size: 1.3em; margin-top:-4px; }
     .w-temp { direction: ltr; font-weight:1000; }
 
+    /* Ramadan Countdown (Red lines) */
+    .ramadan-row{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap: 12px;
+      margin-top: 10px;
+      margin-bottom: 6px;
+      padding: 8px 18px;
+      border-radius: 16px;
+      width: fit-content;
+      margin-left:auto;
+      margin-right:auto;
+
+      border-top: 3px solid #c91c1c;
+      border-bottom: 3px solid #c91c1c;
+
+      background: rgba(201, 28, 28, 0.07);
+      color: #c91c1c;
+      font-weight: 1000;
+      font-size: clamp(18px, 2.2vw, 34px);
+    }
+    .ramadan-row .num{ direction:ltr; }
+
     .times{
       margin-top: calc(var(--s)*0.55);
       display:flex;
@@ -265,7 +289,7 @@
     }
     .item .name{ color:#111; display:flex; align-items:center; gap: 15px; }
     .item .name .icon { font-size: 1.2em; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
-    
+
     .item .val{
       color: var(--red);
       font-variant-numeric: tabular-nums;
@@ -280,7 +304,7 @@
       background: var(--green-bg);
       border-radius: 16px;
       padding-inline: calc(var(--s)*0.6);
-      box-shadow: 0 0 15px rgba(46, 125, 50, 0.15); 
+      box-shadow: 0 0 15px rgba(46, 125, 50, 0.15);
       border: 2px solid var(--green-border);
       transform: scale(1.02);
     }
@@ -438,7 +462,7 @@
       0%{ transform: translateX(-10%); }
       100%{ transform: translateX(110%); }
     }
-    
+
     .verseTrack{ animation: verseMove var(--verseSpeed) linear infinite !important; }
   </style>
 </head>
@@ -472,11 +496,17 @@
           </div>
           <div class="row2" id="gregText">—</div>
           <div class="row2" id="hijriText" style="margin-top:8px;">—</div>
-          
+
           <div class="weather-row" id="weatherWrap" style="display:none">
             <span id="wIcon" class="w-icon">⛅</span>
             <span id="wTemp" class="w-temp">--°C</span>
             <span id="wDesc" class="w-desc">--</span>
+          </div>
+
+          <div class="ramadan-row" id="ramadanWrap" style="display:none">
+            🌙 باقي على بداية شهر رمضان المبارك
+            <span class="num" id="ramadanDays">--</span>
+            <span id="ramadanWord">يوم</span>
           </div>
         </div>
 
@@ -610,7 +640,7 @@
     const parts = new Intl.DateTimeFormat("en-US", {
       year: "numeric", month: "numeric", timeZone: CONFIG.tz
     }).formatToParts(d);
-    
+
     const month = parts.find(p=>p.type==="month").value;
     const year = parts.find(p=>p.type==="year").value;
 
@@ -625,27 +655,91 @@
     if(!r.ok) throw new Error("Fetch failed");
     const j = await r.json();
     if(j.code !== 200) throw new Error("Bad response");
-    return j.data; 
+    return j.data;
   }
 
-  const LS_KEY = "ghazali_timings_month_v2"; 
+  const LS_KEY = "ghazali_timings_month_v2";
   function saveCache(payload){ try{ localStorage.setItem(LS_KEY, JSON.stringify(payload)); }catch{} }
   function readCache(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
 
   let timingsAdj = null;
 
+  // ====== Ramadan Countdown Helpers ======
+  function parseDDMMYYYY_toDate(ddmmyyyy){
+    const [dd,mm,yy] = ddmmyyyy.split("-").map(Number);
+    return new Date(yy, mm-1, dd, 0, 0, 0, 0);
+  }
+
+  function getNowInTZ_DateStart(){
+    const d = new Date();
+    const y = Number(new Intl.DateTimeFormat("en-CA",{year:"numeric",timeZone:CONFIG.tz}).format(d));
+    const m = Number(new Intl.DateTimeFormat("en-CA",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
+    const day = Number(new Intl.DateTimeFormat("en-CA",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
+    return new Date(y, m-1, day, 0, 0, 0, 0);
+  }
+
+  function setRamadanText(days){
+    const wrap = $("ramadanWrap");
+    const daysEl = $("ramadanDays");
+    const wordEl = $("ramadanWord");
+    if(!wrap || !daysEl || !wordEl) return;
+
+    if(days <= 0){
+      wrap.style.display = "flex";
+      wrap.innerHTML = "🌙 رمضان مبارك";
+      return;
+    }
+
+    wrap.style.display = "flex";
+    daysEl.textContent = String(days);
+    // شرطك: 1-9 => أيام | 10+ => يوم
+    wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
+  }
+
+  async function updateRamadanCountdown(hijriYear){
+    try{
+      const todayStart = getNowInTZ_DateStart();
+
+      async function getRamadanStartGregorian(hYear){
+        const url = `https://api.aladhan.com/v1/hToG?date=01-09-${encodeURIComponent(hYear)}`;
+        const r = await fetch(url, { cache:"no-store" });
+        if(!r.ok) throw new Error("hToG failed");
+        const j = await r.json();
+        const gDate = j?.data?.gregorian?.date; // "DD-MM-YYYY"
+        if(!gDate) throw new Error("no greg date");
+        return parseDDMMYYYY_toDate(gDate);
+      }
+
+      let ramadanStart = await getRamadanStartGregorian(hijriYear);
+
+      // إذا رمضان لهذه السنة بدأ بالفعل، احسب للسنة القادمة
+      if(ramadanStart <= todayStart){
+        ramadanStart = await getRamadanStartGregorian(Number(hijriYear) + 1);
+      }
+
+      const diffDays = Math.ceil((ramadanStart - todayStart) / (1000*60*60*24));
+      setRamadanText(diffDays);
+    }catch{
+      const wrap = $("ramadanWrap");
+      if(wrap) wrap.style.display = "none";
+    }
+  }
+  // ====== /Ramadan Countdown Helpers ======
+
   function applyData(monthData){
     if(!Array.isArray(monthData)) return;
-    const todayStr = getZonedDateStr(); 
+    const todayStr = getZonedDateStr();
     const todayEntry = monthData.find(d => d.date.gregorian.date === todayStr);
-
     if(!todayEntry) return;
 
     const h = todayEntry.date.hijri;
     if(h){
       $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
+      updateRamadanCountdown(h.year); // ✅ تشغيل عدّاد رمضان
     }else{
       $("hijriText").textContent = "—";
+      const wrap = $("ramadanWrap");
+      if(wrap) wrap.style.display="none";
     }
 
     const t = todayEntry.timings;
@@ -708,7 +802,7 @@
     if(!next) return;
     const el = document.querySelector(`.times .item[data-key="${next.key}"]`);
     if(!el) return;
-    
+
     el.classList.add("next");
     const badge = document.createElement("span");
     badge.className = "badge-next";
@@ -717,7 +811,7 @@
   }
 
   let fired = new Set();
-  
+
   function beep(){
     if(!CONFIG.beep) return;
     try{
@@ -768,12 +862,12 @@
     const mins = CONFIG.preAlertMinutes[next.key];
     if(mins == null) return;
     const pre = new Date(next.at.getTime() - mins*60*1000);
-    
+
     const dateKey = getZonedDateStr();
     const stamp = `${dateKey}|${next.key}|${mins}`;
-    
+
     if(fired.has(stamp)) return;
-    
+
     const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
     if(Math.abs(now - pre) <= windowMs){
       const nameAr = NAME_AR[next.key] || next.key;
@@ -819,7 +913,7 @@
     }
     return out;
   }
-  
+
   function getTodayDM_TZ(){
     const d = new Date();
     const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
@@ -911,9 +1005,6 @@
 
   // Weather Logic
   function wmoToText(code){
-    // تبسيط رموز الطقس للأطفال
-    // 0: Clear, 1-3: Partly Cloudy, 45-48: Fog
-    // 51-55: Drizzle, 61-65: Rain, 71-77: Snow, 95+: Thunder
     if(code === 0) return { t:"مشمس وصافٍ", i:"☀️" };
     if(code >= 1 && code <= 3) return { t:"غائم جزئيًا", i:"⛅" };
     if(code >= 45 && code <= 48) return { t:"ضبابي", i:"🌫️" };
@@ -939,7 +1030,6 @@
         $("weatherWrap").style.display = "flex";
       }
     }catch(e){
-      console.log("Weather error", e);
       $("weatherWrap").style.display = "none";
     }
   }
@@ -987,7 +1077,7 @@
 
   // Timings refresh every 6 hours
   setInterval(()=>loadTimings(), 6 * 60 * 60 * 1000);
-  
+
   // Weather refresh every 30 minutes
   setInterval(()=>fetchWeather(), 30 * 60 * 1000);
 
@@ -997,7 +1087,7 @@
     const currentDayStr = getZonedISODate();
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
-      loadTimings(); 
+      loadTimings();
     }
   }, 60000);
 
@@ -1006,7 +1096,3 @@
 </script>
 </body>
 </html>
-
-
-
-
