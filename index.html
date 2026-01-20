@@ -188,6 +188,17 @@
       line-height:1;
     }
 
+    /* ✅ (2) وميض ثوانٍ ناعم جدًا (opacity 0.8 ↔ 1) */
+    .clock .t .sec{
+      display:inline-block;
+      animation: secBreath 1s infinite alternate ease-in-out;
+      transform-origin:center;
+    }
+    @keyframes secBreath{
+      from { opacity: .8; }
+      to   { opacity: 1; }
+    }
+
     .meta{
       text-align:center;
       margin-top: calc(var(--s)*0.25);
@@ -330,6 +341,19 @@
       0% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0.4); }
       70% { box-shadow: 0 0 0 10px rgba(67, 160, 71, 0); }
       100% { box-shadow: 0 0 0 0 rgba(67, 160, 71, 0); }
+    }
+
+    /* ✅ (1) عدّاد متحرك داخل شارة "التالي" */
+    .badge-mini{
+      direction:ltr;
+      font-variant-numeric: tabular-nums;
+      opacity:.95;
+      margin-inline-start: 6px;
+      animation: miniBreath 1.2s infinite alternate ease-in-out;
+    }
+    @keyframes miniBreath{
+      from { opacity: .78; }
+      to   { opacity: 1; }
     }
 
     .countdown{
@@ -564,7 +588,7 @@
     preAlertMinutes: { Fajr: 10, Dhuhr: 10, Asr: 10, Maghrib: 10, Isha: 10 },
     beep: true,
     birthdaysFile: "birthdays.csv",
-    birthdayEveryMinutes: 5,
+    birthdayEveryMinutes: 20,
     versesFile: "verses.json",
     verseChangeMinutes: 5,
     verseSpeedSeconds: 40,
@@ -613,7 +637,10 @@
 
   function setClockAndDates(){
     const {hh,mm,ss} = nowPartsTZ();
-    $("clockText").textContent = `${hh}:${mm}:${ss}`;
+
+    // ✅ (2) تقسيم الثواني لإضافة وميض ناعم عليها فقط
+    $("clockText").innerHTML = `<span class="hm">${hh}:${mm}</span><span class="sec">:${ss}</span>`;
+
     const d = new Date();
     $("dowText").textContent = new Intl.DateTimeFormat("ar", { weekday:"long", timeZone: CONFIG.tz }).format(d);
     $("monthText").textContent = new Intl.DateTimeFormat("ar", { month:"long", timeZone: CONFIG.tz }).format(d);
@@ -786,6 +813,7 @@
     return { key:"Fajr", at: atTomorrow };
   }
 
+  // ✅ (1) إضافة عدّاد متحرك داخل شارة "التالي"
   function updateNextHighlight(){
     const next = getNextPrayer();
     const items = document.querySelectorAll(".times .item");
@@ -795,13 +823,14 @@
       if(badge) badge.remove();
     });
     if(!next) return;
+
     const el = document.querySelector(`.times .item[data-key="${next.key}"]`);
     if(!el) return;
 
     el.classList.add("next");
     const badge = document.createElement("span");
     badge.className = "badge-next";
-    badge.innerHTML = `<span class="badge-dot"></span> التالي`;
+    badge.innerHTML = `<span class="badge-dot"></span> التالي <span class="badge-mini">--:--</span>`;
     el.querySelector(".name").appendChild(badge);
   }
 
@@ -838,14 +867,31 @@
     return `${minutes} دقائق`;
   }
 
+  // ✅ تنسيق عدّاد الشارة: MM:SS (أو HH:MM:SS إذا لزم)
+  function formatMiniTimer(sec){
+    if(sec < 0) sec = 0;
+    const h = Math.floor(sec / 3600);
+    const m = Math.floor((sec % 3600) / 60);
+    const s = Math.floor(sec % 60);
+    if(h > 0) return `${pad(h)}:${pad(m)}:${pad(s)}`;
+    return `${pad(m)}:${pad(s)}`;
+  }
+
   function updateCountdown(){
     if(!timingsAdj) return;
     const now = new Date();
     const next = getNextPrayer();
     if(!next) return;
+
     const secLeft = Math.floor((next.at - now) / 1000);
     if(secLeft >= 0){
       $("countdownText").textContent = `⏳ الوقت المتبقي للأذان القادم: ${formatRemainingTime(secLeft)}`;
+    }
+
+    // ✅ (1) تحديث عدّاد الشارة داخل "التالي" بدون أي تغييرات أخرى
+    const mini = document.querySelector(".times .item.next .badge-mini");
+    if(mini){
+      mini.textContent = formatMiniTimer(secLeft);
     }
   }
 
@@ -1085,4 +1131,3 @@
 </script>
 </body>
 </html>
-
