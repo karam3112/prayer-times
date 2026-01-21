@@ -133,6 +133,36 @@
       mix-blend-mode:multiply;
     }
 
+    /* =========================
+       ✅ فعاليات المدرسة (خلفية صور ذكية)
+       ========================= */
+    .eventsLayer{
+      position:absolute;
+      inset:0;
+      z-index:0;          /* خلف المحتوى */
+      opacity:0;          /* يتم التحكم بها عبر JS */
+      transition: opacity 900ms ease;
+      pointer-events:none;
+    }
+    .eventsLayer .eventsOverlay{
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 35%, rgba(246,242,234,.25), rgba(246,242,234,.72) 65%, rgba(246,242,234,.86));
+      mix-blend-mode: normal;
+    }
+    .eventsLayer img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform: scale(1.05);
+      filter: blur(2px) saturate(1.05) brightness(.92) contrast(.98);
+      opacity:0;
+      transition: opacity 900ms ease;
+    }
+    .eventsLayer img.show{ opacity:1; }
+
     .content{
       position:relative;
       z-index:1;
@@ -468,6 +498,14 @@
     <div class="arab-border left"></div>
 
     <div class="board">
+
+      <!-- ✅ طبقة صور الفعاليات (خلف المحتوى) -->
+      <div class="eventsLayer" id="eventsLayer" aria-hidden="true">
+        <img id="eventImgA" alt="" />
+        <img id="eventImgB" alt="" />
+        <div class="eventsOverlay"></div>
+      </div>
+
       <div class="grain"></div>
 
       <div class="content">
@@ -580,7 +618,22 @@
     ],
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
-    alertShowSeconds: 12
+    alertShowSeconds: 12,
+
+    /* =========================
+       ✅ إعدادات صور الفعاليات (ثابتة 1..10 + تخطي المفقود)
+       ========================= */
+    events: {
+      enabled: true,
+      basePath: "images/events/",
+      ext: "jpg",            // ثابت lowercase حسب روابطك
+      count: 10,
+      changeSeconds: 28,     // كل كم ثانية تتبدّل الصورة
+      refreshMinutes: 5,     // كل كم دقيقة نعيد فحص الصور الموجودة
+      hideBeforeMinutes: 2,  // إخفاء قبل الأذان بدقيقتين
+      hideAfterMinutes: 3,   // إبقاء الإخفاء بعد الأذان (مدة احترام/هدوء)
+      probeTimeoutMs: 4500
+    }
   };
 
   const $ = (id)=>document.getElementById(id);
@@ -1043,7 +1096,193 @@
     }
   }
 
-  // Init
+  /* =========================
+     ✅ منطق صور الفعاليات
+     ========================= */
+  const eventsState = {
+    valid: [],
+    idx: 0,
+    ready: false,
+    cacheBust: Date.now(),
+    tickHandle: null,
+    lastShownKey: null,
+    showingA: true
+  };
+
+  function eventsUrl(n){
+    // Cache-buster لتجنب عرض نسخة قديمة عند استبدال نفس الاسم
+    return `${CONFIG.events.basePath}${n}.${CONFIG.events.ext}?v=${eventsState.cacheBust}`;
+  }
+
+  function probeImage(url, timeoutMs){
+    return new Promise((resolve)=>{
+      const img = new Image();
+      let done = false;
+
+      const t = setTimeout(()=>{
+        if(done) return;
+        done = true;
+        try{ img.src = ""; }catch{}
+        resolve(false);
+      }, timeoutMs || 4500);
+
+      img.onload = ()=>{
+        if(done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(true);
+      };
+      img.onerror = ()=>{
+        if(done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(false);
+      };
+
+      // يبدأ التحميل
+      img.src = url;
+    });
+  }
+
+  async function refreshEventsList(){
+    if(!CONFIG.events.enabled) return;
+    eventsState.cacheBust = Date.now(); // تحديث النسخة لمنع الكاش
+    const found = [];
+    for(let i=1; i<=CONFIG.events.count; i++){
+      const ok = await probeImage(eventsUrl(i), CONFIG.events.probeTimeoutMs);
+      if(ok) found.push(i);
+    }
+    eventsState.valid = found;
+    eventsState.idx = 0;
+    eventsState.ready = true;
+
+    // إذا لا يوجد صور، نخفي الطبقة تمامًا
+    if(!found.length){
+      setEventsLayerVisible(false);
+    }
+  }
+
+  function shouldShowEventsNow(){
+    if(!CONFIG.events.enabled) return false;
+    if(!eventsState.ready) return false;
+    if(!eventsState.valid.length) return false;
+    if(!timingsAdj) return false;
+
+    const next = getNextPrayer();
+    if(!next) return false;
+
+    const now = new Date();
+    const msToNext = next.at - now;
+
+    // إخفاء قبل الأذان
+    const hideBeforeMs = (CONFIG.events.hideBeforeMinutes || 2) * 60 * 1000;
+    if(msToNext <= hideBeforeMs) return false;
+
+    // إخفاء بعد الأذان (نُعرّفه كـ نافذة احترام هادئة بعد وقت الصلاة)
+    // إذا كنا بعد وقت الصلاة بقليل، يعني: now - (next.at - interval) ليس متاح بسهولة عبر next،
+    // لذلك سنحسب "الصلاة الحالية" بطرق بسيطة: لو كانت الصلاة التالية هي نفسها ولكن الآن قريب منها؟
+    // أسهل: نبني نافذة "حظر" عبر مقارنة الآن مع كل أوقات اليوم:
+    const hideAfterMs = (CONFIG.events.hideAfterMinutes || 3) * 60 * 1000;
+
+    // فحص إن كان الآن داخل أي نافذة "بعد الأذان" من صلوات اليوم
+    for(const k of ORDER){
+      const at = parseTodayHHMM(timingsAdj[k]);
+      const diff = now - at; // موجب إذا بعد الصلاة
+      if(diff >= 0 && diff <= hideAfterMs){
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function setEventsLayerVisible(on){
+    const layer = $("eventsLayer");
+    if(!layer) return;
+    layer.style.opacity = on ? "1" : "0";
+  }
+
+  function renderEventImage(n){
+    const layer = $("eventsLayer");
+    const a = $("eventImgA");
+    const b = $("eventImgB");
+    if(!layer || !a || !b) return;
+
+    const url = eventsUrl(n);
+
+    // تبديل بالصورتين (crossfade)
+    const showA = eventsState.showingA;
+    const front = showA ? a : b;
+    const back  = showA ? b : a;
+
+    // حمّل الصورة في الخلف أولاً، ثم اعرضها
+    back.classList.remove("show");
+    back.src = url;
+
+    // بعد لحظة قصيرة، اعرض الجديدة واطفِ القديمة
+    setTimeout(()=>{
+      back.classList.add("show");
+      front.classList.remove("show");
+      eventsState.showingA = !eventsState.showingA;
+    }, 60);
+
+    eventsState.lastShownKey = String(n);
+  }
+
+  function advanceEvents(){
+    if(!shouldShowEventsNow()){
+      setEventsLayerVisible(false);
+      return;
+    }
+
+    setEventsLayerVisible(true);
+
+    // حماية: لو القائمة تغيرت فجأة
+    if(!eventsState.valid.length) return;
+
+    const n = eventsState.valid[eventsState.idx % eventsState.valid.length];
+    eventsState.idx = (eventsState.idx + 1) % eventsState.valid.length;
+
+    renderEventImage(n);
+  }
+
+  function startEventsLoop(){
+    if(!CONFIG.events.enabled) return;
+
+    // أول تحميل للقائمة ثم بدء العرض
+    refreshEventsList().then(()=>{
+      // اعرض أول صورة فورًا إن سمح الوقت
+      advanceEvents();
+
+      // التبديل كل X ثانية
+      if(eventsState.tickHandle) clearInterval(eventsState.tickHandle);
+      eventsState.tickHandle = setInterval(()=>{
+        advanceEvents();
+      }, (CONFIG.events.changeSeconds || 28) * 1000);
+    }).catch(()=>{});
+  }
+
+  function scheduleEventsRefresh(){
+    if(!CONFIG.events.enabled) return;
+    setInterval(()=>{
+      // نعيد الفحص لتحديث “الموجود” ولمنع كاش بعد استبدال الملفات
+      refreshEventsList().then(()=>{
+        // إذا الوقت يسمح، اعرض فورًا صورة من القائمة الجديدة
+        advanceEvents();
+      }).catch(()=>{});
+    }, (CONFIG.events.refreshMinutes || 5) * 60 * 1000);
+  }
+
+  function updateEventsVisibility(){
+    // يتم استدعاؤها كل ثانية مع بقية التحديثات
+    if(!CONFIG.events.enabled) return;
+    const on = shouldShowEventsNow();
+    setEventsLayerVisible(on);
+  }
+
+  /* =========================
+     Init
+     ========================= */
   const logo = $("logoImg");
   logo.onerror = ()=>{ logo.style.display="none"; };
   $("locText").textContent = CONFIG.label;
@@ -1058,6 +1297,9 @@
     updateNextHighlight();
     updateCountdown();
     handlePreAlerts();
+
+    // ✅ التحكم بظهور صور الفعاليات
+    updateEventsVisibility();
   }, 1000);
 
   // Initial Load
@@ -1077,11 +1319,19 @@
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
       loadTimings();
+
+      // ✅ عند تغيير اليوم: نحدث صور الفعاليات أيضًا (قد يكون اليوم صور جديدة)
+      refreshEventsList().then(()=>advanceEvents()).catch(()=>{});
     }
   }, 60000);
 
   loadBirthdaysCSV(CONFIG.birthdaysFile).then(l=>{birthdayList=l;startBirthdayLoop();}).catch(()=>{});
   loadVersesRefs(CONFIG.versesFile).then(l=>{verseRefs=Array.isArray(l)?l:[];startVerseLoop();}).catch(()=>{$("verseTrack").textContent="—";});
+
+  // ✅ تشغيل صور الفعاليات
+  startEventsLoop();
+  scheduleEventsRefresh();
+
 </script>
 </body>
 </html>
