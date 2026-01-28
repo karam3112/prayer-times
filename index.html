@@ -1,3 +1,6 @@
+<!-- =======================
+✅ القسم 1/6: HTML (Head + CSS)
+======================== -->
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -139,8 +142,8 @@
     .eventsLayer{
       position:absolute;
       inset:0;
-      z-index:0;          /* خلف المحتوى */
-      opacity:0;          /* يتم التحكم بها عبر JS */
+      z-index:0;
+      opacity:0;
       transition: opacity 900ms ease;
       pointer-events:none;
     }
@@ -265,27 +268,20 @@
       align-items:center;
       justify-content:center;
       gap: 12px;
-
       margin-top: calc(var(--s)*0.45);
       margin-bottom: calc(var(--s)*0.45);
-
       padding: 12px 22px;
       border-radius: 18px;
       width: fit-content;
       margin-left:auto;
       margin-right:auto;
-
       border-top: 3px solid #c91c1c;
       border-bottom: 3px solid #c91c1c;
-
       background: rgba(201, 28, 28, 0.08);
-
-      /* نص العبارة بالأحمر */
       color: #c91c1c;
       font-weight: 1000;
       font-size: clamp(20px, 2.5vw, 40px);
     }
-    /* عدد الأيام بالأسود البارز */
     .ramadan-row .num{
       direction:ltr;
       color:#111;
@@ -411,8 +407,8 @@
       animation: verseMove var(--verseSpeed) linear infinite;
     }
     @keyframes verseMove{
-      0%{ transform: translateX(-10%); }
-      100%{ transform: translateX(110%); }
+      0%{ transform: translateX(110%); }
+      100%{ transform: translateX(-10%); }
     }
 
     .alert{
@@ -484,14 +480,17 @@
       animation: tickerMove var(--tickerSpeed) linear infinite;
     }
     @keyframes tickerMove{
-      0%{ transform: translateX(-10%); }
-      100%{ transform: translateX(110%); }
+      0%{ transform: translateX(110%); }
+      100%{ transform: translateX(-10%); }
     }
 
     .verseTrack{ animation: verseMove var(--verseSpeed) linear infinite !important; }
   </style>
 </head>
 
+<!-- =======================
+✅ القسم 2/6: BODY (المحتوى)
+======================== -->
 <body>
   <div class="frame">
     <div class="arab-border right"></div>
@@ -541,10 +540,13 @@
             <span class="name"><span class="icon">🌌</span> الفجر</span>
             <span class="val" id="fajr">--:--</span>
           </div>
+
+          <!-- ✅ الشروق موجود (مهم حتى لا يتوقف JS) -->
           <div class="item" data-key="Sunrise">
             <span class="name"><span class="icon">🌅</span> الشروق</span>
             <span class="val" id="sunrise">--:--</span>
           </div>
+
           <div class="item" data-key="Dhuhr">
             <span class="name"><span class="icon">☀️</span> الظهر</span>
             <span class="val" id="dhuhr">--:--</span>
@@ -572,7 +574,7 @@
           </div>
         </div>
 
-        <!-- ✅ رمضان الآن بين الآية والتيكر -->
+        <!-- ✅ رمضان بين الآية والتيكر -->
         <div class="ramadan-row" id="ramadanWrap" style="display:none">
           🌙 باقي على بداية شهر رمضان المبارك
           <span class="num" id="ramadanDays">--</span>
@@ -590,7 +592,9 @@
       </div>
     </div>
   </div>
-
+<!-- =======================
+✅ القسم 3/6: JS (CONFIG + أدوات عامة + الساعة/التواريخ)
+======================== -->
 <script>
   const CONFIG = {
     label: "باقة الغربية",
@@ -606,16 +610,56 @@
     versesFile: "verses.json",
     verseChangeMinutes: 5,
     verseSpeedSeconds: 40,
+
     tickerMessages: [
-      "🌟 يومكم جميل مثلكم يا أبطال الغزالي", "📚 تذكير: نعتني بكتبنا",
-      "✅ سلوك اليوم: نحترم دور غيرنا", "🧼 نغسل أيدينا باستمرار",
-      "🤝 معًا نصنع يومًا جميلًا", "😊 الابتسامة صدقة",
-      "🧠 نتعلّم اليوم شيئًا جديدًا", "🎒 نحافظ على النظافة",
-      "🕊️ الهدوء طريق النجاح", "💬 الكلمة الطيبة جواز مرور للقلوب",
-      "🏫 مدرستنا بيتنا الثاني", "✨ كلنا متميزون",
-      "✋ الاستئذان أدب رفيع", "⭐ كن نجماً بأخلاقك",
-      "📖 خير جليس في الزمان كتاب", "🧩 التعاون أساس النجاح"
+      "🌟 يومكم جميل مثلكم يا أبطال الغزالي",
+      "📚 تذكير: نعتني بكتبنا",
+      "✅ سلوك اليوم: نحترم دور غيرنا",
+      "🧼 نغسل أيدينا باستمرار",
+      "🤝 معًا نصنع يومًا جميلًا",
+      "😊 الابتسامة صدقة",
+      "🧠 نتعلّم اليوم شيئًا جديدًا",
+      "🎒 نحافظ على النظافة",
+      "🕊️ الهدوء طريق النجاح",
+      "💬 الكلمة الطيبة جواز مرور للقلوب",
+      "🏫 مدرستنا بيتنا الثاني",
+      "✨ كلنا متميزون",
+      "✋ الاستئذان أدب رفيع",
+      "⭐ كن نجماً بأخلاقك",
+      "📖 خير جليس في الزمان كتاب",
+      "🧩 التعاون أساس النجاح",
+      "🚀 انطلقوا نحو القمة يا أبطال",
+      "🌞 صباح النشاط والحيوية",
+      "🌈 يوم جديد.. فرصة جديدة للتميز",
+      "💪 من جدّ وجد ومن زرع حصد",
+      "⏳ الوقت من ذهب، لنستثمره بذكاء",
+      "💡 السؤال مفتاح المعرفة",
+      "📈 خطأ اليوم هو درس للغد",
+      "🎨 أطلق العنان لإبداعك",
+      "🔍 كن باحثاً ذكياً ومفكراً مبدعاً",
+      "🧠 بالعلم نرتقي ونبني المستقبل",
+      "💎 الأمانة صفة الأوفياء",
+      "🌟 الصدق منجاة وشجاعة",
+      "💞 التسامح قوة وليس ضعفاً",
+      "🤐 نحفظ ألسنتنا عن الأذى",
+      "👵👴 نحترم الكبير ونعطف على الصغير",
+      "👂 نستمع جيداً لنفهم جيداً",
+      "🙋‍♂️ نرفع اليد قبل المشاركة",
+      "🚶‍♂️ نمشي في الممرات بهدوء ونظام",
+      "👥 نحترم اختلافاتنا، فكلنا مميزون",
+      "🚫 لا للتنمر، نعم للصداقة",
+      "🗑️ ساحة مدرستنا مرآة لنظافتنا",
+      "💧 الماء نعمة، فلنحافظ عليه",
+      "🥪 طعامي صحي، جسمي قوي",
+      "🌳 نزرع الحب والورد في كل مكان",
+      "🧴 صحتنا في نظافة أبداننا",
+      "👋 إفشاء السلام ينشر المحبة",
+      "🎁 تهادوا تحابوا",
+      "🤗 ساعد صديقك عند الحاجة",
+      "🗣️ صوتنا منخفض وكلماتنا راقية",
+      "🏆 نجاح صديقي هو فرحة لي"
     ],
+
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
     alertShowSeconds: 12,
@@ -626,12 +670,12 @@
     events: {
       enabled: true,
       basePath: "images/events/",
-      ext: "jpg",            // ثابت lowercase حسب روابطك
+      ext: "jpg",
       count: 10,
-      changeSeconds: 28,     // كل كم ثانية تتبدّل الصورة
-      refreshMinutes: 5,     // كل كم دقيقة نعيد فحص الصور الموجودة
-      hideBeforeMinutes: 2,  // إخفاء قبل الأذان بدقيقتين
-      hideAfterMinutes: 3,   // إبقاء الإخفاء بعد الأذان (مدة احترام/هدوء)
+      changeSeconds: 28,
+      refreshMinutes: 5,
+      hideBeforeMinutes: 2,
+      hideAfterMinutes: 3,
       probeTimeoutMs: 4500
     }
   };
@@ -651,6 +695,24 @@
     return new Intl.DateTimeFormat("en-CA", {
       year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
     }).format(new Date());
+  }
+
+  function nowInTZ(){
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: CONFIG.tz,
+      year:"numeric", month:"2-digit", day:"2-digit",
+      hour:"2-digit", minute:"2-digit", second:"2-digit",
+      hourCycle:"h23"
+    }).formatToParts(new Date());
+
+    const y  = Number(parts.find(p=>p.type==="year")?.value);
+    const mo = Number(parts.find(p=>p.type==="month")?.value);
+    const da = Number(parts.find(p=>p.type==="day")?.value);
+    const hh = Number(parts.find(p=>p.type==="hour")?.value);
+    const mm = Number(parts.find(p=>p.type==="minute")?.value);
+    const ss = Number(parts.find(p=>p.type==="second")?.value);
+
+    return new Date(y, mo-1, da, hh, mm, ss, 0);
   }
 
   function nowPartsTZ(){
@@ -676,11 +738,18 @@
 
   function addMinutesToHHMM(hhmm, addMin){
     const clean = cleanHHMM(hhmm);
-    const [h,m] = clean.split(":").map(Number);
-    const base = new Date();
-    base.setHours(h, m, 0, 0);
-    base.setMinutes(base.getMinutes() + (addMin||0));
-    return `${pad(base.getHours())}:${pad(base.getMinutes())}`;
+    const parts = clean.split(":");
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+
+    if(!Number.isFinite(h) || !Number.isFinite(m)) return "--:--";
+
+    let total = (h*60 + m) + (addMin||0);
+    total = ((total % (24*60)) + (24*60)) % (24*60);
+
+    const hh = Math.floor(total / 60);
+    const mm = total % 60;
+    return `${pad(hh)}:${pad(mm)}`;
   }
 
   async function fetchTimings(){
@@ -711,7 +780,12 @@
   function readCache(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
 
   let timingsAdj = null;
+</script>
 
+<!-- =======================
+✅ القسم 4/6: JS (رمضان + تطبيق الأوقات + الصلاة القادمة + التنبيهات)
+======================== -->
+<script>
   // ====== Ramadan Countdown Helpers ======
   function parseDDMMYYYY_toDate(ddmmyyyy){
     const [dd,mm,yy] = ddmmyyyy.split("-").map(Number);
@@ -783,7 +857,7 @@
     const h = todayEntry.date.hijri;
     if(h){
       $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
-      updateRamadanCountdown(h.year); // ✅ تشغيل عدّاد رمضان
+      updateRamadanCountdown(h.year);
     }else{
       $("hijriText").textContent = "—";
       const wrap = $("ramadanWrap");
@@ -820,21 +894,38 @@
   const ORDER = ["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
   const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 
+  /* =========================
+     ✅ التعديل الأساسي: حماية parseTodayHHMM
+     ========================= */
   function parseTodayHHMM(hhmm){
     const clean = cleanHHMM(hhmm);
-    const [h,m] = clean.split(":").map(Number);
-    const now = new Date();
-    return new Date(now.getFullYear(), now.getMonth(), now.getDate(), h, m, 0, 0);
+    const parts = clean.split(":");
+    const h = Number(parts[0]);
+    const m = Number(parts[1]);
+
+    if(!Number.isFinite(h) || !Number.isFinite(m)) return null;
+
+    const y  = Number(new Intl.DateTimeFormat("en-CA",{year:"numeric",timeZone:CONFIG.tz}).format(new Date()));
+    const mo = Number(new Intl.DateTimeFormat("en-CA",{month:"2-digit",timeZone:CONFIG.tz}).format(new Date()));
+    const da = Number(new Intl.DateTimeFormat("en-CA",{day:"2-digit",timeZone:CONFIG.tz}).format(new Date()));
+    return new Date(y, mo-1, da, h, m, 0, 0);
   }
 
+  /* =========================
+     ✅ التعديل الأساسي: getNextPrayer يتجاوز null
+     ========================= */
   function getNextPrayer(){
     if(!timingsAdj) return null;
-    const now = new Date();
+    const now = nowInTZ();
+
     for(const k of ORDER){
       const at = parseTodayHHMM(timingsAdj[k]);
+      if(!at) continue;
       if(at > now) return { key:k, at };
     }
+
     const atTomorrow = parseTodayHHMM(timingsAdj["Fajr"]);
+    if(!atTomorrow) return null;
     atTomorrow.setDate(atTomorrow.getDate() + 1);
     return { key:"Fajr", at: atTomorrow };
   }
@@ -848,6 +939,7 @@
       if(badge) badge.remove();
     });
     if(!next) return;
+
     const el = document.querySelector(`.times .item[data-key="${next.key}"]`);
     if(!el) return;
 
@@ -893,7 +985,7 @@
 
   function updateCountdown(){
     if(!timingsAdj) return;
-    const now = new Date();
+    const now = nowInTZ();
     const next = getNextPrayer();
     if(!next) return;
     const secLeft = Math.floor((next.at - now) / 1000);
@@ -904,7 +996,7 @@
 
   function handlePreAlerts(){
     if(!timingsAdj) return;
-    const now = new Date();
+    const now = nowInTZ();
     const next = getNextPrayer();
     if(!next) return;
     const mins = CONFIG.preAlertMinutes[next.key];
@@ -923,7 +1015,12 @@
       fired.add(stamp);
     }
   }
+</script>
 
+<!-- =======================
+✅ القسم 5/6: JS (Ticker + Birthdays + Verses + Weather + Timings Load)
+======================== -->
+<script>
   // Ticker
   let tickerIndex = 0;
   function setTickerText(msg){
@@ -932,16 +1029,21 @@
   function startTicker(){
     document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
     setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
+    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
     setInterval(()=>{
       tickerIndex++;
       setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
-    }, 18 * 1000);
+    }, intervalMs);
   }
 
   // Birthdays
   let birthdayList = [];
   let todaysBirthdays = [];
   let birthdayCursor = 0;
+
+  const BDAY_SHOW_MS = 12000;
+  const BDAY_GAP_MS  = 3000;
+
   async function loadBirthdaysCSV(path){
     const r = await fetch(path, { cache: "no-store" });
     if(!r.ok) throw new Error("Cannot load birthdays.csv");
@@ -950,6 +1052,7 @@
     if(lines.length < 2) return [];
     const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
     const idx = (h)=>headers.indexOf(h);
+
     const out = [];
     for(const line of lines){
       const parts = line.split(",").map(x=>x.trim());
@@ -969,10 +1072,17 @@
     return {day, month};
   }
 
+  function refreshTodaysBirthdays(){
+    const {day, month} = getTodayDM_TZ();
+    todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
+    if(todaysBirthdays.length) birthdayCursor = birthdayCursor % todaysBirthdays.length;
+  }
+
   function showBirthdayCard(person){
     const box = $("birthdayBox");
     const role = String(person.role || "").trim();
     const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
+
     box.innerHTML = `
       <div>🎉 كل عام وأنت بخير</div>
       <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
@@ -983,29 +1093,43 @@
       </div>
     `;
     box.style.display = "block";
-    setTimeout(()=> box.style.display="none", 12000);
+    setTimeout(()=> box.style.display="none", BDAY_SHOW_MS);
   }
-  function refreshTodaysBirthdays(){
-    const {day, month} = getTodayDM_TZ();
-    todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
-    birthdayCursor = 0;
+
+  function runBirthdaySequence(){
+    if(!todaysBirthdays.length) return;
+
+    const count = todaysBirthdays.length;
+    const step = BDAY_SHOW_MS + BDAY_GAP_MS;
+    const startIndex = birthdayCursor;
+
+    for(let i=0; i<count; i++){
+      const person = todaysBirthdays[(startIndex + i) % count];
+      setTimeout(()=>{ showBirthdayCard(person); }, i * step);
+    }
+
+    birthdayCursor = (startIndex + count) % count;
   }
+
   function startBirthdayLoop(){
     refreshTodaysBirthdays();
     if(!todaysBirthdays.length) return;
+
     setTimeout(()=>{
-      showBirthdayCard(todaysBirthdays[birthdayCursor++ % todaysBirthdays.length]);
+      refreshTodaysBirthdays();
+      runBirthdaySequence();
     }, 2 * 60 * 1000);
+
     setInterval(()=>{
       refreshTodaysBirthdays();
-      if(!todaysBirthdays.length) return;
-      showBirthdayCard(todaysBirthdays[birthdayCursor++ % todaysBirthdays.length]);
+      runBirthdaySequence();
     }, CONFIG.birthdayEveryMinutes * 60 * 1000);
   }
 
   // Verses
   const VERSE_LS = "ghazali_verse_index_v1";
   let verseRefs = [];
+
   async function loadVersesRefs(path){
     const r = await fetch(path, { cache: "no-store" });
     if(!r.ok) throw new Error("Cannot load verses.json");
@@ -1091,11 +1215,16 @@
     }catch{
       const cached = readCache();
       if(cached && cached.data){
-         applyData(cached.data);
+        applyData(cached.data);
       }
     }
   }
+</script>
 
+<!-- =======================
+✅ القسم 6/6: JS (صور الفعاليات + INIT + إغلاق الصفحة)
+======================== -->
+<script>
   /* =========================
      ✅ منطق صور الفعاليات
      ========================= */
@@ -1110,7 +1239,6 @@
   };
 
   function eventsUrl(n){
-    // Cache-buster لتجنب عرض نسخة قديمة عند استبدال نفس الاسم
     return `${CONFIG.events.basePath}${n}.${CONFIG.events.ext}?v=${eventsState.cacheBust}`;
   }
 
@@ -1139,14 +1267,13 @@
         resolve(false);
       };
 
-      // يبدأ التحميل
       img.src = url;
     });
   }
 
   async function refreshEventsList(){
     if(!CONFIG.events.enabled) return;
-    eventsState.cacheBust = Date.now(); // تحديث النسخة لمنع الكاش
+    eventsState.cacheBust = Date.now();
     const found = [];
     for(let i=1; i<=CONFIG.events.count; i++){
       const ok = await probeImage(eventsUrl(i), CONFIG.events.probeTimeoutMs);
@@ -1156,7 +1283,6 @@
     eventsState.idx = 0;
     eventsState.ready = true;
 
-    // إذا لا يوجد صور، نخفي الطبقة تمامًا
     if(!found.length){
       setEventsLayerVisible(false);
     }
@@ -1171,23 +1297,18 @@
     const next = getNextPrayer();
     if(!next) return false;
 
-    const now = new Date();
+    const now = nowInTZ();
     const msToNext = next.at - now;
 
-    // إخفاء قبل الأذان
     const hideBeforeMs = (CONFIG.events.hideBeforeMinutes || 2) * 60 * 1000;
     if(msToNext <= hideBeforeMs) return false;
 
-    // إخفاء بعد الأذان (نُعرّفه كـ نافذة احترام هادئة بعد وقت الصلاة)
-    // إذا كنا بعد وقت الصلاة بقليل، يعني: now - (next.at - interval) ليس متاح بسهولة عبر next،
-    // لذلك سنحسب "الصلاة الحالية" بطرق بسيطة: لو كانت الصلاة التالية هي نفسها ولكن الآن قريب منها؟
-    // أسهل: نبني نافذة "حظر" عبر مقارنة الآن مع كل أوقات اليوم:
     const hideAfterMs = (CONFIG.events.hideAfterMinutes || 3) * 60 * 1000;
 
-    // فحص إن كان الآن داخل أي نافذة "بعد الأذان" من صلوات اليوم
     for(const k of ORDER){
       const at = parseTodayHHMM(timingsAdj[k]);
-      const diff = now - at; // موجب إذا بعد الصلاة
+      if(!at) continue;
+      const diff = now - at;
       if(diff >= 0 && diff <= hideAfterMs){
         return false;
       }
@@ -1210,16 +1331,13 @@
 
     const url = eventsUrl(n);
 
-    // تبديل بالصورتين (crossfade)
     const showA = eventsState.showingA;
     const front = showA ? a : b;
     const back  = showA ? b : a;
 
-    // حمّل الصورة في الخلف أولاً، ثم اعرضها
     back.classList.remove("show");
     back.src = url;
 
-    // بعد لحظة قصيرة، اعرض الجديدة واطفِ القديمة
     setTimeout(()=>{
       back.classList.add("show");
       front.classList.remove("show");
@@ -1236,8 +1354,6 @@
     }
 
     setEventsLayerVisible(true);
-
-    // حماية: لو القائمة تغيرت فجأة
     if(!eventsState.valid.length) return;
 
     const n = eventsState.valid[eventsState.idx % eventsState.valid.length];
@@ -1249,12 +1365,9 @@
   function startEventsLoop(){
     if(!CONFIG.events.enabled) return;
 
-    // أول تحميل للقائمة ثم بدء العرض
     refreshEventsList().then(()=>{
-      // اعرض أول صورة فورًا إن سمح الوقت
       advanceEvents();
 
-      // التبديل كل X ثانية
       if(eventsState.tickHandle) clearInterval(eventsState.tickHandle);
       eventsState.tickHandle = setInterval(()=>{
         advanceEvents();
@@ -1265,16 +1378,13 @@
   function scheduleEventsRefresh(){
     if(!CONFIG.events.enabled) return;
     setInterval(()=>{
-      // نعيد الفحص لتحديث “الموجود” ولمنع كاش بعد استبدال الملفات
       refreshEventsList().then(()=>{
-        // إذا الوقت يسمح، اعرض فورًا صورة من القائمة الجديدة
         advanceEvents();
       }).catch(()=>{});
     }, (CONFIG.events.refreshMinutes || 5) * 60 * 1000);
   }
 
   function updateEventsVisibility(){
-    // يتم استدعاؤها كل ثانية مع بقية التحديثات
     if(!CONFIG.events.enabled) return;
     const on = shouldShowEventsNow();
     setEventsLayerVisible(on);
@@ -1287,18 +1397,14 @@
   logo.onerror = ()=>{ logo.style.display="none"; };
   $("locText").textContent = CONFIG.label;
 
-  // Start Loops
   startTicker();
   setClockAndDates();
 
-  // Loop 1s: clock + UI updates
   setInterval(()=>{
     setClockAndDates();
     updateNextHighlight();
     updateCountdown();
     handlePreAlerts();
-
-    // ✅ التحكم بظهور صور الفعاليات
     updateEventsVisibility();
   }, 1000);
 
@@ -1319,19 +1425,20 @@
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
       loadTimings();
-
-      // ✅ عند تغيير اليوم: نحدث صور الفعاليات أيضًا (قد يكون اليوم صور جديدة)
       refreshEventsList().then(()=>advanceEvents()).catch(()=>{});
     }
   }, 60000);
 
-  loadBirthdaysCSV(CONFIG.birthdaysFile).then(l=>{birthdayList=l;startBirthdayLoop();}).catch(()=>{});
-  loadVersesRefs(CONFIG.versesFile).then(l=>{verseRefs=Array.isArray(l)?l:[];startVerseLoop();}).catch(()=>{$("verseTrack").textContent="—";});
+  loadBirthdaysCSV(CONFIG.birthdaysFile)
+    .then(l=>{ birthdayList=l; startBirthdayLoop(); })
+    .catch(()=>{});
 
-  // ✅ تشغيل صور الفعاليات
+  loadVersesRefs(CONFIG.versesFile)
+    .then(l=>{ verseRefs=Array.isArray(l)?l:[]; startVerseLoop(); })
+    .catch(()=>{ $("verseTrack").textContent="—"; });
+
   startEventsLoop();
   scheduleEventsRefresh();
-
 </script>
 </body>
 </html>
