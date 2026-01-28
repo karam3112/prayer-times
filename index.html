@@ -802,20 +802,32 @@
 
   function setRamadanText(days){
     const wrap = $("ramadanWrap");
-    const daysEl = $("ramadanDays");
+	if(!wrap) return;
+	// إذا كان الهيكل الداخلي انمسح لأي سبب، أعد بناءه
+	if(!$("ramadanPrefix") || !$("ramadanDays") || !$("ramadanWord")){
+   	   wrap.innerHTML = `
+	     <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
+		 <span class="num" id="ramadanDays">--</span>
+		 <span id="ramadanWord">يوم</span>
+	   `;
+	}
+    const prefix = $("ramadanPrefix");
+	const daysEl = $("ramadanDays");
     const wordEl = $("ramadanWord");
-    if(!wrap || !daysEl || !wordEl) return;
-
+	
+	wrap.style.display = "flex";
+    
     if(days <= 0){
-      wrap.style.display = "flex";
-      wrap.innerHTML = "🌙 رمضان مبارك";
+	  prefix.textContent = "🌙 رمضان مبارك";
+      daysEl.textContent = "";
+      wordEl.textContent = "";
       return;
     }
 
-    wrap.style.display = "flex";
-    daysEl.textContent = String(days);
-    // شرطك: 1-9 => أيام | 10+ => يوم
-    wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
+     prefix.textContent = "🌙 باقي على بداية شهر رمضان المبارك";
+	 daysEl.textContent = String(days);
+     wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
+    
   }
 
   async function updateRamadanCountdown(hijriYear){
@@ -1058,9 +1070,10 @@
       const parts = line.split(",").map(x=>x.trim());
       const name = parts[idx("name")] || "";
       const role = parts[idx("role")] || "";
+	  const cls  = parts[idx("class")] || "";
       const day  = Number(parts[idx("day")] || 0);
       const month= Number(parts[idx("month")] || 0);
-      if(name && day && month) out.push({name, role, day, month});
+      if(name && day && month) out.push({name, role, cls, day, month});
     }
     return out;
   }
@@ -1081,12 +1094,14 @@
   function showBirthdayCard(person){
     const box = $("birthdayBox");
     const role = String(person.role || "").trim();
+	const cls  = String(person.cls  || "").trim();
     const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
 
     box.innerHTML = `
       <div>🎉 كل عام وأنت بخير</div>
       <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
         <strong>${person.name}</strong>
+		${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">الصف: ${cls}</div>` : ""}
       </div>
       <div class="sub">
         ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 نتمنى لك يومًا سعيدًا في مدرسة الغزالي"}
