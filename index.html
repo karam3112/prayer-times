@@ -685,10 +685,17 @@
   function cleanHHMM(s){ return (s||"").replace(/[^\d:]/g,"").slice(0,5); }
 
   function getZonedDateStr(){
-    const d = new Date();
-    return new Intl.DateTimeFormat("en-GB", {
-      day: "2-digit", month: "2-digit", year: "numeric", timeZone: CONFIG.tz
-    }).format(d).split("/").join("-");
+    const iso = new Intl.DateTimeFormat("en-CA", {
+	 year: "numeric",
+	 month: "2-digit",
+	 day: "2-digit",
+	 timeZone: CONFIG.tz
+	 
+	}).format(new Date()); // "YYYY-MM-DD"
+	
+	const [y, m, d] = iso.split("-");
+	return `${d}-${m}-${y}`; // ✅ "DD-MM-YYYY"
+	
   }
 
   function getZonedISODate(){
@@ -903,7 +910,7 @@
     $("sunrise").textContent = timingsAdj.Sunrise;
   }
 
-  const ORDER = ["Fajr","Sunrise","Dhuhr","Asr","Maghrib","Isha"];
+  const ORDER = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
   const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 
   /* =========================
@@ -989,8 +996,9 @@
 
   function formatRemainingTime(sec){
     if(sec < 0) return "";
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor((sec % 3600) / 60);
+    if(sec < 60) return "أقل من دقيقة";
+	const hours = Math.floor(sec / 3600);
+	const minutes = Math.floor((sec % 3600) / 60);
     if(hours > 0) return `${hours} ساعات ${minutes} دقائق`;
     return `${minutes} دقائق`;
   }
@@ -1101,7 +1109,7 @@
       <div>🎉 كل عام وأنت بخير</div>
       <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
         <strong>${person.name}</strong>
-		${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">الصف: ${cls}</div>` : ""}
+		${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">${cls}</div>` : ""}
       </div>
       <div class="sub">
         ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 نتمنى لك يومًا سعيدًا في مدرسة الغزالي"}
@@ -1457,3 +1465,4 @@
 </script>
 </body>
 </html>
+
