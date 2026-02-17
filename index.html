@@ -1,6 +1,3 @@
-<!-- =======================
-✅ ملف واحد: ساعة الأذان (مع وضع رمضان تلقائيًا + شارة الإفطار بجانب المغرب)
-======================== -->
 <!doctype html>
 <html lang="ar" dir="rtl">
 <head>
@@ -27,7 +24,6 @@
 
       --red:#c91c1c;
 
-      /* الأخضر للصلاة القادمة */
       --green-bg: #e8f5e9;
       --green-border: #2e7d32;
       --green-text: #1b5e20;
@@ -35,7 +31,6 @@
       --line:#cbb9a3;
       --arab:#7a5a34;
 
-      /* حجم الخطوط للشاشات الكبيرة */
       --s: clamp(16px, 2.15vw, 34px);
 
       --tickerSpeed: 28s;
@@ -54,7 +49,6 @@
       font-family: "HacenScreen", system-ui, Tahoma, Arial, sans-serif;
     }
 
-    /* حماية الشاشة */
     @keyframes antiBurn {
       0% { transform: translate(0, 0); }
       25% { transform: translate(2px, 1px); }
@@ -108,7 +102,6 @@
       isolation:isolate;
     }
 
-    /* الزخرفة الخلفية */
     .board::before{
       content:"";
       position:absolute;
@@ -137,9 +130,6 @@
       mix-blend-mode:multiply;
     }
 
-    /* =========================
-       ✅ فعاليات المدرسة (خلفية صور ذكية)
-       ========================= */
     .eventsLayer{
       position:absolute;
       inset:0;
@@ -241,7 +231,6 @@
       color:#222;
     }
 
-    /* Weather Widget Style */
     .weather-row {
       display: flex;
       align-items: center;
@@ -263,7 +252,6 @@
     .w-icon { font-size: 1.3em; margin-top:-4px; }
     .w-temp { direction: ltr; font-weight:1000; }
 
-    /* Ramadan Banner Row */
     .ramadan-row{
       display:flex;
       align-items:center;
@@ -323,7 +311,7 @@
       gap:10px;
     }
 
-    /* شارة الإفطار بجانب وقت المغرب */
+    /* ✅ شارة الإفطار بجانب وقت المغرب (رمضان فقط) */
     .magBadge{
       display:inline-flex;
       align-items:center;
@@ -344,7 +332,6 @@
       font-weight:1000;
     }
 
-    /* الأخضر للصلاة القادمة */
     .item.next{
       border-bottom-color: var(--green-border);
       background: var(--green-bg);
@@ -520,7 +507,6 @@
 
     <div class="board">
 
-      <!-- ✅ طبقة صور الفعاليات (خلف المحتوى) -->
       <div class="eventsLayer" id="eventsLayer" aria-hidden="true">
         <img id="eventImgA" alt="" />
         <img id="eventImgB" alt="" />
@@ -598,7 +584,6 @@
           </div>
         </div>
 
-        <!-- ✅ رمضان -->
         <div class="ramadan-row" id="ramadanWrap" style="display:none">
           <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
           <span class="num" id="ramadanDays">--</span>
@@ -627,6 +612,10 @@
     offsets: { Fajr: -1, Dhuhr: 1, Asr: 2, Maghrib: 9, Isha: 6, Sunrise: -5 },
     preAlertMinutes: { Fajr: 10, Dhuhr: 10, Asr: 10, Maghrib: 10, Isha: 10 },
     beep: true,
+
+    // ✅ للتجربة فقط: اجعلها true لترى وضع رمضان الآن
+    forceRamadan: true,
+
     birthdaysFile: "birthdays.csv",
     birthdayEveryMinutes: 5,
     versesFile: "verses.json",
@@ -682,7 +671,6 @@
       "🏆 نجاح صديقي هو فرحة لي"
     ],
 
-    /* ✅ رسائل رمضان (تُستخدم تلقائيًا خلال رمضان) */
     tickerMessagesRamadan: [
       "🌙 رمضان كريم: لسان طيب.. وقلب طيب",
       "🤲 تقبّل الله طاعتكم وكتب لكم الأجر",
@@ -692,11 +680,6 @@
       "🤝 نساعد بعضنا ونختار الكلمة الطيبة",
       "😊 ابتسامة في رمضان.. صدقة",
       "🧠 نُحسن أخلاقنا كما نُحسن صيامنا",
-      "🕊️ الهدوء طريق النجاح",
-      "🎒 نحافظ على نظافة المدرسة.. عبادة وسلوك",
-      "💬 الكلمة الطيبة في رمضان أجمل",
-      "🌟 رمضان فرصة جديدة للتميز",
-      "👂 نستمع جيدًا لنفهم جيدًا",
       "🚫 لا للتنمر.. نعم للمحبة",
       "🏫 مدرستنا بيتنا الثاني.. فلنحافظ عليه"
     ],
@@ -725,9 +708,9 @@
   function getZonedDateStr(){
     const iso = new Intl.DateTimeFormat("en-CA", {
       year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
-    }).format(new Date()); // YYYY-MM-DD
+    }).format(new Date());
     const [y, m, d] = iso.split("-");
-    return `${d}-${m}-${y}`; // DD-MM-YYYY
+    return `${d}-${m}-${y}`;
   }
 
   function getZonedISODate(){
@@ -818,13 +801,13 @@
   function readCache(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
 
   let timingsAdj = null;
-
-  /* ✅ رمضان: حالة عامة */
   let IS_RAMADAN = false;
+
+  const ORDER = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
+  const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 </script>
 
 <script>
-  // ====== Ramadan Countdown Helpers ======
   function parseDDMMYYYY_toDate(ddmmyyyy){
     const [dd,mm,yy] = ddmmyyyy.split("-").map(Number);
     return new Date(yy, mm-1, dd, 0, 0, 0, 0);
@@ -842,33 +825,18 @@
     const wrap = $("ramadanWrap");
     if(!wrap) return;
 
-    // تأكيد الهيكل
-    if(!$("ramadanPrefix") || !$("ramadanDays") || !$("ramadanWord")){
-      wrap.innerHTML = `
-        <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
-        <span class="num" id="ramadanDays">--</span>
-        <span id="ramadanWord">يوم</span>
-      `;
-    }
-
-    const prefix = $("ramadanPrefix");
-    const daysEl = $("ramadanDays");
-    const wordEl = $("ramadanWord");
-
     wrap.style.display = "flex";
 
-    // ✅ خلال رمضان: رسالة ثابتة جميلة
     if(days <= 0){
-      prefix.textContent = "🌙 رمضان مبارك";
-      daysEl.textContent = "تقبّل الله طاعتكم";
-      wordEl.textContent = "";
+      $("ramadanPrefix").textContent = "🌙 رمضان مبارك";
+      $("ramadanDays").textContent = "تقبّل الله طاعتكم";
+      $("ramadanWord").textContent = "";
       return;
     }
 
-    // قبل رمضان: عدّاد
-    prefix.textContent = "🌙 باقي على بداية شهر رمضان المبارك";
-    daysEl.textContent = String(days);
-    wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
+    $("ramadanPrefix").textContent = "🌙 باقي على بداية شهر رمضان المبارك";
+    $("ramadanDays").textContent = String(days);
+    $("ramadanWord").textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
   }
 
   async function updateRamadanCountdown(hijriYear){
@@ -880,14 +848,12 @@
         const r = await fetch(url, { cache:"no-store" });
         if(!r.ok) throw new Error("hToG failed");
         const j = await r.json();
-        const gDate = j?.data?.gregorian?.date; // "DD-MM-YYYY"
+        const gDate = j?.data?.gregorian?.date;
         if(!gDate) throw new Error("no greg date");
         return parseDDMMYYYY_toDate(gDate);
       }
 
       let ramadanStart = await getRamadanStartGregorian(hijriYear);
-
-      // إذا رمضان لهذه السنة بدأ بالفعل، احسب للسنة القادمة
       if(ramadanStart <= todayStart){
         ramadanStart = await getRamadanStartGregorian(Number(hijriYear) + 1);
       }
@@ -899,28 +865,20 @@
       if(wrap) wrap.style.display = "none";
     }
   }
-  // ====== /Ramadan Countdown Helpers ======
 
   function applyRamadanMode(isOn){
     IS_RAMADAN = !!isOn;
 
-    // ✅ آية رمضانية
     const v = $("verseLabel");
     if(v) v.textContent = IS_RAMADAN ? "📖 آية رمضانية" : "📖 آية";
 
-    // ✅ تهدئة طبقة الفعاليات خلال رمضان (بدون كسر المنطق)
     const layer = $("eventsLayer");
-    if(layer){
-      // فقط نغيّر قيمة شفافية العرض عندما تكون ON
-      layer.dataset.ramadan = IS_RAMADAN ? "1" : "0";
-    }
+    if(layer) layer.dataset.ramadan = IS_RAMADAN ? "1" : "0";
 
-    // ✅ تبديل التكر إلى رسائل رمضان
     setTickerMode(IS_RAMADAN);
 
-    // ✅ إنشاء/إزالة شارة الإفطار بجانب المغرب
     ensureIftarBadge();
-    updateIftarBadge(); // تحديث مباشر
+    updateIftarBadge();
   }
 
   function applyData(monthData){
@@ -933,17 +891,13 @@
     if(h){
       $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
 
-      // ✅ تحديد رمضان من رقم الشهر الهجري (9)
-      const isRam = (Number(h.month?.number) === 9) || String(h.month?.ar || "").includes("رمضان");
+      let isRam = (Number(h.month?.number) === 9) || String(h.month?.ar || "").includes("رمضان");
+      if(CONFIG.forceRamadan) isRam = true;  // ✅ تجربة
+
       applyRamadanMode(isRam);
 
-      // ✅ إذا ليس رمضان: اعرض عدّاد بداية رمضان
-      if(!isRam){
-        updateRamadanCountdown(h.year);
-      }else{
-        // خلال رمضان: اعرض الرسالة الثابتة فورًا
-        setRamadanText(0);
-      }
+      if(!isRam) updateRamadanCountdown(h.year);
+      else setRamadanText(0);
 
     }else{
       $("hijriText").textContent = "—";
@@ -964,25 +918,18 @@
       Sunrise: addMinutesToHHMM(clean(t.Sunrise), CONFIG.offsets.Sunrise || 0)
     };
 
-    fillTimes();
-    updateNextHighlight();
-    updateCountdown();
-    ensureIftarBadge();
-    updateIftarBadge();
-  }
-
-  function fillTimes(){
-    if(!timingsAdj) return;
     $("fajr").textContent = timingsAdj.Fajr;
     $("dhuhr").textContent = timingsAdj.Dhuhr;
     $("asr").textContent = timingsAdj.Asr;
     $("maghrib").textContent = timingsAdj.Maghrib;
     $("isha").textContent = timingsAdj.Isha;
     $("sunrise").textContent = timingsAdj.Sunrise;
-  }
 
-  const ORDER = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
-  const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
+    updateNextHighlight();
+    updateCountdown();
+    ensureIftarBadge();
+    updateIftarBadge();
+  }
 
   function parseTodayHHMM(hhmm){
     const clean = cleanHHMM(hhmm);
@@ -1067,16 +1014,25 @@
     return `${minutes} دقائق`;
   }
 
+  // ✅ هنا التعديل المطلوب: إذا القادم هو المغرب أثناء رمضان => "الإفطار"
   function updateCountdown(){
     if(!timingsAdj) return;
     const now = nowInTZ();
     const next = getNextPrayer();
     if(!next) return;
+
     const secLeft = Math.floor((next.at - now) / 1000);
-    if(secLeft >= 0){
-      const nameAr = NAME_AR[next.key] || next.key;
-      $("countdownText").textContent = `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
+    if(secLeft < 0) return;
+
+    if(IS_RAMADAN && next.key === "Maghrib"){
+      $("countdownText").textContent =
+        `🍽️ الوقت المتبقي للإفطار (أذان المغرب): ${formatRemainingTime(secLeft)}`;
+      return;
     }
+
+    const nameAr = NAME_AR[next.key] || next.key;
+    $("countdownText").textContent =
+      `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
   }
 
   function handlePreAlerts(){
@@ -1100,19 +1056,17 @@
     }
   }
 
-  // ====== ✅ شارة الإفطار بجانب المغرب (خلال رمضان فقط) ======
+  // ✅ شارة الإفطار بجانب المغرب (رمضان فقط)
   function ensureIftarBadge(){
     const magEl = $("maghrib");
     if(!magEl) return;
 
-    // احذف الشارة إذا لم يكن رمضان
     const existing = magEl.querySelector(".magBadge");
     if(!IS_RAMADAN){
       if(existing) existing.remove();
       return;
     }
 
-    // أنشئها إذا غير موجودة
     if(!existing){
       const b = document.createElement("span");
       b.className = "magBadge";
@@ -1130,8 +1084,7 @@
   }
 
   function updateIftarBadge(){
-    if(!IS_RAMADAN) return;
-    if(!timingsAdj) return;
+    if(!IS_RAMADAN || !timingsAdj) return;
 
     const remainEl = $("iftarRemain");
     if(!remainEl) return;
@@ -1140,184 +1093,12 @@
     let magAt = parseTodayHHMM(timingsAdj.Maghrib);
     if(!magAt) { remainEl.textContent = "—"; return; }
 
-    // إذا المغرب مرّ (نادرًا لشاشتكم، لكن احتياطًا): احسب لليوم التالي
     if(magAt <= now){
       magAt = new Date(magAt.getTime());
       magAt.setDate(magAt.getDate() + 1);
     }
 
     remainEl.textContent = formatIftarShort(magAt - now);
-  }
-</script>
-
-<script>
-  // ======================
-  // Ticker (مع تبديل رمضان)
-  // ======================
-  let tickerIndex = 0;
-  let TICKER_LIST = CONFIG.tickerMessages;
-
-  function setTickerText(msg){
-    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
-  }
-
-  function setTickerMode(isRamadan){
-    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
-    if(TICKER_LIST === nextList) return;
-    TICKER_LIST = nextList;
-    tickerIndex = 0;
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-  }
-
-  function startTicker(){
-    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
-    setInterval(()=>{
-      tickerIndex++;
-      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    }, intervalMs);
-  }
-
-  // Birthdays
-  let birthdayList = [];
-  let todaysBirthdays = [];
-  let birthdayCursor = 0;
-
-  const BDAY_SHOW_MS = 12000;
-  const BDAY_GAP_MS  = 3000;
-
-  async function loadBirthdaysCSV(path){
-    const r = await fetch(path, { cache: "no-store" });
-    if(!r.ok) throw new Error("Cannot load birthdays.csv");
-    const text = await r.text();
-    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
-    if(lines.length < 2) return [];
-    const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
-    const idx = (h)=>headers.indexOf(h);
-
-    const out = [];
-    for(const line of lines){
-      const parts = line.split(",").map(x=>x.trim());
-      const name = parts[idx("name")] || "";
-      const role = parts[idx("role")] || "";
-      const cls  = parts[idx("class")] || "";
-      const day  = Number(parts[idx("day")] || 0);
-      const month= Number(parts[idx("month")] || 0);
-      if(name && day && month) out.push({name, role, cls, day, month});
-    }
-    return out;
-  }
-
-  function getTodayDM_TZ(){
-    const d = new Date();
-    const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
-    const month = Number(new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
-    return {day, month};
-  }
-
-  function refreshTodaysBirthdays(){
-    const {day, month} = getTodayDM_TZ();
-    todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
-    if(todaysBirthdays.length) birthdayCursor = birthdayCursor % todaysBirthdays.length;
-  }
-
-  function showBirthdayCard(person){
-    const box = $("birthdayBox");
-    const role = String(person.role || "").trim();
-    const cls  = String(person.cls  || "").trim();
-    const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
-
-    box.innerHTML = `
-      <div>🎉 كل عام وأنت بخير</div>
-      <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
-        <strong>${person.name}</strong>
-        ${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">${cls}</div>` : ""}
-      </div>
-      <div class="sub">
-        ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 نتمنى لك يومًا سعيدًا في مدرسة الغزالي"}
-      </div>
-    `;
-    box.style.display = "block";
-    setTimeout(()=> box.style.display="none", BDAY_SHOW_MS);
-  }
-
-  function runBirthdaySequence(){
-    if(!todaysBirthdays.length) return;
-
-    const count = todaysBirthdays.length;
-    const step = BDAY_SHOW_MS + BDAY_GAP_MS;
-    const startIndex = birthdayCursor;
-
-    for(let i=0; i<count; i++){
-      const person = todaysBirthdays[(startIndex + i) % count];
-      setTimeout(()=>{ showBirthdayCard(person); }, i * step);
-    }
-    birthdayCursor = (startIndex + count) % count;
-  }
-
-  function startBirthdayLoop(){
-    refreshTodaysBirthdays();
-    if(!todaysBirthdays.length) return;
-
-    setTimeout(()=>{
-      refreshTodaysBirthdays();
-      runBirthdaySequence();
-    }, 2 * 60 * 1000);
-
-    setInterval(()=>{
-      refreshTodaysBirthdays();
-      runBirthdaySequence();
-    }, CONFIG.birthdayEveryMinutes * 60 * 1000);
-  }
-
-  // Verses
-  const VERSE_LS = "ghazali_verse_index_v1";
-  let verseRefs = [];
-
-  async function loadVersesRefs(path){
-    const r = await fetch(path, { cache: "no-store" });
-    if(!r.ok) throw new Error("Cannot load verses.json");
-    return await r.json();
-  }
-  function getVerseIndex(){
-    const raw = localStorage.getItem(VERSE_LS);
-    const idx = Number(raw || 0);
-    return Number.isFinite(idx) && idx >= 0 ? idx : 0;
-  }
-  function setVerseIndex(idx){
-    try{ localStorage.setItem(VERSE_LS, String(idx)); }catch{}
-  }
-  async function fetchVerseText(surah, ayah){
-    const url = `https://api.alquran.cloud/v1/ayah/${surah}:${ayah}/ar`;
-    const r = await fetch(url, { cache: "no-store" });
-    if(!r.ok) throw new Error("Verse fetch failed");
-    const j = await r.json();
-    return j?.data?.text || "";
-  }
-  function setVerseTrackText(text){
-    $("verseTrack").textContent = `• ${text} • ${text}`;
-  }
-  async function showVerseAt(index){
-    if(!verseRefs.length) return;
-    const idx = index % verseRefs.length;
-    const ref = verseRefs[idx];
-    try{
-      const text = await fetchVerseText(ref.surah, ref.ayah);
-      setVerseTrackText(text || "—");
-    }catch{
-      setVerseTrackText("—");
-    }
-    setVerseIndex(idx);
-  }
-  function startVerseLoop(){
-    document.documentElement.style.setProperty("--verseSpeed", `${CONFIG.verseSpeedSeconds}s`);
-    const idx = getVerseIndex();
-    showVerseAt(idx);
-    setInterval(async ()=>{
-      const cur = getVerseIndex();
-      await showVerseAt(cur + 1);
-    }, CONFIG.verseChangeMinutes * 60 * 1000);
   }
 
   // Weather
@@ -1351,7 +1132,30 @@
     }
   }
 
-  // Load timings
+  // Ticker
+  let tickerIndex = 0;
+  let TICKER_LIST = CONFIG.tickerMessages;
+
+  function setTickerText(msg){
+    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
+  }
+  function setTickerMode(isRamadan){
+    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
+    if(TICKER_LIST === nextList) return;
+    TICKER_LIST = nextList;
+    tickerIndex = 0;
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+  }
+  function startTicker(){
+    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
+    setInterval(()=>{
+      tickerIndex++;
+      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    }, intervalMs);
+  }
+
   async function loadTimings(){
     try{
       const data = await fetchTimings();
@@ -1364,181 +1168,8 @@
       }
     }
   }
-</script>
 
-<script>
-  // =========================
-  // ✅ منطق صور الفعاليات
-  // =========================
-  const eventsState = {
-    valid: [],
-    idx: 0,
-    ready: false,
-    cacheBust: Date.now(),
-    tickHandle: null,
-    lastShownKey: null,
-    showingA: true
-  };
-
-  function eventsUrl(n){
-    return `${CONFIG.events.basePath}${n}.${CONFIG.events.ext}?v=${eventsState.cacheBust}`;
-  }
-
-  function probeImage(url, timeoutMs){
-    return new Promise((resolve)=>{
-      const img = new Image();
-      let done = false;
-
-      const t = setTimeout(()=>{
-        if(done) return;
-        done = true;
-        try{ img.src = ""; }catch{}
-        resolve(false);
-      }, timeoutMs || 4500);
-
-      img.onload = ()=>{
-        if(done) return;
-        done = true;
-        clearTimeout(t);
-        resolve(true);
-      };
-      img.onerror = ()=>{
-        if(done) return;
-        done = true;
-        clearTimeout(t);
-        resolve(false);
-      };
-
-      img.src = url;
-    });
-  }
-
-  async function refreshEventsList(){
-    if(!CONFIG.events.enabled) return;
-    eventsState.cacheBust = Date.now();
-    const found = [];
-    for(let i=1; i<=CONFIG.events.count; i++){
-      const ok = await probeImage(eventsUrl(i), CONFIG.events.probeTimeoutMs);
-      if(ok) found.push(i);
-    }
-    eventsState.valid = found;
-    eventsState.idx = 0;
-    eventsState.ready = true;
-
-    if(!found.length){
-      setEventsLayerVisible(false);
-    }
-  }
-
-  function shouldShowEventsNow(){
-    if(!CONFIG.events.enabled) return false;
-    if(!eventsState.ready) return false;
-    if(!eventsState.valid.length) return false;
-    if(!timingsAdj) return false;
-
-    const next = getNextPrayer();
-    if(!next) return false;
-
-    const now = nowInTZ();
-    const msToNext = next.at - now;
-
-    const hideBeforeMs = (CONFIG.events.hideBeforeMinutes || 2) * 60 * 1000;
-    if(msToNext <= hideBeforeMs) return false;
-
-    const hideAfterMs = (CONFIG.events.hideAfterMinutes || 3) * 60 * 1000;
-
-    for(const k of ORDER){
-      const at = parseTodayHHMM(timingsAdj[k]);
-      if(!at) continue;
-      const diff = now - at;
-      if(diff >= 0 && diff <= hideAfterMs){
-        return false;
-      }
-    }
-
-    return true;
-  }
-
-  function setEventsLayerVisible(on){
-    const layer = $("eventsLayer");
-    if(!layer) return;
-
-    // ✅ خلال رمضان: شفافية أقل (أهدأ)
-    const isRam = layer.dataset.ramadan === "1";
-    const targetOpacity = on ? (isRam ? "0.18" : "1") : "0";
-    layer.style.opacity = targetOpacity;
-  }
-
-  function renderEventImage(n){
-    const layer = $("eventsLayer");
-    const a = $("eventImgA");
-    const b = $("eventImgB");
-    if(!layer || !a || !b) return;
-
-    const url = eventsUrl(n);
-
-    const showA = eventsState.showingA;
-    const front = showA ? a : b;
-    const back  = showA ? b : a;
-
-    back.classList.remove("show");
-    back.src = url;
-
-    setTimeout(()=>{
-      back.classList.add("show");
-      front.classList.remove("show");
-      eventsState.showingA = !eventsState.showingA;
-    }, 60);
-
-    eventsState.lastShownKey = String(n);
-  }
-
-  function advanceEvents(){
-    if(!shouldShowEventsNow()){
-      setEventsLayerVisible(false);
-      return;
-    }
-
-    setEventsLayerVisible(true);
-    if(!eventsState.valid.length) return;
-
-    const n = eventsState.valid[eventsState.idx % eventsState.valid.length];
-    eventsState.idx = (eventsState.idx + 1) % eventsState.valid.length;
-
-    renderEventImage(n);
-  }
-
-  function startEventsLoop(){
-    if(!CONFIG.events.enabled) return;
-
-    refreshEventsList().then(()=>{
-      advanceEvents();
-
-      if(eventsState.tickHandle) clearInterval(eventsState.tickHandle);
-      eventsState.tickHandle = setInterval(()=>{
-        advanceEvents();
-      }, (CONFIG.events.changeSeconds || 28) * 1000);
-    }).catch(()=>{});
-  }
-
-  function scheduleEventsRefresh(){
-    if(!CONFIG.events.enabled) return;
-    setInterval(()=>{
-      refreshEventsList().then(()=>{
-        advanceEvents();
-      }).catch(()=>{});
-    }, (CONFIG.events.refreshMinutes || 5) * 60 * 1000);
-  }
-
-  function updateEventsVisibility(){
-    if(!CONFIG.events.enabled) return;
-    const on = shouldShowEventsNow();
-    setEventsLayerVisible(on);
-  }
-
-  // =========================
-  // Init
-  // =========================
+  // INIT
   const logo = $("logoImg");
   logo.onerror = ()=>{ logo.style.display="none"; };
   $("locText").textContent = CONFIG.label;
@@ -1551,41 +1182,23 @@
     updateNextHighlight();
     updateCountdown();
     handlePreAlerts();
-    updateEventsVisibility();
-    updateIftarBadge();  // ✅ تحديث شارة الإفطار كل ثانية
+    updateIftarBadge();
   }, 1000);
 
-  // Initial Load
   loadTimings();
   fetchWeather();
 
-  // Timings refresh every 6 hours
   setInterval(()=>loadTimings(), 6 * 60 * 60 * 1000);
-
-  // Weather refresh every 30 minutes
   setInterval(()=>fetchWeather(), 30 * 60 * 1000);
 
-  // Check date change based on Jerusalem Time
   let lastDayStr = getZonedISODate();
   setInterval(()=>{
     const currentDayStr = getZonedISODate();
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
       loadTimings();
-      refreshEventsList().then(()=>advanceEvents()).catch(()=>{});
     }
   }, 60000);
-
-  loadBirthdaysCSV(CONFIG.birthdaysFile)
-    .then(l=>{ birthdayList=l; startBirthdayLoop(); })
-    .catch(()=>{});
-
-  loadVersesRefs(CONFIG.versesFile)
-    .then(l=>{ verseRefs=Array.isArray(l)?l:[]; startVerseLoop(); })
-    .catch(()=>{ $("verseTrack").textContent="—"; });
-
-  startEventsLoop();
-  scheduleEventsRefresh();
 </script>
 </body>
 </html>
