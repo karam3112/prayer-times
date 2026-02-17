@@ -1,5 +1,5 @@
 <!-- =======================
-✅ القسم 1/6: HTML (Head + CSS)
+✅ ملف واحد: ساعة الأذان (مع وضع رمضان تلقائيًا + شارة الإفطار بجانب المغرب)
 ======================== -->
 <!doctype html>
 <html lang="ar" dir="rtl">
@@ -26,7 +26,8 @@
       --top2:#7b542a;
 
       --red:#c91c1c;
-      /* لون التمييز الجديد (أخضر) */
+
+      /* الأخضر للصلاة القادمة */
       --green-bg: #e8f5e9;
       --green-border: #2e7d32;
       --green-text: #1b5e20;
@@ -262,7 +263,7 @@
     .w-icon { font-size: 1.3em; margin-top:-4px; }
     .w-temp { direction: ltr; font-weight:1000; }
 
-    /* Ramadan Countdown (بين الآية والتيكر) */
+    /* Ramadan Banner Row */
     .ramadan-row{
       display:flex;
       align-items:center;
@@ -275,10 +276,10 @@
       width: fit-content;
       margin-left:auto;
       margin-right:auto;
-      border-top: 3px solid #c91c1c;
-      border-bottom: 3px solid #c91c1c;
-      background: rgba(201, 28, 28, 0.08);
-      color: #c91c1c;
+      border-top: 3px solid #c9a14a;
+      border-bottom: 3px solid #c9a14a;
+      background: rgba(201, 161, 74, 0.14);
+      color: #7b542a;
       font-weight: 1000;
       font-size: clamp(20px, 2.5vw, 40px);
     }
@@ -286,7 +287,7 @@
       direction:ltr;
       color:#111;
       font-weight:1000;
-      font-size: 1.05em;
+      font-size: 0.92em;
     }
 
     .times{
@@ -317,6 +318,30 @@
       letter-spacing: 0.5px;
       min-width: 7ch;
       text-align:left;
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+    }
+
+    /* شارة الإفطار بجانب وقت المغرب */
+    .magBadge{
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+      margin-inline-start: 10px;
+      padding: 4px 12px;
+      border-radius: 999px;
+      border: 2px solid rgba(201,161,74,.55);
+      background: rgba(201,161,74,.14);
+      color:#7b542a;
+      font-weight:1000;
+      font-size: .62em;
+      white-space:nowrap;
+    }
+    .magBadge .num{
+      direction:ltr;
+      color:#111;
+      font-weight:1000;
     }
 
     /* الأخضر للصلاة القادمة */
@@ -488,9 +513,6 @@
   </style>
 </head>
 
-<!-- =======================
-✅ القسم 2/6: BODY (المحتوى)
-======================== -->
 <body>
   <div class="frame">
     <div class="arab-border right"></div>
@@ -541,7 +563,6 @@
             <span class="val" id="fajr">--:--</span>
           </div>
 
-          <!-- ✅ الشروق موجود (مهم حتى لا يتوقف JS) -->
           <div class="item" data-key="Sunrise">
             <span class="name"><span class="icon">🌅</span> الشروق</span>
             <span class="val" id="sunrise">--:--</span>
@@ -551,14 +572,17 @@
             <span class="name"><span class="icon">☀️</span> الظهر</span>
             <span class="val" id="dhuhr">--:--</span>
           </div>
+
           <div class="item" data-key="Asr">
             <span class="name"><span class="icon">🌤️</span> العصر</span>
             <span class="val" id="asr">--:--</span>
           </div>
+
           <div class="item" data-key="Maghrib">
             <span class="name"><span class="icon">🌇</span> المغرب</span>
             <span class="val" id="maghrib">--:--</span>
           </div>
+
           <div class="item" data-key="Isha">
             <span class="name"><span class="icon">🌙</span> العشاء</span>
             <span class="val" id="isha">--:--</span>
@@ -568,15 +592,15 @@
         <div class="countdown" id="countdownText">⏳ الوقت المتبقي للأذان القادم: —</div>
 
         <div class="verseWrap">
-          <div class="verseLabel">📖 آية</div>
+          <div class="verseLabel" id="verseLabel">📖 آية</div>
           <div class="verseBar">
             <div class="verseTrack" id="verseTrack">—</div>
           </div>
         </div>
 
-        <!-- ✅ رمضان بين الآية والتيكر -->
+        <!-- ✅ رمضان -->
         <div class="ramadan-row" id="ramadanWrap" style="display:none">
-          🌙 باقي على بداية شهر رمضان المبارك
+          <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
           <span class="num" id="ramadanDays">--</span>
           <span id="ramadanWord">يوم</span>
         </div>
@@ -592,9 +616,7 @@
       </div>
     </div>
   </div>
-<!-- =======================
-✅ القسم 3/6: JS (CONFIG + أدوات عامة + الساعة/التواريخ)
-======================== -->
+
 <script>
   const CONFIG = {
     label: "باقة الغربية",
@@ -660,13 +682,29 @@
       "🏆 نجاح صديقي هو فرحة لي"
     ],
 
+    /* ✅ رسائل رمضان (تُستخدم تلقائيًا خلال رمضان) */
+    tickerMessagesRamadan: [
+      "🌙 رمضان كريم: لسان طيب.. وقلب طيب",
+      "🤲 تقبّل الله طاعتكم وكتب لكم الأجر",
+      "🕌 في رمضان: نحافظ على الهدوء احترامًا للصائمين",
+      "💛 صدقة بسيطة تصنع فرقًا كبيرًا",
+      "📖 كل يوم آية.. وكل آية نور",
+      "🤝 نساعد بعضنا ونختار الكلمة الطيبة",
+      "😊 ابتسامة في رمضان.. صدقة",
+      "🧠 نُحسن أخلاقنا كما نُحسن صيامنا",
+      "🕊️ الهدوء طريق النجاح",
+      "🎒 نحافظ على نظافة المدرسة.. عبادة وسلوك",
+      "💬 الكلمة الطيبة في رمضان أجمل",
+      "🌟 رمضان فرصة جديدة للتميز",
+      "👂 نستمع جيدًا لنفهم جيدًا",
+      "🚫 لا للتنمر.. نعم للمحبة",
+      "🏫 مدرستنا بيتنا الثاني.. فلنحافظ عليه"
+    ],
+
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
     alertShowSeconds: 12,
 
-    /* =========================
-       ✅ إعدادات صور الفعاليات (ثابتة 1..10 + تخطي المفقود)
-       ========================= */
     events: {
       enabled: true,
       basePath: "images/events/",
@@ -686,16 +724,10 @@
 
   function getZonedDateStr(){
     const iso = new Intl.DateTimeFormat("en-CA", {
-	 year: "numeric",
-	 month: "2-digit",
-	 day: "2-digit",
-	 timeZone: CONFIG.tz
-	 
-	}).format(new Date()); // "YYYY-MM-DD"
-	
-	const [y, m, d] = iso.split("-");
-	return `${d}-${m}-${y}`; // ✅ "DD-MM-YYYY"
-	
+      year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
+    }).format(new Date()); // YYYY-MM-DD
+    const [y, m, d] = iso.split("-");
+    return `${d}-${m}-${y}`; // DD-MM-YYYY
   }
 
   function getZonedISODate(){
@@ -748,7 +780,6 @@
     const parts = clean.split(":");
     const h = Number(parts[0]);
     const m = Number(parts[1]);
-
     if(!Number.isFinite(h) || !Number.isFinite(m)) return "--:--";
 
     let total = (h*60 + m) + (addMin||0);
@@ -766,7 +797,7 @@
     }).formatToParts(d);
 
     const month = parts.find(p=>p.type==="month").value;
-    const year = parts.find(p=>p.type==="year").value;
+    const year  = parts.find(p=>p.type==="year").value;
 
     const url =
       `https://api.aladhan.com/v1/calendar` +
@@ -787,11 +818,11 @@
   function readCache(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||"null"); }catch{ return null; } }
 
   let timingsAdj = null;
+
+  /* ✅ رمضان: حالة عامة */
+  let IS_RAMADAN = false;
 </script>
 
-<!-- =======================
-✅ القسم 4/6: JS (رمضان + تطبيق الأوقات + الصلاة القادمة + التنبيهات)
-======================== -->
 <script>
   // ====== Ramadan Countdown Helpers ======
   function parseDDMMYYYY_toDate(ddmmyyyy){
@@ -809,32 +840,35 @@
 
   function setRamadanText(days){
     const wrap = $("ramadanWrap");
-	if(!wrap) return;
-	// إذا كان الهيكل الداخلي انمسح لأي سبب، أعد بناءه
-	if(!$("ramadanPrefix") || !$("ramadanDays") || !$("ramadanWord")){
-   	   wrap.innerHTML = `
-	     <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
-		 <span class="num" id="ramadanDays">--</span>
-		 <span id="ramadanWord">يوم</span>
-	   `;
-	}
+    if(!wrap) return;
+
+    // تأكيد الهيكل
+    if(!$("ramadanPrefix") || !$("ramadanDays") || !$("ramadanWord")){
+      wrap.innerHTML = `
+        <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
+        <span class="num" id="ramadanDays">--</span>
+        <span id="ramadanWord">يوم</span>
+      `;
+    }
+
     const prefix = $("ramadanPrefix");
-	const daysEl = $("ramadanDays");
+    const daysEl = $("ramadanDays");
     const wordEl = $("ramadanWord");
-	
-	wrap.style.display = "flex";
-    
+
+    wrap.style.display = "flex";
+
+    // ✅ خلال رمضان: رسالة ثابتة جميلة
     if(days <= 0){
-	  prefix.textContent = "🌙 رمضان مبارك";
-      daysEl.textContent = "";
+      prefix.textContent = "🌙 رمضان مبارك";
+      daysEl.textContent = "تقبّل الله طاعتكم";
       wordEl.textContent = "";
       return;
     }
 
-     prefix.textContent = "🌙 باقي على بداية شهر رمضان المبارك";
-	 daysEl.textContent = String(days);
-     wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
-    
+    // قبل رمضان: عدّاد
+    prefix.textContent = "🌙 باقي على بداية شهر رمضان المبارك";
+    daysEl.textContent = String(days);
+    wordEl.textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
   }
 
   async function updateRamadanCountdown(hijriYear){
@@ -867,6 +901,28 @@
   }
   // ====== /Ramadan Countdown Helpers ======
 
+  function applyRamadanMode(isOn){
+    IS_RAMADAN = !!isOn;
+
+    // ✅ آية رمضانية
+    const v = $("verseLabel");
+    if(v) v.textContent = IS_RAMADAN ? "📖 آية رمضانية" : "📖 آية";
+
+    // ✅ تهدئة طبقة الفعاليات خلال رمضان (بدون كسر المنطق)
+    const layer = $("eventsLayer");
+    if(layer){
+      // فقط نغيّر قيمة شفافية العرض عندما تكون ON
+      layer.dataset.ramadan = IS_RAMADAN ? "1" : "0";
+    }
+
+    // ✅ تبديل التكر إلى رسائل رمضان
+    setTickerMode(IS_RAMADAN);
+
+    // ✅ إنشاء/إزالة شارة الإفطار بجانب المغرب
+    ensureIftarBadge();
+    updateIftarBadge(); // تحديث مباشر
+  }
+
   function applyData(monthData){
     if(!Array.isArray(monthData)) return;
     const todayStr = getZonedDateStr();
@@ -876,15 +932,28 @@
     const h = todayEntry.date.hijri;
     if(h){
       $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
-      updateRamadanCountdown(h.year);
+
+      // ✅ تحديد رمضان من رقم الشهر الهجري (9)
+      const isRam = (Number(h.month?.number) === 9) || String(h.month?.ar || "").includes("رمضان");
+      applyRamadanMode(isRam);
+
+      // ✅ إذا ليس رمضان: اعرض عدّاد بداية رمضان
+      if(!isRam){
+        updateRamadanCountdown(h.year);
+      }else{
+        // خلال رمضان: اعرض الرسالة الثابتة فورًا
+        setRamadanText(0);
+      }
+
     }else{
       $("hijriText").textContent = "—";
       const wrap = $("ramadanWrap");
       if(wrap) wrap.style.display="none";
+      applyRamadanMode(false);
     }
 
     const t = todayEntry.timings;
-    const clean = (val) => val.split(" ")[0];
+    const clean = (val) => String(val || "").split(" ")[0];
 
     timingsAdj = {
       Fajr:    addMinutesToHHMM(clean(t.Fajr),    CONFIG.offsets.Fajr || 0),
@@ -898,6 +967,8 @@
     fillTimes();
     updateNextHighlight();
     updateCountdown();
+    ensureIftarBadge();
+    updateIftarBadge();
   }
 
   function fillTimes(){
@@ -913,15 +984,11 @@
   const ORDER = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
   const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
 
-  /* =========================
-     ✅ التعديل الأساسي: حماية parseTodayHHMM
-     ========================= */
   function parseTodayHHMM(hhmm){
     const clean = cleanHHMM(hhmm);
     const parts = clean.split(":");
     const h = Number(parts[0]);
     const m = Number(parts[1]);
-
     if(!Number.isFinite(h) || !Number.isFinite(m)) return null;
 
     const y  = Number(new Intl.DateTimeFormat("en-CA",{year:"numeric",timeZone:CONFIG.tz}).format(new Date()));
@@ -930,9 +997,6 @@
     return new Date(y, mo-1, da, h, m, 0, 0);
   }
 
-  /* =========================
-     ✅ التعديل الأساسي: getNextPrayer يتجاوز null
-     ========================= */
   function getNextPrayer(){
     if(!timingsAdj) return null;
     const now = nowInTZ();
@@ -997,8 +1061,8 @@
   function formatRemainingTime(sec){
     if(sec < 0) return "";
     if(sec < 60) return "أقل من دقيقة";
-	const hours = Math.floor(sec / 3600);
-	const minutes = Math.floor((sec % 3600) / 60);
+    const hours = Math.floor(sec / 3600);
+    const minutes = Math.floor((sec % 3600) / 60);
     if(hours > 0) return `${hours} ساعات ${minutes} دقائق`;
     return `${minutes} دقائق`;
   }
@@ -1010,7 +1074,8 @@
     if(!next) return;
     const secLeft = Math.floor((next.at - now) / 1000);
     if(secLeft >= 0){
-      $("countdownText").textContent = `⏳ الوقت المتبقي للأذان القادم: ${formatRemainingTime(secLeft)}`;
+      const nameAr = NAME_AR[next.key] || next.key;
+      $("countdownText").textContent = `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
     }
   }
 
@@ -1025,7 +1090,6 @@
 
     const dateKey = getZonedDateStr();
     const stamp = `${dateKey}|${next.key}|${mins}`;
-
     if(fired.has(stamp)) return;
 
     const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
@@ -1035,24 +1099,83 @@
       fired.add(stamp);
     }
   }
+
+  // ====== ✅ شارة الإفطار بجانب المغرب (خلال رمضان فقط) ======
+  function ensureIftarBadge(){
+    const magEl = $("maghrib");
+    if(!magEl) return;
+
+    // احذف الشارة إذا لم يكن رمضان
+    const existing = magEl.querySelector(".magBadge");
+    if(!IS_RAMADAN){
+      if(existing) existing.remove();
+      return;
+    }
+
+    // أنشئها إذا غير موجودة
+    if(!existing){
+      const b = document.createElement("span");
+      b.className = "magBadge";
+      b.innerHTML = `🍽️ <span>الوقت المتبقي للإفطار:</span> <span class="num" id="iftarRemain">—</span>`;
+      magEl.appendChild(b);
+    }
+  }
+
+  function formatIftarShort(ms){
+    const totalSec = Math.max(0, Math.floor(ms / 1000));
+    const h = Math.floor(totalSec / 3600);
+    const m = Math.floor((totalSec % 3600) / 60);
+    if(h > 0) return `${h}س ${m}د`;
+    return `${m}د`;
+  }
+
+  function updateIftarBadge(){
+    if(!IS_RAMADAN) return;
+    if(!timingsAdj) return;
+
+    const remainEl = $("iftarRemain");
+    if(!remainEl) return;
+
+    const now = nowInTZ();
+    let magAt = parseTodayHHMM(timingsAdj.Maghrib);
+    if(!magAt) { remainEl.textContent = "—"; return; }
+
+    // إذا المغرب مرّ (نادرًا لشاشتكم، لكن احتياطًا): احسب لليوم التالي
+    if(magAt <= now){
+      magAt = new Date(magAt.getTime());
+      magAt.setDate(magAt.getDate() + 1);
+    }
+
+    remainEl.textContent = formatIftarShort(magAt - now);
+  }
 </script>
 
-<!-- =======================
-✅ القسم 5/6: JS (Ticker + Birthdays + Verses + Weather + Timings Load)
-======================== -->
 <script>
-  // Ticker
+  // ======================
+  // Ticker (مع تبديل رمضان)
+  // ======================
   let tickerIndex = 0;
+  let TICKER_LIST = CONFIG.tickerMessages;
+
   function setTickerText(msg){
     $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
   }
+
+  function setTickerMode(isRamadan){
+    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
+    if(TICKER_LIST === nextList) return;
+    TICKER_LIST = nextList;
+    tickerIndex = 0;
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+  }
+
   function startTicker(){
     document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
-    setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
     const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
     setInterval(()=>{
       tickerIndex++;
-      setTickerText(CONFIG.tickerMessages[tickerIndex % CONFIG.tickerMessages.length]);
+      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
     }, intervalMs);
   }
 
@@ -1078,7 +1201,7 @@
       const parts = line.split(",").map(x=>x.trim());
       const name = parts[idx("name")] || "";
       const role = parts[idx("role")] || "";
-	  const cls  = parts[idx("class")] || "";
+      const cls  = parts[idx("class")] || "";
       const day  = Number(parts[idx("day")] || 0);
       const month= Number(parts[idx("month")] || 0);
       if(name && day && month) out.push({name, role, cls, day, month});
@@ -1102,14 +1225,14 @@
   function showBirthdayCard(person){
     const box = $("birthdayBox");
     const role = String(person.role || "").trim();
-	const cls  = String(person.cls  || "").trim();
+    const cls  = String(person.cls  || "").trim();
     const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
 
     box.innerHTML = `
       <div>🎉 كل عام وأنت بخير</div>
       <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
         <strong>${person.name}</strong>
-		${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">${cls}</div>` : ""}
+        ${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">${cls}</div>` : ""}
       </div>
       <div class="sub">
         ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 نتمنى لك يومًا سعيدًا في مدرسة الغزالي"}
@@ -1130,7 +1253,6 @@
       const person = todaysBirthdays[(startIndex + i) % count];
       setTimeout(()=>{ showBirthdayCard(person); }, i * step);
     }
-
     birthdayCursor = (startIndex + count) % count;
   }
 
@@ -1198,7 +1320,7 @@
     }, CONFIG.verseChangeMinutes * 60 * 1000);
   }
 
-  // Weather Logic
+  // Weather
   function wmoToText(code){
     if(code === 0) return { t:"مشمس وصافٍ", i:"☀️" };
     if(code >= 1 && code <= 3) return { t:"غائم جزئيًا", i:"⛅" };
@@ -1229,7 +1351,7 @@
     }
   }
 
-  // Load Logic: Calendar (Month)
+  // Load timings
   async function loadTimings(){
     try{
       const data = await fetchTimings();
@@ -1244,13 +1366,10 @@
   }
 </script>
 
-<!-- =======================
-✅ القسم 6/6: JS (صور الفعاليات + INIT + إغلاق الصفحة)
-======================== -->
 <script>
-  /* =========================
-     ✅ منطق صور الفعاليات
-     ========================= */
+  // =========================
+  // ✅ منطق صور الفعاليات
+  // =========================
   const eventsState = {
     valid: [],
     idx: 0,
@@ -1343,7 +1462,11 @@
   function setEventsLayerVisible(on){
     const layer = $("eventsLayer");
     if(!layer) return;
-    layer.style.opacity = on ? "1" : "0";
+
+    // ✅ خلال رمضان: شفافية أقل (أهدأ)
+    const isRam = layer.dataset.ramadan === "1";
+    const targetOpacity = on ? (isRam ? "0.18" : "1") : "0";
+    layer.style.opacity = targetOpacity;
   }
 
   function renderEventImage(n){
@@ -1413,9 +1536,9 @@
     setEventsLayerVisible(on);
   }
 
-  /* =========================
-     Init
-     ========================= */
+  // =========================
+  // Init
+  // =========================
   const logo = $("logoImg");
   logo.onerror = ()=>{ logo.style.display="none"; };
   $("locText").textContent = CONFIG.label;
@@ -1429,6 +1552,7 @@
     updateCountdown();
     handlePreAlerts();
     updateEventsVisibility();
+    updateIftarBadge();  // ✅ تحديث شارة الإفطار كل ثانية
   }, 1000);
 
   // Initial Load
@@ -1465,4 +1589,3 @@
 </script>
 </body>
 </html>
-
