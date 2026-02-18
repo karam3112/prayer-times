@@ -49,6 +49,13 @@
       font-family: "HacenScreen", system-ui, Tahoma, Arial, sans-serif;
     }
 
+    /* ✅ وضع رمضان (يُفعّل عبر data-ramadan="1" على body) */
+    body[data-ramadan="1"]{
+      background:
+        radial-gradient(circle at 50% 10%, rgba(201,161,74,.18), rgba(246,242,234,0) 55%),
+        var(--bg);
+    }
+
     @keyframes antiBurn {
       0% { transform: translate(0, 0); }
       25% { transform: translate(2px, 1px); }
@@ -70,6 +77,14 @@
         linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         var(--bg);
       animation: antiBurn 300s infinite alternate linear;
+    }
+
+    body[data-ramadan="1"] .frame{
+      background:
+        radial-gradient(circle at 50% 0%, rgba(201,161,74,.15), rgba(246,242,234,0) 50%),
+        linear-gradient(90deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
+        linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
+        var(--bg);
     }
 
     .arab-border{
@@ -102,6 +117,11 @@
       isolation:isolate;
     }
 
+    body[data-ramadan="1"] .board{
+      border-color: rgba(201,161,74,.55);
+      box-shadow: 0 22px 85px rgba(0,0,0,.16);
+    }
+
     .board::before{
       content:"";
       position:absolute;
@@ -130,33 +150,6 @@
       mix-blend-mode:multiply;
     }
 
-    .eventsLayer{
-      position:absolute;
-      inset:0;
-      z-index:0;
-      opacity:0;
-      transition: opacity 900ms ease;
-      pointer-events:none;
-    }
-    .eventsLayer .eventsOverlay{
-      position:absolute;
-      inset:0;
-      background: radial-gradient(circle at 50% 35%, rgba(246,242,234,.25), rgba(246,242,234,.72) 65%, rgba(246,242,234,.86));
-      mix-blend-mode: normal;
-    }
-    .eventsLayer img{
-      position:absolute;
-      inset:0;
-      width:100%;
-      height:100%;
-      object-fit:cover;
-      transform: scale(1.05);
-      filter: blur(2px) saturate(1.05) brightness(.92) contrast(.98);
-      opacity:0;
-      transition: opacity 900ms ease;
-    }
-    .eventsLayer img.show{ opacity:1; }
-
     .content{
       position:relative;
       z-index:1;
@@ -175,6 +168,13 @@
       justify-content:space-between;
       gap:12px;
     }
+
+    /* ✅ شريط علوي رمضاني */
+    body[data-ramadan="1"] .topbar{
+      background: linear-gradient(90deg, #6f4b18, #c9a14a, #6f4b18);
+      box-shadow: 0 10px 30px rgba(201,161,74,.22);
+    }
+
     .topbar .right{
       display:flex; align-items:center; gap:12px;
       font-weight:1000;
@@ -251,32 +251,6 @@
     }
     .w-icon { font-size: 1.3em; margin-top:-4px; }
     .w-temp { direction: ltr; font-weight:1000; }
-
-    .ramadan-row{
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap: 12px;
-      margin-top: calc(var(--s)*0.45);
-      margin-bottom: calc(var(--s)*0.45);
-      padding: 12px 22px;
-      border-radius: 18px;
-      width: fit-content;
-      margin-left:auto;
-      margin-right:auto;
-      border-top: 3px solid #c9a14a;
-      border-bottom: 3px solid #c9a14a;
-      background: rgba(201, 161, 74, 0.14);
-      color: #7b542a;
-      font-weight: 1000;
-      font-size: clamp(20px, 2.5vw, 40px);
-    }
-    .ramadan-row .num{
-      direction:ltr;
-      color:#111;
-      font-weight:1000;
-      font-size: 0.92em;
-    }
 
     .times{
       margin-top: calc(var(--s)*0.55);
@@ -423,43 +397,9 @@
       100%{ transform: translateX(110%); }
     }
 
-    .alert{
-      position:absolute;
-      left: 18px;
-      right: 18px;
-      bottom: 126px;
-      padding: 14px 16px;
-      border-radius: 14px;
-      border: 2px solid rgba(160,120,40,.35);
-      background: rgba(255, 215, 90, .32);
-      color:#2a1b06;
-      font-weight:1000;
-      text-align:center;
-      font-size: calc(var(--s)*1.05);
-      display:none;
-      backdrop-filter: blur(6px);
-      z-index:6;
-    }
-
-    .birthday{
-      position:absolute;
-      inset: 20% 10%;
-      background: linear-gradient(135deg,#fff7e6,#ffe3b3);
-      border: 3px solid #c9a14a;
-      border-radius: 26px;
-      text-align:center;
-      padding: clamp(18px, 3vw, 46px);
-      font-size: clamp(30px,4vw,66px);
-      font-weight:1000;
-      box-shadow: 0 30px 80px rgba(0,0,0,.25);
-      display:none;
-      z-index:7;
-    }
-    .birthday .sub{
-      margin-top: 10px;
-      font-size: .70em;
-      color:#2a1b06;
-      opacity:.95;
+    body[data-ramadan="1"] .verseBar{
+      background: rgba(201,161,74,.12);
+      border-color: rgba(201,161,74,.35);
     }
 
     .tickerWrap{
@@ -479,6 +419,10 @@
       height: calc(var(--s)*2.05);
       display:flex;
       align-items:center;
+    }
+    body[data-ramadan="1"] .ticker{
+      background: rgba(201,161,74,.12);
+      border-color: rgba(201,161,74,.30);
     }
     .ticker .track{
       display:inline-flex;
@@ -506,20 +450,13 @@
     <div class="arab-border left"></div>
 
     <div class="board">
-
-      <div class="eventsLayer" id="eventsLayer" aria-hidden="true">
-        <img id="eventImgA" alt="" />
-        <img id="eventImgB" alt="" />
-        <div class="eventsOverlay"></div>
-      </div>
-
       <div class="grain"></div>
 
       <div class="content">
         <div class="topbar">
           <div class="right">
             <div class="logo"><img id="logoImg" src="logo.png" alt="logo"></div>
-            <div>توقيت الأذان في مدرسة الغزالي</div>
+            <div id="titleText">توقيت الأذان في مدرسة الغزالي</div>
           </div>
           <div class="left" id="locText">باقة الغربية</div>
         </div>
@@ -584,20 +521,13 @@
           </div>
         </div>
 
-        <div class="ramadan-row" id="ramadanWrap" style="display:none">
-          <span id="ramadanPrefix">🌙 باقي على بداية شهر رمضان المبارك</span>
-          <span class="num" id="ramadanDays">--</span>
-          <span id="ramadanWord">يوم</span>
-        </div>
-
         <div class="tickerWrap">
           <div class="ticker">
             <div class="track" id="tickerTrack">—</div>
           </div>
         </div>
 
-        <div class="alert" id="alertBar"></div>
-        <div class="birthday" id="birthdayBox"></div>
+        <div class="alert" id="alertBar" style="display:none"></div>
       </div>
     </div>
   </div>
@@ -613,12 +543,8 @@
     preAlertMinutes: { Fajr: 10, Dhuhr: 10, Asr: 10, Maghrib: 10, Isha: 10 },
     beep: true,
 
-    // ✅ للتجربة فقط: اجعلها true لترى وضع رمضان الآن
-    forceRamadan: false,
-
-    birthdaysFile: "birthdays.csv",
-    birthdayEveryMinutes: 5,
     versesFile: "verses.json",
+    versesRamadanFile: "verses_ramadan.json",   // اختياري: إن لم يوجد سيتم الرجوع إلى verses.json
     verseChangeMinutes: 5,
     verseSpeedSeconds: 40,
 
@@ -628,77 +554,20 @@
       "✅ سلوك اليوم: نحترم دور غيرنا",
       "🧼 نغسل أيدينا باستمرار",
       "🤝 معًا نصنع يومًا جميلًا",
-      "😊 الابتسامة صدقة",
-      "🧠 نتعلّم اليوم شيئًا جديدًا",
-      "🎒 نحافظ على النظافة",
-      "🕊️ الهدوء طريق النجاح",
-      "💬 الكلمة الطيبة جواز مرور للقلوب",
-      "🏫 مدرستنا بيتنا الثاني",
-      "✨ كلنا متميزون",
-      "✋ الاستئذان أدب رفيع",
-      "⭐ كن نجماً بأخلاقك",
-      "📖 خير جليس في الزمان كتاب",
-      "🧩 التعاون أساس النجاح",
-      "🚀 انطلقوا نحو القمة يا أبطال",
-      "🌞 صباح النشاط والحيوية",
-      "🌈 يوم جديد.. فرصة جديدة للتميز",
-      "💪 من جدّ وجد ومن زرع حصد",
-      "⏳ الوقت من ذهب، لنستثمره بذكاء",
-      "💡 السؤال مفتاح المعرفة",
-      "📈 خطأ اليوم هو درس للغد",
-      "🎨 أطلق العنان لإبداعك",
-      "🔍 كن باحثاً ذكياً ومفكراً مبدعاً",
-      "🧠 بالعلم نرتقي ونبني المستقبل",
-      "💎 الأمانة صفة الأوفياء",
-      "🌟 الصدق منجاة وشجاعة",
-      "💞 التسامح قوة وليس ضعفاً",
-      "🤐 نحفظ ألسنتنا عن الأذى",
-      "👵👴 نحترم الكبير ونعطف على الصغير",
-      "👂 نستمع جيداً لنفهم جيداً",
-      "🙋‍♂️ نرفع اليد قبل المشاركة",
-      "🚶‍♂️ نمشي في الممرات بهدوء ونظام",
-      "👥 نحترم اختلافاتنا، فكلنا مميزون",
-      "🚫 لا للتنمر، نعم للصداقة",
-      "🗑️ ساحة مدرستنا مرآة لنظافتنا",
-      "💧 الماء نعمة، فلنحافظ عليه",
-      "🥪 طعامي صحي، جسمي قوي",
-      "🌳 نزرع الحب والورد في كل مكان",
-      "🧴 صحتنا في نظافة أبداننا",
-      "👋 إفشاء السلام ينشر المحبة",
-      "🎁 تهادوا تحابوا",
-      "🤗 ساعد صديقك عند الحاجة",
-      "🗣️ صوتنا منخفض وكلماتنا راقية",
-      "🏆 نجاح صديقي هو فرحة لي"
+      "😊 الابتسامة صدقة"
     ],
 
     tickerMessagesRamadan: [
       "🌙 رمضان كريم: لسان طيب.. وقلب طيب",
-      "🤲 تقبّل الله طاعتكم وكتب لكم الأجر",
+      "🤲 تقبّل الله طاعتكم",
       "🕌 في رمضان: نحافظ على الهدوء احترامًا للصائمين",
-      "💛 صدقة بسيطة تصنع فرقًا كبيرًا",
-      "📖 كل يوم آية.. وكل آية نور",
-      "🤝 نساعد بعضنا ونختار الكلمة الطيبة",
-      "😊 ابتسامة في رمضان.. صدقة",
-      "🧠 نُحسن أخلاقنا كما نُحسن صيامنا",
-      "🚫 لا للتنمر.. نعم للمحبة",
-      "🏫 مدرستنا بيتنا الثاني.. فلنحافظ عليه"
+      "💛 صدقة بسيطة تصنع فرقًا",
+      "📖 كل يوم آية.. وكل آية نور"
     ],
 
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
-    alertShowSeconds: 12,
-
-    events: {
-      enabled: true,
-      basePath: "images/events/",
-      ext: "jpg",
-      count: 10,
-      changeSeconds: 28,
-      refreshMinutes: 5,
-      hideBeforeMinutes: 2,
-      hideAfterMinutes: 3,
-      probeTimeoutMs: 4500
-    }
+    alertShowSeconds: 12
   };
 
   const $ = (id)=>document.getElementById(id);
@@ -805,131 +674,6 @@
 
   const ORDER = ["Fajr","Dhuhr","Asr","Maghrib","Isha"];
   const NAME_AR = {Fajr:"الفجر",Sunrise:"الشروق",Dhuhr:"الظهر",Asr:"العصر",Maghrib:"المغرب",Isha:"العشاء"};
-</script>
-
-<script>
-  function parseDDMMYYYY_toDate(ddmmyyyy){
-    const [dd,mm,yy] = ddmmyyyy.split("-").map(Number);
-    return new Date(yy, mm-1, dd, 0, 0, 0, 0);
-  }
-
-  function getNowInTZ_DateStart(){
-    const d = new Date();
-    const y = Number(new Intl.DateTimeFormat("en-CA",{year:"numeric",timeZone:CONFIG.tz}).format(d));
-    const m = Number(new Intl.DateTimeFormat("en-CA",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
-    const day = Number(new Intl.DateTimeFormat("en-CA",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
-    return new Date(y, m-1, day, 0, 0, 0, 0);
-  }
-
-  function setRamadanText(days){
-    const wrap = $("ramadanWrap");
-    if(!wrap) return;
-
-    wrap.style.display = "flex";
-
-    if(days <= 0){
-      $("ramadanPrefix").textContent = "🌙 رمضان مبارك";
-      $("ramadanDays").textContent = "تقبّل الله طاعتكم";
-      $("ramadanWord").textContent = "";
-      return;
-    }
-
-    $("ramadanPrefix").textContent = "🌙 باقي على بداية شهر رمضان المبارك";
-    $("ramadanDays").textContent = String(days);
-    $("ramadanWord").textContent = (days >= 1 && days <= 9) ? "أيام" : "يوم";
-  }
-
-  async function updateRamadanCountdown(hijriYear){
-    try{
-      const todayStart = getNowInTZ_DateStart();
-
-      async function getRamadanStartGregorian(hYear){
-        const url = `https://api.aladhan.com/v1/hToG?date=01-09-${encodeURIComponent(hYear)}`;
-        const r = await fetch(url, { cache:"no-store" });
-        if(!r.ok) throw new Error("hToG failed");
-        const j = await r.json();
-        const gDate = j?.data?.gregorian?.date;
-        if(!gDate) throw new Error("no greg date");
-        return parseDDMMYYYY_toDate(gDate);
-      }
-
-      let ramadanStart = await getRamadanStartGregorian(hijriYear);
-      if(ramadanStart <= todayStart){
-        ramadanStart = await getRamadanStartGregorian(Number(hijriYear) + 1);
-      }
-
-      const diffDays = Math.ceil((ramadanStart - todayStart) / (1000*60*60*24));
-      setRamadanText(diffDays);
-    }catch{
-      const wrap = $("ramadanWrap");
-      if(wrap) wrap.style.display = "none";
-    }
-  }
-
-  function applyRamadanMode(isOn){
-    IS_RAMADAN = !!isOn;
-
-    const v = $("verseLabel");
-    if(v) v.textContent = IS_RAMADAN ? "📖 آية رمضانية" : "📖 آية";
-
-    const layer = $("eventsLayer");
-    if(layer) layer.dataset.ramadan = IS_RAMADAN ? "1" : "0";
-
-    setTickerMode(IS_RAMADAN);
-
-    ensureIftarBadge();
-    updateIftarBadge();
-  }
-
-  function applyData(monthData){
-    if(!Array.isArray(monthData)) return;
-    const todayStr = getZonedDateStr();
-    const todayEntry = monthData.find(d => d.date.gregorian.date === todayStr);
-    if(!todayEntry) return;
-
-    const h = todayEntry.date.hijri;
-    if(h){
-      $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
-
-      let isRam = (Number(h.month?.number) === 9) || String(h.month?.ar || "").includes("رمضان");
-      if(CONFIG.forceRamadan) isRam = true;  // ✅ تجربة
-
-      applyRamadanMode(isRam);
-
-      if(!isRam) updateRamadanCountdown(h.year);
-      else setRamadanText(0);
-
-    }else{
-      $("hijriText").textContent = "—";
-      const wrap = $("ramadanWrap");
-      if(wrap) wrap.style.display="none";
-      applyRamadanMode(false);
-    }
-
-    const t = todayEntry.timings;
-    const clean = (val) => String(val || "").split(" ")[0];
-
-    timingsAdj = {
-      Fajr:    addMinutesToHHMM(clean(t.Fajr),    CONFIG.offsets.Fajr || 0),
-      Dhuhr:   addMinutesToHHMM(clean(t.Dhuhr),   CONFIG.offsets.Dhuhr || 0),
-      Asr:     addMinutesToHHMM(clean(t.Asr),     CONFIG.offsets.Asr || 0),
-      Maghrib: addMinutesToHHMM(clean(t.Maghrib), CONFIG.offsets.Maghrib || 0),
-      Isha:    addMinutesToHHMM(clean(t.Isha),    CONFIG.offsets.Isha || 0),
-      Sunrise: addMinutesToHHMM(clean(t.Sunrise), CONFIG.offsets.Sunrise || 0)
-    };
-
-    $("fajr").textContent = timingsAdj.Fajr;
-    $("dhuhr").textContent = timingsAdj.Dhuhr;
-    $("asr").textContent = timingsAdj.Asr;
-    $("maghrib").textContent = timingsAdj.Maghrib;
-    $("isha").textContent = timingsAdj.Isha;
-    $("sunrise").textContent = timingsAdj.Sunrise;
-
-    updateNextHighlight();
-    updateCountdown();
-    ensureIftarBadge();
-    updateIftarBadge();
-  }
 
   function parseTodayHHMM(hhmm){
     const clean = cleanHHMM(hhmm);
@@ -980,29 +724,59 @@
     el.querySelector(".name").appendChild(badge);
   }
 
-  let fired = new Set();
+  function applyRamadanMode(isOn){
+    IS_RAMADAN = !!isOn;
 
-  function beep(){
-    if(!CONFIG.beep) return;
-    try{
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      const g = ctx.createGain();
-      o.type = "sine";
-      o.frequency.value = 660;
-      g.gain.value = 0.04;
-      o.connect(g); g.connect(ctx.destination);
-      o.start();
-      setTimeout(()=>{ o.stop(); ctx.close(); }, 260);
-    }catch{}
+    document.body.setAttribute("data-ramadan", IS_RAMADAN ? "1" : "0");
+    $("verseLabel").textContent = IS_RAMADAN ? "📖 آية رمضانية" : "📖 آية";
+    $("titleText").textContent = IS_RAMADAN ? "توقيت الأذان في مدرسة الغزالي 🌙" : "توقيت الأذان في مدرسة الغزالي";
+
+    setTickerMode(IS_RAMADAN);
+
+    ensureIftarBadge();
+    updateIftarBadge();
+    loadVersesForMode();
   }
 
-  function showAlert(text){
-    const el = $("alertBar");
-    el.textContent = text;
-    el.style.display = "block";
-    beep();
-    setTimeout(()=>{ el.style.display="none"; }, CONFIG.alertShowSeconds * 1000);
+  function applyData(monthData){
+    if(!Array.isArray(monthData)) return;
+    const todayStr = getZonedDateStr();
+    const todayEntry = monthData.find(d => d.date.gregorian.date === todayStr);
+    if(!todayEntry) return;
+
+    const h = todayEntry.date.hijri;
+    if(h){
+      $("hijriText").textContent = `${h.day} ${h.month?.ar || ""} ${h.year}`;
+      const isRam = (Number(h.month?.number) === 9) || String(h.month?.ar || "").includes("رمضان");
+      applyRamadanMode(isRam);
+    }else{
+      $("hijriText").textContent = "—";
+      applyRamadanMode(false);
+    }
+
+    const t = todayEntry.timings;
+    const clean = (val) => String(val || "").split(" ")[0];
+
+    timingsAdj = {
+      Fajr:    addMinutesToHHMM(clean(t.Fajr),    CONFIG.offsets.Fajr || 0),
+      Dhuhr:   addMinutesToHHMM(clean(t.Dhuhr),   CONFIG.offsets.Dhuhr || 0),
+      Asr:     addMinutesToHHMM(clean(t.Asr),     CONFIG.offsets.Asr || 0),
+      Maghrib: addMinutesToHHMM(clean(t.Maghrib), CONFIG.offsets.Maghrib || 0),
+      Isha:    addMinutesToHHMM(clean(t.Isha),    CONFIG.offsets.Isha || 0),
+      Sunrise: addMinutesToHHMM(clean(t.Sunrise), CONFIG.offsets.Sunrise || 0)
+    };
+
+    $("fajr").textContent = timingsAdj.Fajr;
+    $("dhuhr").textContent = timingsAdj.Dhuhr;
+    $("asr").textContent = timingsAdj.Asr;
+    $("maghrib").textContent = timingsAdj.Maghrib;
+    $("isha").textContent = timingsAdj.Isha;
+    $("sunrise").textContent = timingsAdj.Sunrise;
+
+    updateNextHighlight();
+    updateCountdown();
+    ensureIftarBadge();
+    updateIftarBadge();
   }
 
   function formatRemainingTime(sec){
@@ -1010,11 +784,10 @@
     if(sec < 60) return "أقل من دقيقة";
     const hours = Math.floor(sec / 3600);
     const minutes = Math.floor((sec % 3600) / 60);
-    if(hours > 0) return `${hours} ساعات ${minutes} دقائق`;
+    if(hours > 0) return `${hours} ساعات و${minutes} دقائق`;
     return `${minutes} دقائق`;
   }
 
-  // ✅ هنا التعديل المطلوب: إذا القادم هو المغرب أثناء رمضان => "الإفطار"
   function updateCountdown(){
     if(!timingsAdj) return;
     const now = nowInTZ();
@@ -1035,28 +808,7 @@
       `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
   }
 
-  function handlePreAlerts(){
-    if(!timingsAdj) return;
-    const now = nowInTZ();
-    const next = getNextPrayer();
-    if(!next) return;
-    const mins = CONFIG.preAlertMinutes[next.key];
-    if(mins == null) return;
-    const pre = new Date(next.at.getTime() - mins*60*1000);
-
-    const dateKey = getZonedDateStr();
-    const stamp = `${dateKey}|${next.key}|${mins}`;
-    if(fired.has(stamp)) return;
-
-    const windowMs = (CONFIG.preAlertWindowSeconds || 20) * 1000;
-    if(Math.abs(now - pre) <= windowMs){
-      const nameAr = NAME_AR[next.key] || next.key;
-      showAlert(`🌙 تنبيه: باقي ${mins} دقيقة على أذان ${nameAr}`);
-      fired.add(stamp);
-    }
-  }
-
-  // ✅ شارة الإفطار بجانب المغرب (رمضان فقط)
+  // ✅ شارة الإفطار بجانب المغرب
   function ensureIftarBadge(){
     const magEl = $("maghrib");
     if(!magEl) return;
@@ -1075,17 +827,17 @@
     }
   }
 
-  function formatIftarShort(ms){
+  function formatIftarFull(ms){
     const totalSec = Math.max(0, Math.floor(ms / 1000));
     const h = Math.floor(totalSec / 3600);
     const m = Math.floor((totalSec % 3600) / 60);
-    if(h > 0) return `${h}س ${m}د`;
-    return `${m}د`;
+
+    if(h > 0) return `${h} ساعات و${m} دقائق`;
+    return `${m} دقائق`;
   }
 
   function updateIftarBadge(){
     if(!IS_RAMADAN || !timingsAdj) return;
-
     const remainEl = $("iftarRemain");
     if(!remainEl) return;
 
@@ -1098,7 +850,109 @@
       magAt.setDate(magAt.getDate() + 1);
     }
 
-    remainEl.textContent = formatIftarShort(magAt - now);
+    remainEl.textContent = formatIftarFull(magAt - now);
+  }
+
+  // Ticker
+  let tickerIndex = 0;
+  let TICKER_LIST = CONFIG.tickerMessages;
+
+  function setTickerText(msg){
+    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
+  }
+  function setTickerMode(isRamadan){
+    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
+    if(TICKER_LIST === nextList) return;
+    TICKER_LIST = nextList;
+    tickerIndex = 0;
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+  }
+  function startTicker(){
+    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
+    setInterval(()=>{
+      tickerIndex++;
+      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    }, intervalMs);
+  }
+
+  // ✅ Verses (تمت إعادتها بالكامل)
+  const VERSE_LS = "ghazali_verse_index_v1";
+  let verseRefs = [];
+  let verseTimer = null;
+
+  async function loadVersesRefs(path){
+    const r = await fetch(path, { cache: "no-store" });
+    if(!r.ok) throw new Error("Cannot load verses file");
+    return await r.json();
+  }
+
+  function getVerseIndex(){
+    const raw = localStorage.getItem(VERSE_LS);
+    const idx = Number(raw || 0);
+    return Number.isFinite(idx) && idx >= 0 ? idx : 0;
+  }
+  function setVerseIndex(idx){
+    try{ localStorage.setItem(VERSE_LS, String(idx)); }catch{}
+  }
+
+  async function fetchVerseText(surah, ayah){
+    const url = `https://api.alquran.cloud/v1/ayah/${surah}:${ayah}/ar`;
+    const r = await fetch(url, { cache: "no-store" });
+    if(!r.ok) throw new Error("Verse fetch failed");
+    const j = await r.json();
+    return j?.data?.text || "";
+  }
+
+  function setVerseTrackText(text){
+    $("verseTrack").textContent = `• ${text} • ${text}`;
+  }
+
+  async function showVerseAt(index){
+    if(!verseRefs.length) { setVerseTrackText("—"); return; }
+    const idx = index % verseRefs.length;
+    const ref = verseRefs[idx];
+    try{
+      const text = await fetchVerseText(ref.surah, ref.ayah);
+      setVerseTrackText(text || "—");
+    }catch{
+      setVerseTrackText("—");
+    }
+    setVerseIndex(idx);
+  }
+
+  function startVerseLoop(){
+    document.documentElement.style.setProperty("--verseSpeed", `${CONFIG.verseSpeedSeconds}s`);
+
+    if(verseTimer) { clearInterval(verseTimer); verseTimer = null; }
+
+    const idx = getVerseIndex();
+    showVerseAt(idx);
+
+    verseTimer = setInterval(async ()=>{
+      const cur = getVerseIndex();
+      await showVerseAt(cur + 1);
+    }, CONFIG.verseChangeMinutes * 60 * 1000);
+  }
+
+  async function loadVersesForMode(){
+    try{
+      const primary = IS_RAMADAN ? CONFIG.versesRamadanFile : CONFIG.versesFile;
+      let list = null;
+
+      try{
+        list = await loadVersesRefs(primary);
+      }catch{
+        list = await loadVersesRefs(CONFIG.versesFile);
+      }
+
+      verseRefs = Array.isArray(list) ? list : [];
+      startVerseLoop();
+    }catch{
+      verseRefs = [];
+      $("verseTrack").textContent = "—";
+    }
   }
 
   // Weather
@@ -1132,30 +986,6 @@
     }
   }
 
-  // Ticker
-  let tickerIndex = 0;
-  let TICKER_LIST = CONFIG.tickerMessages;
-
-  function setTickerText(msg){
-    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
-  }
-  function setTickerMode(isRamadan){
-    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
-    if(TICKER_LIST === nextList) return;
-    TICKER_LIST = nextList;
-    tickerIndex = 0;
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-  }
-  function startTicker(){
-    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
-    setInterval(()=>{
-      tickerIndex++;
-      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    }, intervalMs);
-  }
-
   async function loadTimings(){
     try{
       const data = await fetchTimings();
@@ -1181,12 +1011,12 @@
     setClockAndDates();
     updateNextHighlight();
     updateCountdown();
-    handlePreAlerts();
     updateIftarBadge();
   }, 1000);
 
   loadTimings();
   fetchWeather();
+  loadVersesForMode();
 
   setInterval(()=>loadTimings(), 6 * 60 * 60 * 1000);
   setInterval(()=>fetchWeather(), 30 * 60 * 1000);
@@ -1197,9 +1027,9 @@
     if(currentDayStr !== lastDayStr){
       lastDayStr = currentDayStr;
       loadTimings();
+      loadVersesForMode();
     }
   }, 60000);
 </script>
 </body>
 </html>
-
