@@ -49,13 +49,6 @@
       font-family: "HacenScreen", system-ui, Tahoma, Arial, sans-serif;
     }
 
-    /* ✅ وضع رمضان (يُفعّل عبر data-ramadan="1" على body) */
-    body[data-ramadan="1"]{
-      background:
-        radial-gradient(circle at 50% 10%, rgba(201,161,74,.18), rgba(246,242,234,0) 55%),
-        var(--bg);
-    }
-
     @keyframes antiBurn {
       0% { transform: translate(0, 0); }
       25% { transform: translate(2px, 1px); }
@@ -77,14 +70,6 @@
         linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
         var(--bg);
       animation: antiBurn 300s infinite alternate linear;
-    }
-
-    body[data-ramadan="1"] .frame{
-      background:
-        radial-gradient(circle at 50% 0%, rgba(201,161,74,.15), rgba(246,242,234,0) 50%),
-        linear-gradient(90deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
-        linear-gradient(270deg, rgba(122,90,52,.18), rgba(122,90,52,0) 18%),
-        var(--bg);
     }
 
     .arab-border{
@@ -117,11 +102,7 @@
       isolation:isolate;
     }
 
-    body[data-ramadan="1"] .board{
-      border-color: rgba(201,161,74,.55);
-      box-shadow: 0 22px 85px rgba(0,0,0,.16);
-    }
-
+    /* ✅ إعادة الزخارف/الصور الخلفية كما كانت دائمًا (بدون أي تعديل رمضاني) */
     .board::before{
       content:"";
       position:absolute;
@@ -169,7 +150,7 @@
       gap:12px;
     }
 
-    /* ✅ شريط علوي رمضاني */
+    /* ✅ شريط علوي رمضاني (يبقى فقط تغيير اللون، بدون خلفيات جديدة) */
     body[data-ramadan="1"] .topbar{
       background: linear-gradient(90deg, #6f4b18, #c9a14a, #6f4b18);
       box-shadow: 0 10px 30px rgba(201,161,74,.22);
@@ -274,36 +255,18 @@
     .item .name{ color:#111; display:flex; align-items:center; gap: 15px; }
     .item .name .icon { font-size: 1.2em; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
 
+    /* ✅ محاذاة الوقت لليمين في RTL */
     .item .val{
       color: var(--red);
       font-variant-numeric: tabular-nums;
       letter-spacing: 0.5px;
       min-width: 7ch;
-      text-align:left;
-      display:inline-flex;
-      align-items:center;
-      gap:10px;
-    }
-
-    /* ✅ شارة الإفطار بجانب وقت المغرب (رمضان فقط) */
-    .magBadge{
-      display:inline-flex;
-      align-items:center;
-      gap:8px;
-      margin-inline-start: 10px;
-      padding: 4px 12px;
-      border-radius: 999px;
-      border: 2px solid rgba(201,161,74,.55);
-      background: rgba(201,161,74,.14);
-      color:#7b542a;
-      font-weight:1000;
-      font-size: .62em;
-      white-space:nowrap;
-    }
-    .magBadge .num{
+      text-align:right;
       direction:ltr;
-      color:#111;
-      font-weight:1000;
+      display:inline-flex;
+      align-items:center;
+      justify-content:flex-end;
+      gap:10px;
     }
 
     .item.next{
@@ -401,6 +364,23 @@
       background: rgba(201,161,74,.12);
       border-color: rgba(201,161,74,.35);
     }
+
+    /* ✅ سطر التهنئة تحت الآية (يظهر في رمضان فقط) */
+    .ramadanLine{
+      margin-top: calc(var(--s)*0.35);
+      margin-inline: calc(var(--s)*0.65);
+      padding: 12px 14px;
+      border-radius: 14px;
+      border: 2px solid rgba(201,161,74,.45);
+      background: rgba(201,161,74,.13);
+      color:#5b3b10;
+      font-weight:1000;
+      text-align:center;
+      font-size: calc(var(--s)*1.02);
+      line-height:1.25;
+      display:none;
+    }
+    body[data-ramadan="1"] .ramadanLine{ display:block; }
 
     .tickerWrap{
       margin-top:auto;
@@ -521,6 +501,11 @@
           </div>
         </div>
 
+        <!-- ✅ نص ثابت تحت الآية (رمضان فقط) -->
+        <div class="ramadanLine" id="ramadanLine">
+          🌙 رمضان مبارك.. وتذكروا أن الدين هو الأخلاق وحُسن المعاملة
+        </div>
+
         <div class="tickerWrap">
           <div class="ticker">
             <div class="track" id="tickerTrack">—</div>
@@ -544,7 +529,7 @@
     beep: true,
 
     versesFile: "verses.json",
-    versesRamadanFile: "verses_ramadan.json",   // اختياري: إن لم يوجد سيتم الرجوع إلى verses.json
+    versesRamadanFile: "verses_ramadan.json",
     verseChangeMinutes: 5,
     verseSpeedSeconds: 40,
 
@@ -726,15 +711,10 @@
 
   function applyRamadanMode(isOn){
     IS_RAMADAN = !!isOn;
-
     document.body.setAttribute("data-ramadan", IS_RAMADAN ? "1" : "0");
     $("verseLabel").textContent = IS_RAMADAN ? "📖 آية رمضانية" : "📖 آية";
     $("titleText").textContent = IS_RAMADAN ? "توقيت الأذان في مدرسة الغزالي 🌙" : "توقيت الأذان في مدرسة الغزالي";
-
     setTickerMode(IS_RAMADAN);
-
-    ensureIftarBadge();
-    updateIftarBadge();
     loadVersesForMode();
   }
 
@@ -775,8 +755,6 @@
 
     updateNextHighlight();
     updateCountdown();
-    ensureIftarBadge();
-    updateIftarBadge();
   }
 
   function formatRemainingTime(sec){
@@ -797,60 +775,9 @@
     const secLeft = Math.floor((next.at - now) / 1000);
     if(secLeft < 0) return;
 
-    if(IS_RAMADAN && next.key === "Maghrib"){
-      $("countdownText").textContent =
-        `🍽️ الوقت المتبقي للإفطار (أذان المغرب): ${formatRemainingTime(secLeft)}`;
-      return;
-    }
-
     const nameAr = NAME_AR[next.key] || next.key;
     $("countdownText").textContent =
       `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
-  }
-
-  // ✅ شارة الإفطار بجانب المغرب
-  function ensureIftarBadge(){
-    const magEl = $("maghrib");
-    if(!magEl) return;
-
-    const existing = magEl.querySelector(".magBadge");
-    if(!IS_RAMADAN){
-      if(existing) existing.remove();
-      return;
-    }
-
-    if(!existing){
-      const b = document.createElement("span");
-      b.className = "magBadge";
-      b.innerHTML = `🍽️ <span>الوقت المتبقي للإفطار:</span> <span class="num" id="iftarRemain">—</span>`;
-      magEl.appendChild(b);
-    }
-  }
-
-  function formatIftarFull(ms){
-    const totalSec = Math.max(0, Math.floor(ms / 1000));
-    const h = Math.floor(totalSec / 3600);
-    const m = Math.floor((totalSec % 3600) / 60);
-
-    if(h > 0) return `${h} ساعات و${m} دقائق`;
-    return `${m} دقائق`;
-  }
-
-  function updateIftarBadge(){
-    if(!IS_RAMADAN || !timingsAdj) return;
-    const remainEl = $("iftarRemain");
-    if(!remainEl) return;
-
-    const now = nowInTZ();
-    let magAt = parseTodayHHMM(timingsAdj.Maghrib);
-    if(!magAt) { remainEl.textContent = "—"; return; }
-
-    if(magAt <= now){
-      magAt = new Date(magAt.getTime());
-      magAt.setDate(magAt.getDate() + 1);
-    }
-
-    remainEl.textContent = formatIftarFull(magAt - now);
   }
 
   // Ticker
@@ -877,7 +804,7 @@
     }, intervalMs);
   }
 
-  // ✅ Verses (تمت إعادتها بالكامل)
+  // Verses
   const VERSE_LS = "ghazali_verse_index_v1";
   let verseRefs = [];
   let verseTimer = null;
@@ -924,12 +851,9 @@
 
   function startVerseLoop(){
     document.documentElement.style.setProperty("--verseSpeed", `${CONFIG.verseSpeedSeconds}s`);
-
     if(verseTimer) { clearInterval(verseTimer); verseTimer = null; }
-
     const idx = getVerseIndex();
     showVerseAt(idx);
-
     verseTimer = setInterval(async ()=>{
       const cur = getVerseIndex();
       await showVerseAt(cur + 1);
@@ -940,13 +864,8 @@
     try{
       const primary = IS_RAMADAN ? CONFIG.versesRamadanFile : CONFIG.versesFile;
       let list = null;
-
-      try{
-        list = await loadVersesRefs(primary);
-      }catch{
-        list = await loadVersesRefs(CONFIG.versesFile);
-      }
-
+      try{ list = await loadVersesRefs(primary); }
+      catch{ list = await loadVersesRefs(CONFIG.versesFile); }
       verseRefs = Array.isArray(list) ? list : [];
       startVerseLoop();
     }catch{
@@ -1011,7 +930,6 @@
     setClockAndDates();
     updateNextHighlight();
     updateCountdown();
-    updateIftarBadge();
   }, 1000);
 
   loadTimings();
