@@ -260,6 +260,34 @@
     }
     .w-icon { font-size: 1.3em; margin-top:-4px; }
     .w-temp { direction: ltr; font-weight:1000; }
+	.forecast-3{
+	  width: fit-content;
+	  margin: 10px auto 0;
+	  padding: 10px 14px;
+      border-radius: 16px;
+      border: 1px solid rgba(123, 84, 42, 0.15);
+      background: rgba(123, 84, 42, 0.06);
+      color: #7b542a;
+      font-weight: 1000;
+      font-size: clamp(14px, 1.6vw, 24px);
+    }
+	.forecast-3 .grid{
+	  display:flex;
+	  gap: 10px;
+	  justify-content: center;
+	}
+	
+	.forecast-3 .card{
+	  min-width: 120px;
+	  text-align:center;
+	  padding: 8px 12px;
+	  border-radius: 14px;
+	  background: rgba(255,255,255,0.55);
+	  border: 1px solid rgba(123, 84, 42, 0.14);
+	}
+	.forecast-3 .lbl{ opacity:.95; }
+	.forecast-3 .ico{ font-size: 1.35em; margin-top: 4px; }
+	.forecast-3 .temps{ direction:ltr; margin-top: 4px; color:#5a3f22; }
 
     .times{
       margin-top: calc(var(--s)*0.55);
@@ -534,6 +562,7 @@
             <span id="wTemp" class="w-temp">--°C</span>
             <span id="wDesc" class="w-desc">--</span>
           </div>
+		  <div class="forecast-3" id="forecast3" style="display:none" aria-label="توقعات 3 أيام"></div>
         </div>
 
         <div class="times" aria-label="أوقات الأذان">
@@ -1148,22 +1177,68 @@
   }
 
   async function fetchWeather(){
-    try{
-      const url = `https://api.open-meteo.com/v1/forecast?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}&current_weather=true`;
-      const r = await fetch(url);
-      const j = await r.json();
-      if(j.current_weather){
-        const {temperature, weathercode} = j.current_weather;
-        const info = wmoToText(weathercode);
-        $("wIcon").textContent = info.i;
-        $("wTemp").textContent = `${Math.round(temperature)}°C`;
-        $("wDesc").textContent = info.t;
-        $("weatherWrap").style.display = "flex";
-      }
-    }catch(e){
+   try{
+     const url =
+      `https://api.open-meteo.com/v1/forecast` +
+      `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
+      `&current_weather=true` +
+      `&daily=weathercode,temperature_2m_max,temperature_2m_min` +
+      `&forecast_days=3` +
+      `&timezone=${encodeURIComponent(CONFIG.tz)}`;
+
+    const r = await fetch(url, { cache:"no-store" });
+    const j = await r.json();
+
+    // ✅ طقس الآن
+    if(j.current_weather){
+      const {temperature, weathercode} = j.current_weather;
+      const info = wmoToText(weathercode);
+      $("wIcon").textContent = info.i;
+      $("wTemp").textContent = `${Math.round(temperature)}°C`;
+      $("wDesc").textContent = info.t;
+      $("weatherWrap").style.display = "flex";
+    }else{
       $("weatherWrap").style.display = "none";
     }
+
+    // ✅ توقعات 3 أيام: اليوم / غدًا / بعد غد
+    if(j.daily && Array.isArray(j.daily.time) && j.daily.time.length >= 1){
+      const times = j.daily.time;
+      const wcodes = j.daily.weathercode || [];
+      const tmax = j.daily.temperature_2m_max || [];
+      const tmin = j.daily.temperature_2m_min || [];
+
+      const labels = ["اليوم", "غدًا", "بعد غد"];
+
+      let html = `<div class="grid">`;
+
+      for(let i=0; i<Math.min(3, times.length); i++){
+        const di = wmoToText(Number(wcodes[i]));
+        const mx = Number.isFinite(Number(tmax[i])) ? Math.round(tmax[i]) : "--";
+        const mn = Number.isFinite(Number(tmin[i])) ? Math.round(tmin[i]) : "--";
+
+        html += `
+          <div class="card">
+            <div class="lbl">${labels[i] || ""}</div>
+            <div class="ico">${di.i}</div>
+            <div class="temps">${mn}° / ${mx}°</div>
+          </div>
+        `;
+      }
+
+      html += `</div>`;
+
+      $("forecast3").innerHTML = html;
+      $("forecast3").style.display = "block";
+    }else{
+      $("forecast3").style.display = "none";
+    }
+
+  }catch(e){
+    $("weatherWrap").style.display = "none";
+    $("forecast3").style.display = "none";
   }
+}
 
   async function refreshDehriTimes(){
     if(!dehriMap){
