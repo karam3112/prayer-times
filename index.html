@@ -102,7 +102,7 @@
       isolation:isolate;
     }
 
-    /* ✅ إعادة الزخارف/الصور الخلفية كما كانت دائمًا (بدون أي تعديل رمضاني) */
+    /* ✅ زخارف الخلفية كما كانت */
     .board::before{
       content:"";
       position:absolute;
@@ -131,6 +131,36 @@
       mix-blend-mode:multiply;
     }
 
+    /* =========================
+       ✅ منظومة صور الخلفية (مثل الملف القديم)
+       ========================= */
+    .eventsLayer{
+      position:absolute;
+      inset:0;
+      z-index:0;
+      opacity:0;
+      transition: opacity 900ms ease;
+      pointer-events:none;
+    }
+    .eventsLayer .eventsOverlay{
+      position:absolute;
+      inset:0;
+      background: radial-gradient(circle at 50% 35%, rgba(246,242,234,.25), rgba(246,242,234,.72) 65%, rgba(246,242,234,.86));
+      mix-blend-mode: normal;
+    }
+    .eventsLayer img{
+      position:absolute;
+      inset:0;
+      width:100%;
+      height:100%;
+      object-fit:cover;
+      transform: scale(1.05);
+      filter: blur(2px) saturate(1.05) brightness(.92) contrast(.98);
+      opacity:0;
+      transition: opacity 900ms ease;
+    }
+    .eventsLayer img.show{ opacity:1; }
+
     .content{
       position:relative;
       z-index:1;
@@ -149,8 +179,6 @@
       justify-content:space-between;
       gap:12px;
     }
-
-    /* ✅ شريط علوي رمضاني (يبقى فقط تغيير اللون، بدون خلفيات جديدة) */
     body[data-ramadan="1"] .topbar{
       background: linear-gradient(90deg, #6f4b18, #c9a14a, #6f4b18);
       box-shadow: 0 10px 30px rgba(201,161,74,.22);
@@ -255,7 +283,6 @@
     .item .name{ color:#111; display:flex; align-items:center; gap: 15px; }
     .item .name .icon { font-size: 1.2em; filter: drop-shadow(0 2px 2px rgba(0,0,0,0.1)); }
 
-    /* ✅ محاذاة الوقت لليمين في RTL */
     .item .val{
       color: var(--red);
       font-variant-numeric: tabular-nums;
@@ -365,7 +392,6 @@
       border-color: rgba(201,161,74,.35);
     }
 
-    /* ✅ سطر التهنئة تحت الآية (يظهر في رمضان فقط) */
     .ramadanLine{
       margin-top: calc(var(--s)*0.35);
       margin-inline: calc(var(--s)*0.65);
@@ -420,6 +446,48 @@
       100%{ transform: translateX(110%); }
     }
 
+    .alert{
+      position:absolute;
+      left: 18px;
+      right: 18px;
+      bottom: 126px;
+      padding: 14px 16px;
+      border-radius: 14px;
+      border: 2px solid rgba(160,120,40,.35);
+      background: rgba(255, 215, 90, .32);
+      color:#2a1b06;
+      font-weight:1000;
+      text-align:center;
+      font-size: calc(var(--s)*1.05);
+      display:none;
+      backdrop-filter: blur(6px);
+      z-index:6;
+    }
+
+    /* =========================
+       ✅ صندوق التهنئة (طلاب/معلمين)
+       ========================= */
+    .birthday{
+      position:absolute;
+      inset: 20% 10%;
+      background: linear-gradient(135deg,#fff7e6,#ffe3b3);
+      border: 3px solid #c9a14a;
+      border-radius: 26px;
+      text-align:center;
+      padding: clamp(18px, 3vw, 46px);
+      font-size: clamp(30px,4vw,66px);
+      font-weight:1000;
+      box-shadow: 0 30px 80px rgba(0,0,0,.25);
+      display:none;
+      z-index:7;
+    }
+    .birthday .sub{
+      margin-top: 10px;
+      font-size: .70em;
+      color:#2a1b06;
+      opacity:.95;
+    }
+
     .verseTrack{ animation: verseMove var(--verseSpeed) linear infinite !important; }
   </style>
 </head>
@@ -430,6 +498,14 @@
     <div class="arab-border left"></div>
 
     <div class="board">
+
+      <!-- ✅ طبقة صور الخلفية (فعاليات) -->
+      <div class="eventsLayer" id="eventsLayer" aria-hidden="true">
+        <img id="eventImgA" alt="" />
+        <img id="eventImgB" alt="" />
+        <div class="eventsOverlay"></div>
+      </div>
+
       <div class="grain"></div>
 
       <div class="content">
@@ -501,7 +577,6 @@
           </div>
         </div>
 
-        <!-- ✅ نص ثابت تحت الآية (رمضان فقط) -->
         <div class="ramadanLine" id="ramadanLine">
           🌙 رمضان مبارك.. وتذكروا أن الدين هو الأخلاق وحُسن المعاملة
         </div>
@@ -513,6 +588,9 @@
         </div>
 
         <div class="alert" id="alertBar" style="display:none"></div>
+
+        <!-- ✅ صندوق التهنئة -->
+        <div class="birthday" id="birthdayBox"></div>
       </div>
     </div>
   </div>
@@ -524,22 +602,22 @@
     lon: 35.0405,
     tz: "Asia/Jerusalem",
 
-    // ✅ فرق المدينة الثابت (بدون لوحة إعدادات)
-    // (الدهري مبني على القدس شتويًا، ونضيف فرق المدينة)
+    // ✅ فرق المدينة الثابت
     cityOffsetMinutes: 1,
 
-    // ✅ تعديلات دقيقة لكل صلاة (تبقى كما كانت)
     offsets: { Fajr: 0, Dhuhr: 0, Asr: 0, Maghrib: 0, Isha: 0, Sunrise: 0 },
 
-    // ✅ مصدر الدهري بدل API
     dehriFile: "dehri.json",
 
-    // ✅ فحص انحراف الوقت (كل 5 ساعات) وتطبيقه على العرض فقط
     driftCheckHours: 5,
     driftApiUrl: "https://worldtimeapi.org/api/timezone/Asia/Jerusalem",
 
     preAlertMinutes: { Fajr: 10, Dhuhr: 10, Asr: 10, Maghrib: 10, Isha: 10 },
     beep: true,
+
+    // ✅ التهنئة (سحب من السيرفر)
+    birthdaysFile: "birthdays.csv",
+    birthdayEveryMinutes: 5,
 
     versesFile: "verses.json",
     versesRamadanFile: "verses_ramadan.json",
@@ -565,7 +643,23 @@
 
     tickerSpeedSeconds: 28,
     preAlertWindowSeconds: 20,
-    alertShowSeconds: 12
+    alertShowSeconds: 12,
+
+    /* ✅ صور الخلفية (مثل الملف القديم) */
+    events: {
+      enabled: true,
+      basePath: "images/events/",
+      ext: "jpg",
+      count: 10,
+      changeSeconds: 28,
+      refreshMinutes: 5,
+      hideBeforeMinutes: 2,
+      hideAfterMinutes: 3,
+      probeTimeoutMs: 4500
+    },
+
+    /* ✅ تحديث تلقائي يومي الساعة 07:00 */
+    dailyHardRefreshAt: "07:00"
   };
 
   const $ = (id)=>document.getElementById(id);
@@ -594,7 +688,6 @@
   }
 
   async function checkTimeDrift(){
-    // خفيف + timeout
     const controller = new AbortController();
     const t = setTimeout(()=>controller.abort(), 7000);
 
@@ -602,39 +695,34 @@
       const r = await fetch(CONFIG.driftApiUrl, { cache:"no-store", signal: controller.signal });
       if(!r.ok) throw new Error("drift fetch failed");
       const j = await r.json();
-
-      // worldtimeapi يعطي unixtime (ثواني)
       const apiMs = Number(j.unixtime) * 1000;
       if(!Number.isFinite(apiMs) || apiMs <= 0) throw new Error("bad unixtime");
 
       const localMs = Date.now();
       const diff = apiMs - localMs;
 
-      // منطق أمان: إذا الانحراف كبير جدًا بشكل غير منطقي، لا نطبّقه
       if(Math.abs(diff) <= 6 * 60 * 60 * 1000){
         DRIFT_MS = diff;
         saveDrift();
       }
     }catch(e){
-      // لا شيء: نبقى على آخر Drift محفوظ
+      // keep last drift
     }finally{
       clearTimeout(t);
     }
   }
 
   // =========================
-  // ✅ DST حسب القانون (حساب تلقائي)
+  // ✅ DST حسب القانون
   // =========================
   function lastSundayOfMonth(year, monthIndex){
-    // monthIndex: 0..11
-    const d = new Date(year, monthIndex + 1, 0); // آخر يوم في الشهر
-    const day = d.getDay(); // 0=Sunday
+    const d = new Date(year, monthIndex + 1, 0);
+    const day = d.getDay();
     d.setDate(d.getDate() - day);
-    return d; // الأحد الأخير
+    return d;
   }
 
   function isIsraelDST_forDateInTZ(){
-    // نستخدم "وقت مصحّح" ثم نحوله لأجزاء Jerusalem
     const base = getNowCorrected();
     const parts = new Intl.DateTimeFormat("en-GB", {
       timeZone: CONFIG.tz,
@@ -651,13 +739,11 @@
 
     const current = new Date(y, mo-1, da, hh, mm, 0, 0);
 
-    // بداية الصيفي: الجمعة قبل الأحد الأخير من مارس الساعة 02:00
-    const lastSunMar = lastSundayOfMonth(y, 2); // مارس = 2
+    const lastSunMar = lastSundayOfMonth(y, 2);
     const start = new Date(lastSunMar.getFullYear(), lastSunMar.getMonth(), lastSunMar.getDate(), 2, 0, 0, 0);
-    start.setDate(start.getDate() - 2); // الأحد -2 = الجمعة
+    start.setDate(start.getDate() - 2);
 
-    // نهاية الصيفي: الأحد الأخير من أكتوبر الساعة 02:00
-    const lastSunOct = lastSundayOfMonth(y, 9); // أكتوبر = 9
+    const lastSunOct = lastSundayOfMonth(y, 9);
     const end = new Date(lastSunOct.getFullYear(), lastSunOct.getMonth(), lastSunOct.getDate(), 2, 0, 0, 0);
 
     return (current >= start) && (current < end);
@@ -668,14 +754,14 @@
   }
 
   // =========================
-  // ✅ أدوات تاريخ/وقت في TZ
+  // ✅ أدوات وقت/تاريخ في TZ
   // =========================
   function getZonedDateKey_MMDD(){
     const iso = new Intl.DateTimeFormat("en-CA", {
       year: "numeric", month: "2-digit", day: "2-digit", timeZone: CONFIG.tz
     }).format(getNowCorrected());
     const [y, m, d] = iso.split("-");
-    return `${m}-${d}`; // ✅ مفتاح للـ dehri.json
+    return `${m}-${d}`;
   }
 
   function getZonedISODate(){
@@ -713,6 +799,30 @@
     return new Date(y, mo-1, da, hh, mm, ss, 0);
   }
 
+  // =========================
+  // ✅ أسماء الشهور (كانون ثاني.. شباط..)
+  // =========================
+  const MONTHS_AR_LEVANT = {
+    1:"كانون ثاني",
+    2:"شباط",
+    3:"آذار",
+    4:"نيسان",
+    5:"أيار",
+    6:"حزيران",
+    7:"تموز",
+    8:"آب",
+    9:"أيلول",
+    10:"تشرين أول",
+    11:"تشرين ثاني",
+    12:"كانون أول"
+  };
+
+  function getMonthNumberTZ(d){
+    const mStr = new Intl.DateTimeFormat("en-GB", { month:"2-digit", timeZone: CONFIG.tz }).format(d);
+    const m = Number(mStr);
+    return Number.isFinite(m) ? m : null;
+  }
+
   function setClockAndDates(){
     const {hh,mm,ss} = nowPartsTZ();
     $("clockText").textContent = `${hh}:${mm}:${ss}`;
@@ -720,12 +830,14 @@
     const d = getNowCorrected();
 
     $("dowText").textContent = new Intl.DateTimeFormat("ar", { weekday:"long", timeZone: CONFIG.tz }).format(d);
-    $("monthText").textContent = new Intl.DateTimeFormat("ar", { month:"long", timeZone: CONFIG.tz }).format(d);
+
+    // ✅ الشهر بالعربي المشرقي بدل "يناير/فبراير..."
+    const mNum = getMonthNumberTZ(d);
+    $("monthText").textContent = (mNum && MONTHS_AR_LEVANT[mNum]) ? MONTHS_AR_LEVANT[mNum] : "—";
 
     const greg = new Intl.DateTimeFormat("en-CA", { year:"numeric", month:"2-digit", day:"2-digit", timeZone: CONFIG.tz }).format(d);
     $("gregText").textContent = greg;
 
-    // ✅ هجري من المتصفح (بدون API خارجي)
     try{
       const hijri = new Intl.DateTimeFormat("ar", {
         day:"numeric", month:"long", year:"numeric",
@@ -788,7 +900,6 @@
   }
 
   function getHijriMonthNumber(){
-    // نحاول استخراج رقم الشهر هجريًا من Intl بدون API خارجي
     try{
       const d = getNowCorrected();
       const parts = new Intl.DateTimeFormat("en", {
@@ -803,6 +914,31 @@
     }
   }
 
+  function setTickerText(msg){
+    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
+  }
+
+  let tickerIndex = 0;
+  let TICKER_LIST = CONFIG.tickerMessages;
+
+  function setTickerMode(isRamadan){
+    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
+    if(TICKER_LIST === nextList) return;
+    TICKER_LIST = nextList;
+    tickerIndex = 0;
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+  }
+
+  function startTicker(){
+    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
+    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
+    setInterval(()=>{
+      tickerIndex++;
+      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
+    }, intervalMs);
+  }
+
   function applyRamadanMode(isOn){
     IS_RAMADAN = !!isOn;
     document.body.setAttribute("data-ramadan", IS_RAMADAN ? "1" : "0");
@@ -815,18 +951,13 @@
   function applyDehriForToday(){
     if(!dehriMap) return;
 
-    // ✅ رمضان من المتصفح
     const hijriMonth = getHijriMonthNumber();
     applyRamadanMode(hijriMonth === 9);
 
-    const key = getZonedDateKey_MMDD(); // "MM-DD"
+    const key = getZonedDateKey_MMDD();
     const row = dehriMap[key];
     if(!row) return;
 
-    // ✅ الدهري = شتوي للقدس، لذلك:
-    // 1) فرق المدينة بالدقائق
-    // 2) DST (+60) عند الصيفي
-    // 3) offsets الدقيقة لكل صلاة (كما كانت)
     const baseOffset = (CONFIG.cityOffsetMinutes || 0) + getDstOffsetMinutes();
 
     const tFajr    = row.Fajr    || row.fajr    || row.FAJR;
@@ -927,32 +1058,6 @@
     const nameAr = NAME_AR[next.key] || next.key;
     $("countdownText").textContent =
       `⏳ الوقت المتبقي للأذان القادم (${nameAr}): ${formatRemainingTime(secLeft)}`;
-  }
-
-  // =========================
-  // Ticker
-  // =========================
-  let tickerIndex = 0;
-  let TICKER_LIST = CONFIG.tickerMessages;
-
-  function setTickerText(msg){
-    $("tickerTrack").textContent = `• ${msg} • ${msg} • ${msg}`;
-  }
-  function setTickerMode(isRamadan){
-    const nextList = isRamadan ? (CONFIG.tickerMessagesRamadan || CONFIG.tickerMessages) : CONFIG.tickerMessages;
-    if(TICKER_LIST === nextList) return;
-    TICKER_LIST = nextList;
-    tickerIndex = 0;
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-  }
-  function startTicker(){
-    document.documentElement.style.setProperty("--tickerSpeed", `${CONFIG.tickerSpeedSeconds}s`);
-    setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    const intervalMs = Math.max(8000, (CONFIG.tickerSpeedSeconds * 1000) - 1000);
-    setInterval(()=>{
-      tickerIndex++;
-      setTickerText(TICKER_LIST[tickerIndex % TICKER_LIST.length]);
-    }, intervalMs);
   }
 
   // =========================
@@ -1069,6 +1174,309 @@
   }
 
   // =========================
+  // ✅ نظام التهنئة (Birthdays)
+  // =========================
+  let birthdayList = [];
+  let todaysBirthdays = [];
+  let birthdayCursor = 0;
+
+  const BDAY_SHOW_MS = 12000;
+  const BDAY_GAP_MS  = 3000;
+
+  async function loadBirthdaysCSV(path){
+	const r = await fetch(path + "?v=" + Date.now());
+	if(!r.ok) throw new Error("Cannot load birthdays.csv");
+	
+	let text = await r.text();
+	
+	// إزالة BOM إن وجد
+	if(text.charCodeAt(0) === 0xFEFF){
+	  text = text.slice(1);
+	}	
+    const lines = text.split(/\r?\n/).map(l=>l.trim()).filter(Boolean);
+    if(lines.length < 2) return [];
+    const headers = lines.shift().split(",").map(h=>h.trim().toLowerCase());
+    const idx = (h)=>headers.indexOf(h);
+
+    const out = [];
+    for(const line of lines){
+      const parts = line.split(",").map(x=>x.trim());
+      const name = parts[idx("name")] || "";
+      const role = parts[idx("role")] || "";
+      const cls  = parts[idx("class")] || "";
+      const day  = Number(parts[idx("day")] || 0);
+      const month= Number(parts[idx("month")] || 0);
+      if(name && day && month) out.push({name, role, cls, day, month});
+    }
+    return out;
+  }
+
+  function getTodayDM_TZ(){
+    const d = getNowCorrected();
+    const day = Number(new Intl.DateTimeFormat("en-GB",{day:"2-digit",timeZone:CONFIG.tz}).format(d));
+    const month = Number(new Intl.DateTimeFormat("en-GB",{month:"2-digit",timeZone:CONFIG.tz}).format(d));
+    return {day, month};
+  }
+
+  function refreshTodaysBirthdays(){
+    const {day, month} = getTodayDM_TZ();
+    todaysBirthdays = birthdayList.filter(b => b.day === day && b.month === month);
+    if(todaysBirthdays.length) birthdayCursor = birthdayCursor % todaysBirthdays.length;
+  }
+
+  function showBirthdayCard(person){
+    const box = $("birthdayBox");
+    if(!box) return;
+
+    const role = String(person.role || "").trim();
+    const cls  = String(person.cls  || "").trim();
+    const isTeacher = role.includes("معلم") || role.includes("معلمة") || role.includes("معلّم");
+
+    box.innerHTML = `
+      <div>🎉 عيد ميلاد سعيد</div>
+      <div style="margin:14px 0; font-size:1.25em; color:#7b542a;">
+        <strong>${person.name}</strong>
+        ${cls ? `<div style="margin-top:6px; font-size:.75em; color:#2a1b06; opacity:.95;">${cls}</div>` : ""}
+      </div>
+      <div class="sub">
+        ${isTeacher ? "🌷 شكرًا لعطائك اليومي" : "🌟 أسرة مدرسة الغزالي تتمنى لك عامًا جميلًا"}
+      </div>
+    `;
+    box.style.display = "block";
+    setTimeout(()=> box.style.display="none", BDAY_SHOW_MS);
+  }
+
+  function runBirthdaySequence(){
+    if(!todaysBirthdays.length) return;
+
+    const count = todaysBirthdays.length;
+    const step = BDAY_SHOW_MS + BDAY_GAP_MS;
+    const startIndex = birthdayCursor;
+
+    for(let i=0; i<count; i++){
+      const person = todaysBirthdays[(startIndex + i) % count];
+      setTimeout(()=>{ showBirthdayCard(person); }, i * step);
+    }
+
+    birthdayCursor = (startIndex + count) % count;
+  }
+
+  function startBirthdayLoop(){
+    refreshTodaysBirthdays();
+    if(!todaysBirthdays.length) return;
+
+    // أول عرض بعد دقيقتين
+    setTimeout(()=>{
+      refreshTodaysBirthdays();
+      runBirthdaySequence();
+    }, 2 * 60 * 1000);
+
+    // ثم كل X دقائق
+    setInterval(()=>{
+      refreshTodaysBirthdays();
+      runBirthdaySequence();
+    }, (CONFIG.birthdayEveryMinutes || 5) * 60 * 1000);
+  }
+
+  // =========================
+  // ✅ صور الخلفية (Events)
+  // =========================
+  const eventsState = {
+    valid: [],
+    idx: 0,
+    ready: false,
+    cacheBust: Date.now(),
+    tickHandle: null,
+    showingA: true
+  };
+
+  function eventsUrl(n){
+    return `${CONFIG.events.basePath}${n}.${CONFIG.events.ext}?v=${eventsState.cacheBust}`;
+  }
+
+  function probeImage(url, timeoutMs){
+    return new Promise((resolve)=>{
+      const img = new Image();
+      let done = false;
+
+      const t = setTimeout(()=>{
+        if(done) return;
+        done = true;
+        try{ img.src = ""; }catch{}
+        resolve(false);
+      }, timeoutMs || 4500);
+
+      img.onload = ()=>{
+        if(done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(true);
+      };
+      img.onerror = ()=>{
+        if(done) return;
+        done = true;
+        clearTimeout(t);
+        resolve(false);
+      };
+
+      img.src = url;
+    });
+  }
+
+  async function refreshEventsList(){
+    if(!CONFIG.events?.enabled) return;
+    eventsState.cacheBust = Date.now();
+    const found = [];
+    for(let i=1; i<=CONFIG.events.count; i++){
+      const ok = await probeImage(eventsUrl(i), CONFIG.events.probeTimeoutMs);
+      if(ok) found.push(i);
+    }
+    eventsState.valid = found;
+    eventsState.idx = 0;
+    eventsState.ready = true;
+
+    if(!found.length){
+      setEventsLayerVisible(false);
+    }
+  }
+
+  function shouldShowEventsNow(){
+    if(!CONFIG.events?.enabled) return false;
+    if(!eventsState.ready) return false;
+    if(!eventsState.valid.length) return false;
+    if(!timingsAdj) return false;
+
+    const next = getNextPrayer();
+    if(!next) return false;
+
+    const now = nowInTZ();
+    const msToNext = next.at - now;
+
+    const hideBeforeMs = (CONFIG.events.hideBeforeMinutes || 2) * 60 * 1000;
+    if(msToNext <= hideBeforeMs) return false;
+
+    const hideAfterMs = (CONFIG.events.hideAfterMinutes || 3) * 60 * 1000;
+    for(const k of ORDER){
+      const at = parseTodayHHMM(timingsAdj[k]);
+      if(!at) continue;
+      const diff = now - at;
+      if(diff >= 0 && diff <= hideAfterMs){
+        return false;
+      }
+    }
+
+    return true;
+  }
+
+  function setEventsLayerVisible(on){
+    const layer = $("eventsLayer");
+    if(!layer) return;
+    layer.style.opacity = on ? "1" : "0";
+  }
+
+  function renderEventImage(n){
+    const a = $("eventImgA");
+    const b = $("eventImgB");
+    if(!a || !b) return;
+
+    const url = eventsUrl(n);
+
+    const showA = eventsState.showingA;
+    const front = showA ? a : b;
+    const back  = showA ? b : a;
+
+    back.classList.remove("show");
+    back.src = url;
+
+    setTimeout(()=>{
+      back.classList.add("show");
+      front.classList.remove("show");
+      eventsState.showingA = !eventsState.showingA;
+    }, 60);
+  }
+
+  function advanceEvents(){
+    if(!shouldShowEventsNow()){
+      setEventsLayerVisible(false);
+      return;
+    }
+
+    setEventsLayerVisible(true);
+    if(!eventsState.valid.length) return;
+
+    const n = eventsState.valid[eventsState.idx % eventsState.valid.length];
+    eventsState.idx = (eventsState.idx + 1) % eventsState.valid.length;
+
+    renderEventImage(n);
+  }
+
+  function startEventsLoop(){
+    if(!CONFIG.events?.enabled) return;
+
+    refreshEventsList().then(()=>{
+      advanceEvents();
+
+      if(eventsState.tickHandle) clearInterval(eventsState.tickHandle);
+      eventsState.tickHandle = setInterval(()=>{
+        advanceEvents();
+      }, (CONFIG.events.changeSeconds || 28) * 1000);
+    }).catch(()=>{});
+  }
+
+  function scheduleEventsRefresh(){
+    if(!CONFIG.events?.enabled) return;
+    setInterval(()=>{
+      refreshEventsList().then(()=> advanceEvents()).catch(()=>{});
+    }, (CONFIG.events.refreshMinutes || 5) * 60 * 1000);
+  }
+
+  function updateEventsVisibility(){
+    if(!CONFIG.events?.enabled) return;
+    setEventsLayerVisible(shouldShowEventsNow());
+  }
+
+  // =========================
+  // ✅ تحديث يومي 07:00 (كسر كاش)
+  // =========================
+  const DAILY_REFRESH_LS = "ghazali_daily_refresh_done_v1";
+
+  function getDateKeyTZ(){
+    // YYYY-MM-DD
+    return getZonedISODate();
+  }
+
+  function getTimeHHMM_TZ(){
+    const d = getNowCorrected();
+    const parts = new Intl.DateTimeFormat("en-GB", {
+      timeZone: CONFIG.tz,
+      hour:"2-digit", minute:"2-digit",
+      hourCycle:"h23"
+    }).formatToParts(d);
+    const hh = parts.find(p=>p.type==="hour")?.value || "00";
+    const mm = parts.find(p=>p.type==="minute")?.value || "00";
+    return `${hh}:${mm}`;
+  }
+
+  function hardReloadWithCacheBust(){
+    const base = window.location.href.split("?")[0].split("#")[0];
+    const bust = `v=${Date.now()}`;
+    window.location.replace(`${base}?${bust}`);
+  }
+
+  function dailyRefreshSchedulerTick(){
+    const target = CONFIG.dailyHardRefreshAt || "07:00";
+    const nowHHMM = getTimeHHMM_TZ();
+    if(nowHHMM !== target) return;
+
+    const todayKey = getDateKeyTZ();
+    const doneKey = localStorage.getItem(DAILY_REFRESH_LS);
+    if(doneKey === todayKey) return;
+
+    try{ localStorage.setItem(DAILY_REFRESH_LS, todayKey); }catch{}
+    hardReloadWithCacheBust();
+  }
+
+  // =========================
   // INIT
   // =========================
   const logo = $("logoImg");
@@ -1079,32 +1487,35 @@
   startTicker();
   setClockAndDates();
 
-  // أول فحص انحراف مباشرة + كل 5 ساعات
   checkTimeDrift();
   setInterval(()=>checkTimeDrift(), CONFIG.driftCheckHours * 60 * 60 * 1000);
 
-  // تحميل الدهري + عرض أوقات اليوم
   refreshDehriTimes();
 
-  // تشغيل الطقس والآيات
   fetchWeather();
   loadVersesForMode();
 
-  // تحديثات متكررة
+  // تحميل التهاني من السيرفر
+  loadBirthdaysCSV(CONFIG.birthdaysFile)
+    .then(l=>{ birthdayList = Array.isArray(l) ? l : []; startBirthdayLoop(); })
+    .catch(()=>{});
+
+  // صور الخلفية
+  startEventsLoop();
+  scheduleEventsRefresh();
+
   setInterval(()=>{
     setClockAndDates();
     updateNextHighlight();
     updateCountdown();
+    updateEventsVisibility();
+    dailyRefreshSchedulerTick();
   }, 1000);
 
-  // تحديث الطقس
   setInterval(()=>fetchWeather(), 30 * 60 * 1000);
 
-  // ✅ بدل إعادة تحميل "توقيت الصلاة" كل 6 ساعات من API:
-  // نعيد تطبيق الدهري (سريع جدًا) كل 15 دقيقة، تحسبًا لدخول DST/خروج DST أو تغيير يوم
   setInterval(()=>applyDehriForToday(), 15 * 60 * 1000);
 
-  // تبدّل اليوم
   let lastDayStr = getZonedISODate();
   setInterval(()=>{
     const currentDayStr = getZonedISODate();
@@ -1112,9 +1523,10 @@
       lastDayStr = currentDayStr;
       applyDehriForToday();
       loadVersesForMode();
+      refreshEventsList().then(()=> advanceEvents()).catch(()=>{});
+      refreshTodaysBirthdays();
     }
   }, 60000);
 </script>
 </body>
 </html>
-
