@@ -517,6 +517,62 @@
     }
 
     .verseTrack{ animation: verseMove var(--verseSpeed) linear infinite !important; }
+	/* =========================
+   ✅ Portrait fit: لا قصّ بعد إضافة توقعات الطقس
+   ========================= */
+@media (orientation: portrait){
+  :root{
+    /* تصغير عام بسيط (مهم في العمودي) */
+    --s: clamp(14px, 1.55vw, 28px);
+  }
+
+  /* تقليل padding العام */
+  .frame{ padding: clamp(8px, 1.2vw, 14px); }
+  .board{ padding: clamp(10px, 1.4vw, 18px); }
+
+  /* تقليل المسافات العمودية */
+  .clock{ margin-top: calc(var(--s)*0.25); }
+  .meta{ margin-top: calc(var(--s)*0.10); }
+  .times{ margin-top: calc(var(--s)*0.30); gap: calc(var(--s)*0.34); padding: calc(var(--s)*0.40) calc(var(--s)*0.55); }
+  .countdown{ margin-top: calc(var(--s)*0.30); padding: 10px 12px; }
+  .verseWrap{ margin-top: calc(var(--s)*0.28); }
+  .tickerWrap{ padding-top: calc(var(--s)*0.35); }
+
+  /* تصغير الساعة قليلاً */
+  .clock .t{ font-size: clamp(56px, 6.8vw, 112px); }
+
+  /* تصغير التاريخ + السطور */
+  .meta .row1{ font-size: clamp(18px, 2.1vw, 34px); }
+  .meta .row2{ font-size: clamp(14px, 1.6vw, 26px); }
+
+  /* تصغير سطر الطقس */
+  .weather-row{
+    margin-top: 8px;
+    padding: 5px 16px;
+    gap: 10px;
+    font-size: clamp(14px, 1.5vw, 24px);
+  }
+
+  /* ✅ تصغير بطاقات توقعات 3 أيام */
+  .forecast-3{ margin: 8px auto 0; padding: 8px 10px; }
+  .forecast-3 .grid{ gap: 8px; }
+  .forecast-3 .card{
+    min-width: 96px;
+    padding: 6px 8px;
+  }
+  .forecast-3 .ico{ font-size: 1.2em; margin-top: 2px; }
+  .forecast-3 .temps{ margin-top: 2px; }
+
+  /* تقليل حجم قائمة الأوقات قليلاً */
+  .item{ font-size: clamp(20px, 2.35vw, 44px); padding: calc(var(--s)*0.12) 0 calc(var(--s)*0.16); }
+
+  /* تقليل ارتفاع شريط الآية والتكرار */
+  .verseBar{ height: calc(var(--s)*2.2); }
+  .ticker{ height: calc(var(--s)*1.85); }
+
+  /* سطر رمضان (إن كان ظاهرًا) أقل ارتفاعًا */
+  .ramadanLine{ padding: 10px 12px; margin-top: calc(var(--s)*0.22); font-size: calc(var(--s)*0.92); }
+}
   </style>
 </head>
 
@@ -1605,3 +1661,4 @@
 </script>
 </body>
 </html>
+
