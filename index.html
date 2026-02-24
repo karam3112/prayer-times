@@ -1598,17 +1598,23 @@
   }
 
   function dailyRefreshSchedulerTick(){
-    const target = CONFIG.dailyHardRefreshAt || "07:00";
-    const nowHHMM = getTimeHHMM_TZ();
-    if(nowHHMM !== target) return;
+  const target = CONFIG.dailyHardRefreshAt || "07:00";
+  const todayKey = getDateKeyTZ();
+  const doneKey = localStorage.getItem(DAILY_REFRESH_LS);
+  if(doneKey === todayKey) return;
 
-    const todayKey = getDateKeyTZ();
-    const doneKey = localStorage.getItem(DAILY_REFRESH_LS);
-    if(doneKey === todayKey) return;
+  // حوّل الوقت الحالي والهدف لدقائق
+  const [th, tm] = target.split(":").map(Number);
+  const [nh, nm] = getTimeHHMM_TZ().split(":").map(Number);
+  const targetMin = th*60 + tm;
+  const nowMin = nh*60 + nm;
 
+  // إذا وصلنا/تجاوزنا 07:00 نفّذ مرة واحدة فقط لليوم
+  if(nowMin >= targetMin){
     try{ localStorage.setItem(DAILY_REFRESH_LS, todayKey); }catch{}
     hardReloadWithCacheBust();
   }
+}
 
   // =========================
   // INIT
@@ -1664,5 +1670,6 @@
 </script>
 </body>
 </html>
+
 
 
