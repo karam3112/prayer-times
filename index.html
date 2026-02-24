@@ -1040,7 +1040,7 @@
     if(!dehriMap) return;
 
     const hijriMonth = getHijriMonthNumber();
-    applyRamadanMode(hijriMonth === 9);
+    applyRamadanMode(false);
 
     const key = getZonedDateKey_MMDD();
     const row = dehriMap[key];
@@ -1670,6 +1670,7 @@
 </script>
 </body>
 </html>
+
 
 
 
