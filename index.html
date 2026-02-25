@@ -1235,9 +1235,67 @@
     return { t:"صافٍ", i:"☀️" };
   }
 
-  async function fetchWeather(){
-   try{
-     const url =
+  // =========================
+// Weather (مستقر + Cache + Retry) — يدعم الحالي + 3 أيام
+// =========================
+const WEATHER_LS = "manarah_weather_cache_v2";
+let weatherRetryTimer = null;
+
+function saveWeatherCache(payload){
+  try{ localStorage.setItem(WEATHER_LS, JSON.stringify(payload)); }catch(e){}
+}
+function loadWeatherCache(){
+  try{ return JSON.parse(localStorage.getItem(WEATHER_LS) || "null"); }catch(e){ return null; }
+}
+
+function renderCurrentWeather(temperature, weathercode){
+  const info = wmoToText(Number(weathercode));
+  $("wIcon").textContent = info.i;
+  $("wTemp").textContent = `${Math.round(Number(temperature))}°C`;
+  $("wDesc").textContent = info.t;
+  $("weatherWrap").style.display = "flex";
+}
+
+function renderForecast3(daily){
+  if(!daily || !Array.isArray(daily.time) || daily.time.length < 1){
+    $("forecast3").style.display = "none";
+    return;
+  }
+
+  const times = daily.time;
+  const wcodes = daily.weathercode || [];
+  const tmax = daily.temperature_2m_max || [];
+  const tmin = daily.temperature_2m_min || [];
+
+  const labels = ["اليوم", "غدًا", "بعد غد"];
+
+  let html = `<div class="grid">`;
+
+  for(let i=0; i<Math.min(3, times.length); i++){
+    const di = wmoToText(Number(wcodes[i]));
+    const mx = Number.isFinite(Number(tmax[i])) ? Math.round(Number(tmax[i])) : "--";
+    const mn = Number.isFinite(Number(tmin[i])) ? Math.round(Number(tmin[i])) : "--";
+
+    html += `
+      <div class="card">
+        <div class="lbl">${labels[i] || ""}</div>
+        <div class="ico">${di.i}</div>
+        <div class="temps">${mn}° / ${mx}°</div>
+      </div>
+    `;
+  }
+
+  html += `</div>`;
+  $("forecast3").innerHTML = html;
+  $("forecast3").style.display = "block";
+}
+
+async function fetchWeather(){
+  // لا تكدّس retries
+  if(weatherRetryTimer){ clearTimeout(weatherRetryTimer); weatherRetryTimer = null; }
+
+  try{
+    const url =
       `https://api.open-meteo.com/v1/forecast` +
       `?latitude=${CONFIG.lat}&longitude=${CONFIG.lon}` +
       `&current_weather=true` +
@@ -1246,67 +1304,54 @@
       `&timezone=${encodeURIComponent(CONFIG.tz)}`;
 
     const r = await fetch(url, { cache:"no-store" });
+    if(!r.ok) throw new Error("weather http not ok");
     const j = await r.json();
 
-    // ✅ طقس الآن
+    // ✅ الحالي
     if(j.current_weather){
       const {temperature, weathercode} = j.current_weather;
-      const info = wmoToText(weathercode);
-      $("wIcon").textContent = info.i;
-      $("wTemp").textContent = `${Math.round(temperature)}°C`;
-      $("wDesc").textContent = info.t;
-      $("weatherWrap").style.display = "flex";
+      renderCurrentWeather(temperature, weathercode);
+    }else{
+      // إذا لم يصل current_weather، لا نخفي فورًا، سنعتمد على الكاش إن وجد
+      throw new Error("no current_weather");
+    }
+
+    // ✅ 3 أيام
+    if(j.daily && Array.isArray(j.daily.time) && j.daily.time.length >= 1){
+      renderForecast3(j.daily);
+    }else{
+      // إذا فشل daily، نخفي forecast فقط
+      $("forecast3").style.display = "none";
+    }
+
+    // ✅ احفظ آخر نتيجة ناجحة (الحالي + daily)
+    saveWeatherCache({
+      current_weather: j.current_weather || null,
+      daily: j.daily || null,
+      ts: Date.now()
+    });
+
+  }catch(e){
+    // ✅ لا تختفي الأشياء إذا كان عندنا كاش
+    const cached = loadWeatherCache();
+
+    if(cached && cached.current_weather){
+      const cw = cached.current_weather;
+      renderCurrentWeather(cw.temperature, cw.weathercode);
     }else{
       $("weatherWrap").style.display = "none";
     }
 
-    // ✅ توقعات 3 أيام: اليوم / غدًا / بعد غد
-    if(j.daily && Array.isArray(j.daily.time) && j.daily.time.length >= 1){
-      const times = j.daily.time;
-      const wcodes = j.daily.weathercode || [];
-      const tmax = j.daily.temperature_2m_max || [];
-      const tmin = j.daily.temperature_2m_min || [];
-
-      const labels = ["اليوم", "غدًا", "بعد غد"];
-
-      let html = `<div class="grid">`;
-
-      for(let i=0; i<Math.min(3, times.length); i++){
-        const di = wmoToText(Number(wcodes[i]));
-        const mx = Number.isFinite(Number(tmax[i])) ? Math.round(tmax[i]) : "--";
-        const mn = Number.isFinite(Number(tmin[i])) ? Math.round(tmin[i]) : "--";
-
-        html += `
-          <div class="card">
-            <div class="lbl">${labels[i] || ""}</div>
-            <div class="ico">${di.i}</div>
-            <div class="temps">${mn}° / ${mx}°</div>
-          </div>
-        `;
-      }
-
-      html += `</div>`;
-
-      $("forecast3").innerHTML = html;
-      $("forecast3").style.display = "block";
+    if(cached && cached.daily){
+      renderForecast3(cached.daily);
     }else{
       $("forecast3").style.display = "none";
     }
 
-  }catch(e){
-    $("weatherWrap").style.display = "none";
-    $("forecast3").style.display = "none";
+    // ✅ إعادة محاولة بعد دقيقة
+    weatherRetryTimer = setTimeout(fetchWeather, 60 * 1000);
   }
 }
-
-  async function refreshDehriTimes(){
-    if(!dehriMap){
-      const ok = await loadDehriMap();
-      if(!ok) return;
-    }
-    applyDehriForToday();
-  }
-
   // =========================
   // ✅ نظام التهنئة (Birthdays)
   // =========================
@@ -1670,6 +1715,7 @@
 </script>
 </body>
 </html>
+
 
 
 
