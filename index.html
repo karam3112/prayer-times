@@ -1126,13 +1126,14 @@
   }
 
   function formatRemainingTime(sec){
-    if(sec < 0) return "";
-    if(sec < 60) return "أقل من دقيقة";
-    const hours = Math.floor(sec / 3600);
-    const minutes = Math.floor((sec % 3600) / 60);
-    if(hours > 0) return `${hours} ساعات و${minutes} دقائق`;
-    return `${minutes} دقائق`;
-  }
+  if(sec < 0) return "00:00:00";
+
+  const hours = Math.floor(sec / 3600);
+  const minutes = Math.floor((sec % 3600) / 60);
+  const seconds = sec % 60;
+
+  return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
+}
 
   function updateCountdown(){
     if(!timingsAdj) return;
