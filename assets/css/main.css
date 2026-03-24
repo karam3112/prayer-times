@@ -658,7 +658,7 @@ img{
     padding: 14px 16px 14px;
     display: grid;
     grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr auto;
+    grid-template-rows: auto auto auto 1fr;
     gap: 14px;
     overflow: hidden;
   }
@@ -685,7 +685,7 @@ img{
   }
 
   .clock{
-    font-size: clamp(4.2rem, 9vw, 5.6rem);
+    font-size: clamp(5.5rem, 11vw, 7.5rem);
     line-height: 1;
   }
 
@@ -715,8 +715,9 @@ img{
   }
 
   .next-prayer-card{
-    padding: 18px;
+    padding: 20px;
     border-radius: 22px;
+	border: 2px solid rgba(31,122,99,.15);
   }
 
   .section-title{
@@ -739,11 +740,11 @@ img{
   }
 
   .info-item__value{
-    font-size: 1.45rem;
+    font-size: 1.8rem;
   }
 
   .info-item__value--countdown{
-    font-size: 1.7rem;
+    font-size: 2.2rem;
   }
 
   .prayer-times-card{
@@ -756,13 +757,13 @@ img{
   }
 
   .prayer-times-list{
-    gap: 8px;
+    gap: 6px;
   }
 
   .prayer-row{
     grid-template-columns: 40px 1fr auto;
     gap: 10px;
-    padding: 12px 12px;
+    padding: 10px 10px;
     border-radius: 15px;
   }
 
@@ -782,13 +783,13 @@ img{
   }
 
   .prayer-row__time{
-    font-size: 1.15rem;
+    font-size: 1rem;
   }
 
   .forecast-card{
     grid-column: 1;
     grid-row: auto;
-    padding: 18px 16px 16px;
+    padding: 12px;
     border-radius: 22px;
   }
 
@@ -798,12 +799,12 @@ img{
   }
 
   .forecast-item{
-    padding: 14px 8px 12px;
+    padding: 10px 6px;
     border-radius: 15px;
   }
 
   .forecast-item__day{
-    font-size: .95rem;
+    font-size: .85rem;
   }
 
   .forecast-item__icon{
@@ -814,11 +815,11 @@ img{
   }
 
   .forecast-item__temp{
-    font-size: 1.05rem;
+    font-size: 0.95rem;
   }
 
   .forecast-item__desc{
-    font-size: .88rem;
+    font-size: .75rem;
     line-height: 1.4;
   }
 
