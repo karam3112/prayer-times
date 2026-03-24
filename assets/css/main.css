@@ -61,14 +61,14 @@ img{
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  opacity: .25;
+  opacity: .24;
   transition: opacity 800ms ease, background-image 800ms ease;
   filter: saturate(.88) blur(1px);
   transform: scale(1.02);
 }
 
 .events-layer.is-dimmed{
-  opacity: .07;
+  opacity: .08;
 }
 
 .page-overlay{
@@ -77,7 +77,7 @@ img{
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(255,255,255,.75), rgba(255,255,255,.70)),
+    linear-gradient(to bottom, rgba(255,255,255,.76), rgba(255,255,255,.70)),
     linear-gradient(135deg, rgba(31,122,99,.04), rgba(212,175,55,.03));
 }
 
@@ -550,8 +550,8 @@ img{
 
 .is-athan-mode .page-overlay{
   background:
-    linear-gradient(to bottom, rgba(255,255,255,.96), rgba(255,255,255,.93)),
-    linear-gradient(135deg, rgba(31,122,99,.035), rgba(212,175,55,.03));
+    linear-gradient(to bottom, rgba(255,255,255,.94), rgba(255,255,255,.90)),
+    linear-gradient(135deg, rgba(31,122,99,.03), rgba(212,175,55,.025));
 }
 
 /* تحسين القراءة على الشاشات */
@@ -606,112 +606,175 @@ img{
   }
 }
 
-/* شاشات طولية */
+/* نسخة Kiosk احترافية للشاشة العمودية */
 @media (max-aspect-ratio: 10/16){
-.main-layout{
-  grid-template-columns: 1fr;
-  gap: 12px;
-}
-
-.hero-panel__top{
-  grid-template-columns: 1fr;
-}
-
-.prayer-times-card,
-.forecast-card{
-  width: 100%;
-}
   :root{
-    --header-h: 110px;
-    --ticker-h: 54px;
+    --header-h: 120px;
+    --ticker-h: 62px;
   }
 
   html,
   body{
-    overflow: auto;
+    overflow: hidden;
   }
 
   .app-shell{
-    grid-template-rows: var(--header-h) auto var(--ticker-h);
+    min-height: 100vh;
+    height: 100vh;
+    grid-template-rows: var(--header-h) 1fr var(--ticker-h);
+  }
+
+  .site-header{
+    background: rgba(255,255,255,.96);
   }
 
   .site-header__inner{
-    padding: 0 18px;
+    height: calc(var(--header-h) - 4px);
+    padding: 0 20px;
   }
 
-  .site-brand__logo{
-    width: 62px;
-    height: 62px;
-  }
-
-  .site-brand__title{
-    font-size: 1.65rem;
-  }
-
-  .site-brand__subtitle{
-    font-size: .92rem;
-  }
-
-  .main-layout{
-    padding: 14px 16px 18px;
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto;
+  .site-brand{
+    width: 100%;
+    justify-content: flex-start;
     gap: 14px;
   }
 
+  .site-brand__logo{
+    width: 64px;
+    height: 64px;
+  }
+
+  .site-brand__title{
+    font-size: 2rem;
+  }
+
+  .site-brand__subtitle{
+    font-size: 1rem;
+  }
+
+  .main-layout{
+    max-width: 100%;
+    height: 100%;
+    padding: 14px 16px 14px;
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto 1fr auto;
+    gap: 14px;
+    overflow: hidden;
+  }
+
   .hero-panel{
+    grid-column: 1;
+    grid-row: auto;
+    display: grid;
+    grid-template-rows: auto auto;
+    gap: 14px;
+  }
+
+  .hero-panel__top{
+    display: grid;
+    grid-template-columns: 1fr;
     gap: 14px;
   }
 
   .clock-card{
-    min-height: auto;
-    padding: 18px 18px 16px;
+    min-height: 0;
+    padding: 22px 18px 18px;
+    border-radius: 22px;
+    text-align: right;
   }
 
   .clock{
-    font-size: clamp(2.7rem, 10vw, 4.6rem);
+    font-size: clamp(4.2rem, 9vw, 5.6rem);
+    line-height: 1;
   }
 
   .date-line{
-    font-size: 1rem;
+    margin-top: 12px;
+    font-size: 1.18rem;
   }
 
   .weather-now{
-    font-size: .92rem;
+    margin-top: 8px;
+    font-size: 1rem;
   }
 
   .birthday-card{
-    min-height: auto;
-    padding: 16px;
+    min-height: 0;
+    padding: 16px 18px;
+    border-radius: 22px;
   }
 
-  .next-prayer-card,
-  .prayer-times-card,
-  .forecast-card{
-    padding: 18px 16px 16px;
+  .birthday-card__title{
+    font-size: 1.25rem;
+  }
+
+  .birthday-card__text{
+    font-size: 1rem;
+    line-height: 1.8;
+  }
+
+  .next-prayer-card{
+    padding: 18px;
+    border-radius: 22px;
+  }
+
+  .section-title{
+    font-size: 1.45rem;
   }
 
   .next-prayer-grid{
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
   }
 
   .info-item{
-    min-height: 88px;
+    min-height: 94px;
+    padding: 12px 12px;
+    border-radius: 16px;
   }
 
-  .forecast-grid{
-    grid-template-columns: 1fr;
+  .info-item__label{
+    font-size: .95rem;
+  }
+
+  .info-item__value{
+    font-size: 1.45rem;
+  }
+
+  .info-item__value--countdown{
+    font-size: 1.7rem;
+  }
+
+  .prayer-times-card{
+    grid-column: 1;
+    grid-row: auto;
+    padding: 18px 16px 16px;
+    border-radius: 22px;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  .prayer-times-list{
+    gap: 8px;
   }
 
   .prayer-row{
     grid-template-columns: 40px 1fr auto;
-    padding: 12px 13px;
+    gap: 10px;
+    padding: 12px 12px;
+    border-radius: 15px;
   }
 
   .prayer-row__icon{
     width: 40px;
     height: 40px;
+    border-radius: 12px;
+  }
+
+  .prayer-row__icon svg{
+    width: 20px;
+    height: 20px;
   }
 
   .prayer-row__name{
@@ -719,15 +782,57 @@ img{
   }
 
   .prayer-row__time{
-    font-size: 1.18rem;
+    font-size: 1.15rem;
+  }
+
+  .forecast-card{
+    grid-column: 1;
+    grid-row: auto;
+    padding: 18px 16px 16px;
+    border-radius: 22px;
+  }
+
+  .forecast-grid{
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .forecast-item{
+    padding: 14px 8px 12px;
+    border-radius: 15px;
+  }
+
+  .forecast-item__day{
+    font-size: .95rem;
+  }
+
+  .forecast-item__icon{
+    width: 36px;
+    height: 36px;
+    margin: 8px auto 6px;
+    font-size: 1.2rem;
+  }
+
+  .forecast-item__temp{
+    font-size: 1.05rem;
+  }
+
+  .forecast-item__desc{
+    font-size: .88rem;
+    line-height: 1.4;
+  }
+
+  .bottom-ticker{
+    height: var(--ticker-h);
   }
 
   .bottom-ticker__track{
-    padding: 0 14px;
+    padding: 0 12px;
   }
 
   .bottom-ticker__content{
-    font-size: .94rem;
+    font-size: .96rem;
+    gap: 12px;
   }
 }
 
