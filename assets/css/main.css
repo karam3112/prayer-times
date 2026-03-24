@@ -61,7 +61,7 @@ img{
   background-position: center center;
   background-repeat: no-repeat;
   background-size: cover;
-  opacity: .16;
+  opacity: .25;
   transition: opacity 800ms ease, background-image 800ms ease;
   filter: saturate(.88) blur(1px);
   transform: scale(1.02);
@@ -77,8 +77,8 @@ img{
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(255,255,255,.93), rgba(255,255,255,.86)),
-    linear-gradient(135deg, rgba(31,122,99,.06), rgba(212,175,55,.04));
+    linear-gradient(to bottom, rgba(255,255,255,.75), rgba(255,255,255,.70)),
+    linear-gradient(135deg, rgba(31,122,99,.04), rgba(212,175,55,.03));
 }
 
 /* زخرفة خفيفة جدًا */
@@ -608,6 +608,19 @@ img{
 
 /* شاشات طولية */
 @media (max-aspect-ratio: 10/16){
+.main-layout{
+  grid-template-columns: 1fr;
+  gap: 12px;
+}
+
+.hero-panel__top{
+  grid-template-columns: 1fr;
+}
+
+.prayer-times-card,
+.forecast-card{
+  width: 100%;
+}
   :root{
     --header-h: 110px;
     --ticker-h: 54px;
