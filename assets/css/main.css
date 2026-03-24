@@ -137,8 +137,8 @@ img{
 }
 
 .site-brand__logo{
-  width: 90px;
-  height: 90px;
+  width: 110px;
+  height: 110px;
   object-fit: contain;
   flex: 0 0 auto;
 }
@@ -726,8 +726,8 @@ img{
   }
 
   .site-brand__logo{
-    width: 80px;
-    height: 80px;
+    width: 130px;
+    height: 130px;
     object-fit: contain;
     filter: drop-shadow(0 2px 6px rgba(0,0,0,.08));
   }
@@ -1029,4 +1029,17 @@ img{
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* Anti Burn-in (تحريك خفيف جدًا) */
+@keyframes antiBurn {
+  0%   { transform: translate(0px, 0px); }
+  25%  { transform: translate(0.5px, 0.3px); }
+  50%  { transform: translate(-0.5px, 0.4px); }
+  75%  { transform: translate(0.4px, -0.3px); }
+  100% { transform: translate(0px, 0px); }
+}
+
+.app-shell{
+  animation: antiBurn 120s infinite linear;
 }
