@@ -12,7 +12,7 @@
 
   const PRAYER_ICONS = {
     Fajr: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 15a8 8 0 0 1 16 0" />
         <path d="M12 3v3" />
         <path d="M6 8l2 2" />
@@ -20,32 +20,32 @@
       </svg>
     `,
     Sunrise: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M4 16h16" />
         <path d="M7 16a5 5 0 0 1 10 0" />
         <path d="M12 4v4" />
       </svg>
     `,
     Dhuhr: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="12" cy="12" r="4.5" />
         <path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" />
       </svg>
     `,
     Asr: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <circle cx="9" cy="9" r="3.5" />
         <path d="M12.5 12.5L20 20" />
       </svg>
     `,
     Maghrib: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M3 16h18" />
         <path d="M6 16a6 6 0 0 1 12 0" />
       </svg>
     `,
     Isha: `
-      <svg viewBox="0 0 24 24" fill="none" stroke-width="1.8">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
         <path d="M15 3a7 7 0 1 0 6 11.5A8 8 0 1 1 15 3z" />
       </svg>
     `
@@ -69,10 +69,16 @@
 
   function parseTimeString(timeString) {
     if (!timeString || typeof timeString !== "string") return null;
-    const normalized = timeString.trim().slice(0, 5);
-    const [h, m] = normalized.split(":").map(Number);
-    if (!Number.isFinite(h) || !Number.isFinite(m)) return null;
-    return { hours: h, minutes: m };
+
+    const match = timeString.trim().match(/^(\d{1,2}):(\d{2})/);
+    if (!match) return null;
+
+    const hours = Number(match[1]);
+    const minutes = Number(match[2]);
+
+    if (!Number.isFinite(hours) || !Number.isFinite(minutes)) return null;
+
+    return { hours, minutes };
   }
 
   function createLocalDate(year, monthIndex, day, hours, minutes, seconds = 0) {
@@ -80,13 +86,13 @@
   }
 
   function todayKey(now = new Date()) {
-    return `${now.getFullYear()}-${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
+    return `${pad(now.getMonth() + 1)}-${pad(now.getDate())}`;
   }
 
   function tomorrowKey(now = new Date()) {
     const d = new Date(now);
     d.setDate(d.getDate() + 1);
-    return todayKey(d);
+    return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
   async function loadDehriFile(url) {
@@ -94,51 +100,45 @@
     if (!response.ok) {
       throw new Error(`Failed to load dehri.json: ${response.status}`);
     }
+
     return response.json();
   }
 
   function getDayRecord(data, key) {
-    if (!data) return null;
-
-    if (Array.isArray(data)) {
-      return data.find((item) => {
-        return item?.date === key || item?.day === key || item?.gregorian === key;
-      }) || null;
-    }
-
-    if (typeof data === "object") {
-      return data[key] || null;
-    }
-
-    return null;
+    if (!data || typeof data !== "object") return null;
+    return data[key] || null;
   }
 
   function normalizeTimings(rawRecord, offsets = {}) {
-    if (!rawRecord) return null;
+    if (!rawRecord || typeof rawRecord !== "object") return null;
 
-    const timingsSource = rawRecord.timings || rawRecord;
     const result = {};
 
     for (const prayer of PRAYER_ORDER) {
-      const parsed = parseTimeString(timingsSource[prayer]);
+      const parsed = parseTimeString(rawRecord[prayer]);
       if (!parsed) continue;
 
       const offset = Number(offsets[prayer] || 0);
       const totalMinutes = (parsed.hours * 60) + parsed.minutes + offset;
-      const h = ((Math.floor(totalMinutes / 60) % 24) + 24) % 24;
-      const m = ((totalMinutes % 60) + 60) % 60;
 
-      result[prayer] = formatTimeParts(h, m);
+      const normalizedMinutes = ((totalMinutes % 1440) + 1440) % 1440;
+      const hours = Math.floor(normalizedMinutes / 60);
+      const minutes = normalizedMinutes % 60;
+
+      result[prayer] = formatTimeParts(hours, minutes);
     }
 
     return result;
   }
 
   function buildPrayerMoments(timings, baseDate) {
+    if (!timings) return [];
+
     const moments = [];
 
     for (const prayer of PRAYER_ORDER) {
       if (!timings[prayer]) continue;
+
       const parsed = parseTimeString(timings[prayer]);
       if (!parsed) continue;
 
@@ -164,11 +164,12 @@
     const upcoming = todayMoments.find((item) => item.timeDate > now);
     if (upcoming) return upcoming;
 
-    if (tomorrowTimings?.Fajr) {
+    if (tomorrowTimings && tomorrowTimings.Fajr) {
       const parsed = parseTimeString(tomorrowTimings.Fajr);
       if (parsed) {
         const nextDay = new Date(now);
         nextDay.setDate(nextDay.getDate() + 1);
+
         return {
           key: "Fajr",
           label: PRAYER_NAMES.Fajr,
@@ -200,9 +201,10 @@
     if (!container) return;
 
     const rows = PRAYER_ORDER
-      .filter((key) => timings[key])
+      .filter((key) => timings && timings[key])
       .map((key) => {
         const activeClass = key === nextPrayerKey ? " is-next" : "";
+
         return `
           <div class="prayer-row${activeClass}">
             <div class="prayer-row__icon" aria-hidden="true">
