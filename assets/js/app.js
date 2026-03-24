@@ -15,12 +15,12 @@
     refreshMinute: 0,
 
     offsets: {
-      Fajr: 0,
-      Sunrise: 0,
-      Dhuhr: 0,
-      Asr: 0,
-      Maghrib: 0,
-      Isha: 0
+      Fajr: 1,
+      Sunrise: 1,
+      Dhuhr: 1,
+      Asr: 1,
+      Maghrib: 1,
+      Isha: 1
     },
 
     eventImagesPath: "images/events",
@@ -29,21 +29,21 @@
       // مثال:
       // "1.jpg",
       // "2.jpg",
-      // "3.webp"
-      "1.jpg",
-      "2.jpg",
-      "4.jpg",
-      "5.jpg",
-      "6.jpg",
-      "7.jpg",
-      "8.jpg",
-      "9.jpg",
-      "10.jpg",      
+      // "3.jpg"
+      "4.jpg"
+      "5.jpg"
+      "6.jpg"
+      "7.jpg"
+      "8.jpg"
+      "9.jpg"
+      "10.jpg"
     ],
     eventRotateSeconds: 20,
 
     hideImagesBeforePrayerMinutes: 12,
     hideImagesAfterPrayerMinutes: 8,
+
+    preAthanMinutes: 5,
 
     tickerMessages: [
       "مرحبًا بكم في مدرسة الغزالي",
@@ -81,10 +81,6 @@
     eventsLayer: document.getElementById("eventsLayer")
   };
 
-  function pad(num) {
-    return String(num).padStart(2, "0");
-  }
-
   function formatArabicDate(date) {
     const weekday = new Intl.DateTimeFormat("ar", {
       weekday: "long",
@@ -103,6 +99,7 @@
 
   function updateClockAndDate() {
     const now = new Date();
+
     els.clock.textContent = now.toLocaleTimeString("en-GB", {
       hour12: false,
       timeZone: CONFIG.tz
@@ -136,21 +133,38 @@
   }
 
   function updateVisualModes(now) {
+    const body = document.body;
+
     if (!state.nextPrayer) {
-      document.body.classList.remove("is-athan-mode");
+      body.classList.remove("is-athan-mode", "is-pre-athan-mode");
       state.eventRotator?.setDimmed(false);
+
+      if (els.birthdayCard && els.birthdayCard.innerHTML.trim()) {
+        els.birthdayCard.classList.remove("hidden");
+      }
       return;
     }
 
     const minutesToNext = PrayerModule.minutesUntil(now, state.nextPrayer.timeDate);
-    const justAfter = Math.abs(minutesToNext) <= CONFIG.hideImagesAfterPrayerMinutes;
-    const before = minutesToNext >= 0 && minutesToNext <= CONFIG.hideImagesBeforePrayerMinutes;
 
-    const shouldDim = before || justAfter;
+    const isPreAthan =
+      minutesToNext > 0 &&
+      minutesToNext <= CONFIG.preAthanMinutes;
 
-    document.body.classList.toggle("is-athan-mode", shouldDim);
-    state.eventRotator?.setDimmed(shouldDim);
-    els.birthdayCard?.classList.toggle("hidden", shouldDim || !els.birthdayCard.innerHTML.trim());
+    const isAthanMode =
+      (minutesToNext >= 0 && minutesToNext <= CONFIG.hideImagesBeforePrayerMinutes) ||
+      Math.abs(minutesToNext) <= CONFIG.hideImagesAfterPrayerMinutes;
+
+    body.classList.toggle("is-pre-athan-mode", isPreAthan);
+    body.classList.toggle("is-athan-mode", isAthanMode);
+
+    state.eventRotator?.setDimmed(isPreAthan || isAthanMode);
+
+    if (els.birthdayCard) {
+      const hasBirthdayContent = els.birthdayCard.innerHTML.trim().length > 0;
+      const shouldHideBirthday = isPreAthan || isAthanMode || !hasBirthdayContent;
+      els.birthdayCard.classList.toggle("hidden", shouldHideBirthday);
+    }
   }
 
   async function refreshPrayerData() {
@@ -194,6 +208,8 @@
 
       const todayBirthdays = BirthdaysModule.findTodayBirthdays(state.birthdayRecords, new Date());
       BirthdaysModule.renderBirthdayCard(els.birthdayCard, todayBirthdays);
+
+      updateVisualModes(new Date());
     } catch (_) {
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
@@ -220,6 +236,7 @@
   function scheduleDailyRefresh() {
     function check() {
       const now = new Date();
+
       const h = Number(now.toLocaleTimeString("en-GB", {
         hour: "2-digit",
         hour12: false,
@@ -244,17 +261,21 @@
     updateClockAndDate();
 
     const newDateKey = PrayerModule.todayKey(new Date());
+
     if (newDateKey !== state.currentDateKey) {
       await refreshPrayerData();
       await refreshBirthdays();
     } else if (state.nextPrayer) {
       const now = new Date();
       const needsRecalc = state.nextPrayer.timeDate <= now;
+
       if (needsRecalc) {
         await refreshPrayerData();
       } else {
         updateNextPrayerUi();
       }
+    } else {
+      updateVisualModes(new Date());
     }
   }
 
