@@ -62,7 +62,7 @@ img{
   background-repeat: no-repeat;
   background-size: cover;
   opacity: .24;
-  transition: opacity 800ms ease, background-image 800ms ease;
+  transition: opacity 800ms ease, background-image 800ms ease, filter 500ms ease;
   filter: saturate(.88) blur(1px);
   transform: scale(1.02);
 }
@@ -79,6 +79,7 @@ img{
   background:
     linear-gradient(to bottom, rgba(255,255,255,.76), rgba(255,255,255,.70)),
     linear-gradient(135deg, rgba(31,122,99,.04), rgba(212,175,55,.03));
+  transition: background 400ms ease;
 }
 
 /* زخرفة خفيفة جدًا */
@@ -93,6 +94,7 @@ img{
     radial-gradient(circle at 88% 78%, rgba(212,175,55,.12) 0 2px, transparent 2px),
     linear-gradient(135deg, transparent 0 47%, rgba(31,122,99,.045) 47% 48%, transparent 48% 100%);
   background-size: 240px 240px, 280px 280px, 100% 100%;
+  transition: opacity 400ms ease;
 }
 
 .app-shell{
@@ -109,6 +111,7 @@ img{
   backdrop-filter: blur(8px);
   border-bottom: 1px solid rgba(31,122,99,.06);
   position: relative;
+  transition: background 400ms ease, border-color 400ms ease;
 }
 
 .site-header__inner{
@@ -203,6 +206,12 @@ img{
   border-radius: var(--radius-xl);
   box-shadow: var(--brand-shadow-soft);
   backdrop-filter: blur(8px);
+  transition:
+    background 350ms ease,
+    border-color 350ms ease,
+    box-shadow 350ms ease,
+    transform 350ms ease,
+    opacity 350ms ease;
 }
 
 /* بطاقة الساعة */
@@ -223,6 +232,7 @@ img{
   letter-spacing: 3px;
   direction: ltr;
   text-align: right;
+  transition: font-size 350ms ease, color 350ms ease, transform 350ms ease;
 }
 
 .date-line{
@@ -294,6 +304,7 @@ img{
   color: var(--brand-green);
   line-height: 1.1;
   position: relative;
+  transition: color 300ms ease, transform 300ms ease;
 }
 
 .section-title::after{
@@ -328,6 +339,11 @@ img{
   flex-direction: column;
   justify-content: center;
   gap: 8px;
+  transition:
+    min-height 300ms ease,
+    transform 300ms ease,
+    background 300ms ease,
+    border-color 300ms ease;
 }
 
 .info-item__label{
@@ -342,6 +358,7 @@ img{
   color: var(--brand-green);
   font-weight: 700;
   line-height: 1.15;
+  transition: font-size 300ms ease, color 300ms ease, transform 300ms ease;
 }
 
 .info-item__value--countdown{
@@ -377,7 +394,7 @@ img{
   border: 1px solid rgba(31,122,99,.08);
   background: rgba(255,255,255,.74);
   border-radius: 18px;
-  transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease;
+  transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease, opacity .2s ease;
 }
 
 .prayer-row__icon{
@@ -389,6 +406,7 @@ img{
   border: 1px solid rgba(31,122,99,.10);
   background: rgba(31,122,99,.05);
   color: var(--brand-green);
+  transition: background 300ms ease, border-color 300ms ease, opacity 300ms ease;
 }
 
 .prayer-row__icon svg{
@@ -441,6 +459,7 @@ img{
   min-height: 0;
   display: flex;
   flex-direction: column;
+  margin-bottom: 4px !important;
 }
 
 .forecast-grid{
@@ -455,6 +474,7 @@ img{
   background: rgba(248,250,249,.76);
   padding: 16px 12px 14px;
   text-align: center;
+  transition: opacity 300ms ease, transform 300ms ease;
 }
 
 .forecast-item__day{
@@ -499,6 +519,7 @@ img{
   background: rgba(255,255,255,.94);
   border-top: 1px solid rgba(31,122,99,.08);
   overflow: hidden;
+  transition: opacity 300ms ease, transform 300ms ease;
 }
 
 .bottom-ticker__track{
@@ -552,6 +573,71 @@ img{
   background:
     linear-gradient(to bottom, rgba(255,255,255,.94), rgba(255,255,255,.90)),
     linear-gradient(135deg, rgba(31,122,99,.03), rgba(212,175,55,.025));
+}
+
+/* وضع قبل الأذان */
+.is-pre-athan-mode .events-layer{
+  opacity: .04;
+  filter: saturate(.75) blur(2px);
+}
+
+.is-pre-athan-mode .page-overlay{
+  background:
+    linear-gradient(to bottom, rgba(255,255,255,.95), rgba(255,255,255,.92)),
+    linear-gradient(135deg, rgba(31,122,99,.025), rgba(212,175,55,.02));
+}
+
+.is-pre-athan-mode .brand-pattern{
+  opacity: .18;
+}
+
+.is-pre-athan-mode .birthday-card,
+.is-pre-athan-mode .forecast-card,
+.is-pre-athan-mode .bottom-ticker{
+  opacity: 0;
+  transform: translateY(8px);
+  pointer-events: none;
+}
+
+.is-pre-athan-mode .site-header{
+  background: rgba(255,255,255,.97);
+  border-bottom-color: rgba(212,175,55,.14);
+}
+
+.is-pre-athan-mode .clock-card,
+.is-pre-athan-mode .next-prayer-card{
+  border-color: rgba(212,175,55,.22);
+  box-shadow: 0 14px 36px rgba(138, 106, 20, .08);
+}
+
+.is-pre-athan-mode .clock{
+  color: var(--brand-green);
+  transform: scale(1.03);
+}
+
+.is-pre-athan-mode .section-title{
+  color: #8A6A14;
+}
+
+.is-pre-athan-mode .next-prayer-card{
+  transform: scale(1.01);
+}
+
+.is-pre-athan-mode .info-item{
+  background: rgba(255,255,255,.92);
+  border-color: rgba(212,175,55,.20);
+}
+
+.is-pre-athan-mode .info-item__value--countdown{
+  color: #B38A14;
+}
+
+.is-pre-athan-mode .prayer-times-card{
+  opacity: .72;
+}
+
+.is-pre-athan-mode .prayer-row{
+  background: rgba(255,255,255,.58);
 }
 
 /* تحسين القراءة على الشاشات */
@@ -655,12 +741,13 @@ img{
   .main-layout{
     max-width: 100%;
     height: 100%;
-    padding: 14px 16px 14px;
+    padding: 14px 16px 6px !important;
     display: grid;
     grid-template-columns: 1fr;
     grid-template-rows: auto auto auto 1fr;
     gap: 14px;
     overflow: hidden;
+    align-content: start;
   }
 
   .hero-panel{
@@ -717,7 +804,7 @@ img{
   .next-prayer-card{
     padding: 20px;
     border-radius: 22px;
-	border: 2px solid rgba(31,122,99,.15);
+    border: 2px solid rgba(31,122,99,.15);
   }
 
   .section-title{
@@ -726,11 +813,26 @@ img{
 
   .next-prayer-grid{
     grid-template-columns: 1fr 1fr;
+    grid-template-areas:
+      "name time"
+      "countdown countdown";
     gap: 10px;
   }
 
+  .info-item:nth-child(1){
+    grid-area: name;
+  }
+
+  .info-item:nth-child(2){
+    grid-area: time;
+  }
+
+  .info-item:nth-child(3){
+    grid-area: countdown;
+  }
+
   .info-item{
-    min-height: 94px;
+    min-height: 80px;
     padding: 12px 12px;
     border-radius: 16px;
   }
@@ -744,8 +846,9 @@ img{
   }
 
   .info-item__value--countdown{
-    font-size: 2.6rem;
-	color: var(--brand-gold);
+    font-size: 2.8rem;
+    color: var(--brand-gold);
+    text-align: center;
   }
 
   .prayer-times-card{
@@ -766,12 +869,16 @@ img{
     gap: 10px;
     padding: 10px 10px;
     border-radius: 15px;
+    background: rgba(255,255,255,.55);
+    border: 1px solid rgba(31,122,99,.06);
   }
 
   .prayer-row__icon{
     width: 40px;
     height: 40px;
     border-radius: 12px;
+    background: transparent;
+    border: none;
   }
 
   .prayer-row__icon svg{
@@ -785,6 +892,12 @@ img{
 
   .prayer-row__time{
     font-size: 1rem;
+  }
+
+  .prayer-row.is-next{
+    background: rgba(212,175,55,.12);
+    border-color: rgba(212,175,55,.25);
+    box-shadow: none;
   }
 
   .forecast-card{
@@ -816,7 +929,7 @@ img{
   }
 
   .forecast-item__temp{
-    font-size: 0.95rem;
+    font-size: .95rem;
   }
 
   .forecast-item__desc{
@@ -836,23 +949,81 @@ img{
     font-size: .96rem;
     gap: 12px;
   }
+
+  /* وضع قبل الأذان داخل الشاشة العمودية */
+  .is-pre-athan-mode .main-layout{
+    grid-template-rows: auto auto 1fr;
+    gap: 12px;
+  }
+
+  .is-pre-athan-mode .clock-card{
+    padding: 24px 18px 20px;
+  }
+
+  .is-pre-athan-mode .clock{
+    font-size: clamp(6rem, 13vw, 8.3rem);
+  }
+
+  .is-pre-athan-mode .next-prayer-card{
+    padding: 22px 20px;
+    border-color: rgba(212,175,55,.28);
+    box-shadow: 0 16px 40px rgba(179, 138, 20, .10);
+  }
+
+  .is-pre-athan-mode .next-prayer-grid{
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "name"
+      "time"
+      "countdown";
+    gap: 12px;
+  }
+
+  .is-pre-athan-mode .info-item{
+    min-height: 88px;
+  }
+
+  .is-pre-athan-mode .info-item:nth-child(1),
+  .is-pre-athan-mode .info-item:nth-child(2),
+  .is-pre-athan-mode .info-item:nth-child(3){
+    grid-area: auto;
+  }
+
+  .is-pre-athan-mode .info-item__label{
+    font-size: 1rem;
+  }
+
+  .is-pre-athan-mode .info-item__value{
+    font-size: 2rem;
+  }
+
+  .is-pre-athan-mode .info-item__value--countdown{
+    font-size: clamp(3.4rem, 8vw, 4.8rem);
+    line-height: 1;
+    color: #B38A14;
+  }
+
+  .is-pre-athan-mode .prayer-times-card{
+    opacity: .38;
+    transform: scale(.985);
+  }
+
+  .is-pre-athan-mode .section-title{
+    color: #8A6A14;
+    transform: translateY(-1px);
+  }
 }
 
 /* تقليل الحركة */
 @media (prefers-reduced-motion: reduce){
   .events-layer,
   .prayer-row,
-  .bottom-ticker__content{
+  .bottom-ticker__content,
+  .clock,
+  .next-prayer-card,
+  .forecast-item,
+  .info-item{
     transition: none !important;
     animation: none !important;
   }
-}
-
-/* تحسين المساحة السفلية */
-.forecast-card{
-  margin-bottom: 4px !important;
-}
-
-.main-layout{
-  padding-bottom: 6px !important;
 }
