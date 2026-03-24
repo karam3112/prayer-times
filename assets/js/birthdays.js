@@ -1,16 +1,30 @@
 (function () {
-  function normalizeArabicComma(text) {
-    return String(text || "").replace(/،/g, ",").trim();
-  }
-
   function parseCsvLine(line) {
-    return normalizeArabicComma(line).split(",").map((part) => part.trim());
-  }
+    const result = [];
+    let current = "";
+    let inQuotes = false;
 
-  function formatMonthDay(date) {
-    const month = String(date.getMonth() + 1).padStart(2, "0");
-    const day = String(date.getDate()).padStart(2, "0");
-    return `${month}-${day}`;
+    for (let i = 0; i < line.length; i++) {
+      const char = line[i];
+      const next = line[i + 1];
+
+      if (char === '"') {
+        if (inQuotes && next === '"') {
+          current += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (char === "," && !inQuotes) {
+        result.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+
+    result.push(current.trim());
+    return result;
   }
 
   async function loadBirthdaysCsv(url) {
@@ -20,26 +34,40 @@
     }
 
     const text = await response.text();
-    const lines = text.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+    const lines = text
+      .split(/\r?\n/)
+      .map((line) => line.trim())
+      .filter(Boolean);
 
     if (!lines.length) return [];
 
-    const header = parseCsvLine(lines[0]).map((item) => item.toLowerCase());
-    const nameIndex = header.findIndex((item) => ["name", "student", "student_name", "الاسم"].includes(item));
-    const dateIndex = header.findIndex((item) => ["date", "birthday", "birthdate", "تاريخ", "تاريخ_الميلاد"].includes(item));
+    const header = parseCsvLine(lines[0]).map((item) => item.trim().toLowerCase());
+
+    const nameIndex = header.indexOf("name");
+    const roleIndex = header.indexOf("role");
+    const dayIndex = header.indexOf("day");
+    const monthIndex = header.indexOf("month");
+    const classIndex = header.indexOf("class");
 
     const records = [];
 
     for (let i = 1; i < lines.length; i++) {
       const row = parseCsvLine(lines[i]);
-      const name = row[nameIndex >= 0 ? nameIndex : 0]?.trim();
-      const rawDate = row[dateIndex >= 0 ? dateIndex : 1]?.trim();
 
-      if (!name || !rawDate) continue;
+      const name = row[nameIndex]?.trim() || "";
+      const role = row[roleIndex]?.trim() || "";
+      const day = Number(row[dayIndex]);
+      const month = Number(row[monthIndex]);
+      const className = row[classIndex]?.trim() || "";
+
+      if (!name || !Number.isFinite(day) || !Number.isFinite(month)) continue;
 
       records.push({
         name,
-        rawDate
+        role,
+        day,
+        month,
+        className
       });
     }
 
@@ -47,26 +75,22 @@
   }
 
   function findTodayBirthdays(records, now = new Date()) {
-    const todayMD = formatMonthDay(now);
+    const todayDay = now.getDate();
+    const todayMonth = now.getMonth() + 1;
 
     return records.filter((record) => {
-      const raw = String(record.rawDate).trim();
-
-      if (/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
-        return raw.slice(5) === todayMD;
-      }
-
-      if (/^\d{2}-\d{2}$/.test(raw)) {
-        return raw === todayMD;
-      }
-
-      if (/^\d{1,2}\/\d{1,2}$/.test(raw)) {
-        const [d, m] = raw.split("/").map((v) => String(Number(v)).padStart(2, "0"));
-        return `${m}-${d}` === todayMD;
-      }
-
-      return false;
+      return record.day === todayDay && record.month === todayMonth;
     });
+  }
+
+  function buildBirthdayMessage(record) {
+    const isTeacher = String(record.role || "").includes("معلم");
+    const label = isTeacher ? "نهنّئ من طاقم المدرسة" : "نهنّئ طالبنا";
+    const classLine = !isTeacher && record.className
+      ? `<br>من ${record.className}`
+      : "";
+
+    return `${label}: <strong>${record.name}</strong>${classLine}`;
   }
 
   function renderBirthdayCard(element, todayBirthdays) {
@@ -81,9 +105,10 @@
     const primary = todayBirthdays[0];
     const extraCount = todayBirthdays.length - 1;
 
-    let text = `كل عام وأنتم بخير.<br>نهنّئ طالبنا: <strong>${primary.name}</strong>`;
+    let text = `كل عام وأنتم بخير.<br>${buildBirthdayMessage(primary)}`;
+
     if (extraCount > 0) {
-      text += `<br>ومعه ${extraCount} من أصحاب هذا اليوم الجميل.`;
+      text += `<br>ويوجد أيضًا ${extraCount} من أصحاب هذا اليوم الجميل.`;
     }
 
     element.innerHTML = `
