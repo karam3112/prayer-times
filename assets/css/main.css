@@ -848,7 +848,8 @@ img{
   }
 
   .info-item__value--countdown{
-    font-size: 2.8rem;
+    font-size: clamp(3.2rem, 6vw, 4.2rem);
+    letter-spacing: 2px;
     color: var(--brand-gold);
     text-align: center;
   }
