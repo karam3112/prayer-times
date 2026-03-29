@@ -32,7 +32,7 @@ body{
   min-height: 100%;
   margin: 0;
   padding: 0;
-  background: var(--brand-bg);
+  background: #f3f6f4;
   color: var(--brand-text);
   overflow: hidden;
 }
@@ -77,8 +77,8 @@ img{
   z-index: 1;
   pointer-events: none;
   background:
-    linear-gradient(to bottom, rgba(255,255,255,.76), rgba(255,255,255,.70)),
-    linear-gradient(135deg, rgba(31,122,99,.04), rgba(212,175,55,.03));
+    linear-gradient(to bottom, rgba(255,255,255,.60), rgba(255,255,255,.55)),
+    linear-gradient(135deg, rgba(31,122,99,.05), rgba(212,175,55,.04));
   transition: background 400ms ease;
 }
 
@@ -201,7 +201,7 @@ img{
 .prayer-times-card,
 .forecast-card,
 .birthday-card{
-  background: rgba(255,255,255,.86);
+  background: rgba(255,255,255,.78);
   border: 1px solid rgba(31,122,99,.10);
   border-radius: var(--radius-xl);
   box-shadow: var(--brand-shadow-soft);
@@ -870,7 +870,7 @@ img{
   .prayer-row{
     grid-template-columns: 40px 1fr auto;
     gap: 10px;
-    padding: 10px 10px;
+    padding: 12px 12px;
     border-radius: 15px;
     background: rgba(255,255,255,.55);
     border: 1px solid rgba(31,122,99,.06);
@@ -890,11 +890,14 @@ img{
   }
 
   .prayer-row__name{
-    font-size: 1rem;
+    font-size: 1.15rem;
+    font-weight: 600;
   }
 
   .prayer-row__time{
-    font-size: 1rem;
+    font-size: 1.35rem;
+    font-weight: 800;
+    letter-spacing: 1px;
   }
 
   .prayer-row.is-next{
