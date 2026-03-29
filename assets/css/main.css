@@ -287,6 +287,27 @@ img{
   font-weight: 500;
 }
 
+.birthday-card__list{
+  margin-top: 10px;
+  display: grid;
+  gap: 6px;
+}
+
+.birthday-card__person{
+  line-height: 1.45;
+  font-size: 0.98rem;
+}
+
+.birthday-card__person strong{
+  display: inline-block;
+  margin-inline-end: 4px;
+}
+
+.birthday-card__person span{
+  color: var(--brand-muted);
+  font-size: 0.9em;
+}
+
 /* عناوين الأقسام */
 .section-title-wrap{
   display: flex;
@@ -751,6 +772,20 @@ img{
     overflow: hidden;
     align-content: start;
   }
+
+  .birthday-card__text{
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+.birthday-card__list{
+  gap: 5px;
+}
+
+.birthday-card__person{
+  font-size: 0.92rem;
+  line-height: 1.4;
+}
 
   .hero-panel{
     grid-column: 1;
