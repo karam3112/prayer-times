@@ -83,14 +83,16 @@
     });
   }
 
-  function buildBirthdayMessage(record) {
-    const isTeacher = String(record.role || "").includes("معلم");
-    const label = isTeacher ? "نهنّئ من طاقم المدرسة" : "نهنّئ طالبنا";
-    const classLine = !isTeacher && record.className
-      ? `<br>من ${record.className}`
-      : "";
+  function isTeacherRole(role) {
+    const value = String(role || "");
+    return value.includes("معلم") || value.includes("معلمة");
+  }
 
-    return `${label}: <strong>${record.name}</strong>${classLine}`;
+  function buildBirthdayLine(record) {
+    const teacher = isTeacherRole(record.role);
+    const label = teacher ? "من طاقم المدرسة" : "طالب/ة";
+    const classLine = !teacher && record.className ? ` - ${record.className}` : "";
+    return `<div class="birthday-card__person"><strong>${record.name}</strong> <span>${label}${classLine}</span></div>`;
   }
 
   function renderBirthdayCard(element, todayBirthdays) {
@@ -102,18 +104,14 @@
       return;
     }
 
-    const primary = todayBirthdays[0];
-    const extraCount = todayBirthdays.length - 1;
-
-    let text = `كل عام وأنتم بخير.<br>${buildBirthdayMessage(primary)}`;
-
-    if (extraCount > 0) {
-      text += `<br>ويوجد أيضًا ${extraCount} من أصحاب هذا اليوم الجميل.`;
-    }
+    const lines = todayBirthdays.map(buildBirthdayLine).join("");
 
     element.innerHTML = `
       <div class="birthday-card__title">تهنئة اليوم</div>
-      <div class="birthday-card__text">${text}</div>
+      <div class="birthday-card__text">
+        <div>كل عام وأنتم بخير.</div>
+        <div class="birthday-card__list">${lines}</div>
+      </div>
     `;
 
     element.classList.remove("hidden");
