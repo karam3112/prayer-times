@@ -81,6 +81,55 @@
     eventsLayer: document.getElementById("eventsLayer")
   };
 
+    function getTzOffsetMinutes(date, timeZone) {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone,
+      timeZoneName: "shortOffset"
+    }).formatToParts(date);
+
+    const tzName = parts.find((p) => p.type === "timeZoneName")?.value || "";
+    const match = tzName.match(/GMT([+-])(\d{1,2})(?::?(\d{2}))?/i);
+
+    if (!match) return 0;
+
+    const sign = match[1] === "-" ? -1 : 1;
+    const hours = Number(match[2] || 0);
+    const minutes = Number(match[3] || 0);
+
+    return sign * ((hours * 60) + minutes);
+  }
+
+  function getDstExtraMinutes(timeZone) {
+    const now = new Date();
+    const year = Number(
+      new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric" }).format(now)
+    );
+
+    const jan = new Date(Date.UTC(year, 0, 15, 12, 0, 0));
+    const jul = new Date(Date.UTC(year, 6, 15, 12, 0, 0));
+    const current = new Date();
+
+    const janOffset = getTzOffsetMinutes(jan, timeZone);
+    const julOffset = getTzOffsetMinutes(jul, timeZone);
+    const currentOffset = getTzOffsetMinutes(current, timeZone);
+
+    const standardOffset = Math.min(janOffset, julOffset);
+    return Math.max(0, currentOffset - standardOffset);
+  }
+
+  function getEffectiveOffsets() {
+    const dstExtra = getDstExtraMinutes(CONFIG.tz);
+
+    return {
+      Fajr: (CONFIG.offsets.Fajr || 0) + dstExtra,
+      Sunrise: (CONFIG.offsets.Sunrise || 0) + dstExtra,
+      Dhuhr: (CONFIG.offsets.Dhuhr || 0) + dstExtra,
+      Asr: (CONFIG.offsets.Asr || 0) + dstExtra,
+      Maghrib: (CONFIG.offsets.Maghrib || 0) + dstExtra,
+      Isha: (CONFIG.offsets.Isha || 0) + dstExtra
+    };
+  }
+
   function formatArabicDate(date) {
     const weekday = new Intl.DateTimeFormat("ar", {
       weekday: "long",
@@ -179,8 +228,14 @@
     const todayRecord = PrayerModule.getDayRecord(state.dehriData, todayKey);
     const tomorrowRecord = PrayerModule.getDayRecord(state.dehriData, tomorrowKey);
 
-    state.todayTimings = PrayerModule.normalizeTimings(todayRecord, CONFIG.offsets);
-    state.tomorrowTimings = PrayerModule.normalizeTimings(tomorrowRecord, CONFIG.offsets);
+    const effectiveOffsets = getEffectiveOffsets();
+
+    state.todayTimings = PrayerModule.normalizeTimings(todayRecord, effectiveOffsets);
+    state.tomorrowTimings = PrayerModule.normalizeTimings(tomorrowRecord, effectiveOffsets);
+
+    
+    //state.todayTimings = PrayerModule.normalizeTimings(todayRecord, CONFIG.offsets);
+    //state.tomorrowTimings = PrayerModule.normalizeTimings(tomorrowRecord, CONFIG.offsets);
 
     state.prayerMoments = PrayerModule.buildPrayerMoments(state.todayTimings, now);
     state.nextPrayer = PrayerModule.findNextPrayer(state.prayerMoments, state.tomorrowTimings, now);
