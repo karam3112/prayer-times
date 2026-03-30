@@ -480,7 +480,6 @@ img { max-width: 100%; display: block; }
    تقليل الحركة
    ================================================================ */
 @media (prefers-reduced-motion: reduce) {
-  .app-shell              { animation: none !important; }
-  .bottom-ticker__content { animation: none !important; }
-  .quote-text             { transition: none !important; }
+  .app-shell  { animation: none !important; }
+  .quote-text { transition: none !important; }
 }
