@@ -427,8 +427,9 @@ img { max-width: 100%; display: block; }
   align-items: center;
   overflow: hidden;
   padding: 0 18px;
-  mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
-  -webkit-mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
+  direction: ltr;
+  mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-image: linear-gradient(to right, transparent, #000 5%, #000 95%, transparent);
 }
 
 .bottom-ticker__content {
