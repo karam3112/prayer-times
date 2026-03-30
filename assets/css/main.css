@@ -100,7 +100,7 @@ img{
 .app-shell{
   position: relative;
   z-index: 2;
-  min-height: 100vh;
+  height: 100vh;
   display: grid;
   grid-template-rows: var(--header-h) 1fr var(--ticker-h);
 }
