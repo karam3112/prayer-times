@@ -77,7 +77,6 @@ img { max-width: 100%; display: block; }
   flex-shrink: 0;
   height: var(--header-h);
   background: #fff;
-  border-bottom: 4px solid var(--brand-green);
   display: flex;
   flex-direction: column;
 }
@@ -86,8 +85,8 @@ img { max-width: 100%; display: block; }
   flex: 1;
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 0 22px;
+  justify-content: flex-start;
+  padding: 0 28px;
 }
 
 .site-brand {
@@ -122,9 +121,9 @@ img { max-width: 100%; display: block; }
 
 /* خط ذهبي أسفل الهيدر */
 .site-header__gold-line {
-  height: 4px;
+  height: 3px;
   flex-shrink: 0;
-  background: var(--brand-gold);
+  background: linear-gradient(to left, var(--brand-gold), rgba(197,160,80,.15));
 }
 
 /* ================================================================
