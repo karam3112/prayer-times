@@ -172,23 +172,7 @@
 
     updateVisualModes(new Date());
   }
-
-    const now = new Date();
-    const secondsLeft = PrayerModule.secondsUntil(now, state.nextPrayer.timeDate);
-
-    els.nextPrayerName.textContent = state.nextPrayer.label;
-    els.nextPrayerTime.textContent = state.nextPrayer.timeText;
-    els.countdown.textContent = PrayerModule.formatCountdown(secondsLeft);
-
-    PrayerModule.renderPrayerRows(
-      els.prayerTimesList,
-      state.todayTimings || {},
-      state.nextPrayer.key
-    );
-
-    updateVisualModes(now);
-  }
-
+    
   function updateVisualModes(now) {
     const body = document.body;
 
