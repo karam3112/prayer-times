@@ -1,564 +1,437 @@
-:root{
-  --brand-green: #1F7A63;
+/* ================================================================
+   مدرسة الغزالي — شاشة الأذان | تصميم الهوية البصرية 2026
+   ================================================================ */
+
+:root {
+  --brand-green:   #1F7A63;
   --brand-green-2: #4CAF7A;
-  --brand-gold: #D4AF37;
-  --brand-text: #2F2F2F;
-  --brand-muted: #6F6F6F;
-  --brand-line: #E7E7E7;
-  --brand-bg: #FFFFFF;
-  --brand-bg-soft: #F8FAF9;
-  --brand-overlay: rgba(255,255,255,.82);
-  --brand-overlay-strong: rgba(255,255,255,.92);
-  --brand-shadow: 0 8px 28px rgba(23, 67, 54, .08);
-  --brand-shadow-soft: 0 4px 16px rgba(23, 67, 54, .05);
-  --radius-xl: 26px;
-  --radius-lg: 20px;
-  --radius-md: 14px;
-  --header-h: 118px;
-  --ticker-h: 58px;
-  --content-max: 1540px;
-  --ticker-speed: 42s;
+  --brand-gold:    #D4AF37;
+  --brand-text:    #2F2F2F;
+  --brand-muted:   #6F6F6F;
+  --header-h:      110px;
+  --ticker-h:       58px;
+  --radius:         16px;
+  --gap:            12px;
+  --ticker-speed:   42s;
 }
 
-*,
-*::before,
-*::after{
-  box-sizing: border-box;
-}
+/* ── Reset ── */
+*, *::before, *::after { box-sizing: border-box; }
 
-html,
-body{
-  width: 100%;
-  min-height: 100%;
-  margin: 0;
-  padding: 0;
-  background: #f3f6f4;
-  color: var(--brand-text);
+html, body {
+  margin: 0; padding: 0;
+  width: 100%; height: 100%;
   overflow: hidden;
-}
-
-body{
+  background: #F0F4F2;
+  color: var(--brand-text);
   font-family: "Tajawal", system-ui, sans-serif;
   direction: rtl;
-  position: relative;
 }
 
-img{
-  max-width: 100%;
-  display: block;
-}
+img { max-width: 100%; display: block; }
+.hidden { display: none !important; }
 
-.hidden{
-  display: none !important;
-}
-
-/* خلفية الصور */
-.events-layer{
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background-position: center center;
+/* ── خلفية الصور ── */
+.events-layer {
+  position: fixed; inset: 0; z-index: 0;
+  background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  opacity: .24;
-  transition: opacity 800ms ease, background-image 800ms ease, filter 500ms ease;
-  filter: saturate(.88) blur(1px);
-  transform: scale(1.02);
+  opacity: .09;
+  filter: saturate(.7) blur(2px);
+  transition: opacity 800ms ease, background-image 800ms ease;
 }
+.events-layer.is-dimmed { opacity: .03; }
 
-.events-layer.is-dimmed{
-  opacity: .08;
-}
-
-.page-overlay{
-  position: fixed;
-  inset: 0;
-  z-index: 1;
+.page-overlay {
+  position: fixed; inset: 0; z-index: 1;
   pointer-events: none;
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.60), rgba(255,255,255,.55)),
-    linear-gradient(135deg, rgba(31,122,99,.05), rgba(212,175,55,.04));
-  transition: background 400ms ease;
+  background: linear-gradient(to bottom,
+    rgba(255,255,255,.55),
+    rgba(255,255,255,.45));
 }
 
-/* زخرفة خفيفة جدًا */
-.brand-pattern{
-  position: fixed;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  opacity: .45;
-  background-image:
-    radial-gradient(circle at 10% 18%, rgba(31,122,99,.08) 0 2px, transparent 2px),
-    radial-gradient(circle at 88% 78%, rgba(212,175,55,.12) 0 2px, transparent 2px),
-    linear-gradient(135deg, transparent 0 47%, rgba(31,122,99,.045) 47% 48%, transparent 48% 100%);
-  background-size: 240px 240px, 280px 280px, 100% 100%;
-  transition: opacity 400ms ease;
+/* ================================================================
+   App Shell — Flex Column
+   ================================================================ */
+.app-shell {
+  position: relative; z-index: 2;
+  display: flex; flex-direction: column;
+  height: 100vh; width: 100%;
+  overflow: hidden;
+  animation: antiBurn 120s infinite linear;
 }
 
-.app-shell{
-  position: relative;
-  z-index: 2;
-  height: 100vh;
-  display: grid;
-  grid-template-rows: var(--header-h) 1fr var(--ticker-h);
+@keyframes antiBurn {
+  0%   { transform: translate(0px,   0px); }
+  25%  { transform: translate(.5px,  .3px); }
+  50%  { transform: translate(-.5px, .4px); }
+  75%  { transform: translate(.4px, -.3px); }
+  100% { transform: translate(0px,   0px); }
 }
 
-/* Header */
-.site-header{
-  background: rgba(255,255,255,.92);
-  backdrop-filter: blur(8px);
-  border-bottom: 1px solid rgba(31,122,99,.06);
-  position: relative;
-  transition: background 400ms ease, border-color 400ms ease;
+/* ================================================================
+   Header — خلفية خضراء
+   ================================================================ */
+.site-header {
+  flex-shrink: 0;
+  height: var(--header-h);
+  background: var(--brand-green);
+  display: flex;
+  flex-direction: column;
 }
 
-.site-header__inner{
-  max-width: var(--content-max);
-  height: calc(var(--header-h) - 4px);
-  margin: 0 auto;
-  padding: 0 30px;
+.site-header__inner {
+  flex: 1;
   display: flex;
   align-items: center;
-  justify-content: flex-start;
+  padding: 0 22px;
 }
 
-.site-header__gold-line{
-  height: 2px;
-  background: linear-gradient(to left, transparent, var(--brand-gold), transparent);
-  opacity: .95;
-}
-
-.site-brand{
+.site-brand {
   display: flex;
   align-items: center;
-  gap: 18px;
+  gap: 14px;
 }
 
-.site-brand__logo{
-  width: 95px;
-  height: 95px;
+.site-brand__logo {
+  width: 80px; height: 80px;
   object-fit: contain;
-  flex: 0 0 auto;
+  border-radius: 50%;
+  background: rgba(255,255,255,.15);
+  padding: 4px;
+  flex-shrink: 0;
 }
 
-.site-brand__text{
+.site-brand__text {
+  display: flex; flex-direction: column; gap: 3px;
+}
+
+.site-brand__title {
+  margin: 0;
+  font-family: "Cairo", sans-serif;
+  font-size: 1.9rem; font-weight: 800;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.site-brand__subtitle {
+  margin: 0;
+  font-size: .9rem; font-weight: 500;
+  color: rgba(255,255,255,.80);
+}
+
+/* خط ذهبي أسفل الهيدر */
+.site-header__gold-line {
+  height: 3px;
+  flex-shrink: 0;
+  background: var(--brand-gold);
+}
+
+/* ================================================================
+   Main Layout — عمود واحد
+   ================================================================ */
+.main-layout {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--gap) var(--gap) 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.main-layout::-webkit-scrollbar { display: none; }
+
+/* ── قاعدة البطاقات ── */
+.clock-card,
+.prayer-times-card,
+.quote-card,
+.forecast-card,
+.birthday-card {
+  background: #fff;
+  border-radius: var(--radius);
+  border: 1px solid rgba(31,122,99,.10);
+  box-shadow: 0 2px 10px rgba(31,122,99,.06);
+  flex-shrink: 0;
+}
+
+/* ================================================================
+   بطاقة الساعة
+   ================================================================ */
+.clock-card {
+  padding: 18px 24px 16px;
+  text-align: center;
+}
+
+.clock {
+  font-family: "Cairo", sans-serif;
+  font-size: clamp(3.8rem, 13vw, 6.5rem);
+  font-weight: 800;
+  color: var(--brand-green);
+  line-height: 1;
+  direction: ltr;
+  letter-spacing: 2px;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
+}
+
+.date-line {
+  margin-top: 10px;
+  font-size: 1.1rem; font-weight: 700;
+  color: var(--brand-text);
+}
+
+.hijri-date {
+  margin-top: 3px;
+  font-size: .92rem; font-weight: 500;
+  color: var(--brand-muted);
+}
+
+.weather-now {
+  margin-top: 8px;
+  font-size: .98rem; font-weight: 500;
+  color: var(--brand-muted);
+}
+
+/* ================================================================
+   بطاقة مواقيت الصلاة
+   ================================================================ */
+.prayer-times-card {
+  padding: 16px 18px 14px;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.section-title-wrap {
+  margin-bottom: 10px;
+  flex-shrink: 0;
+}
+
+.section-title {
+  margin: 0;
+  font-family: "Cairo", sans-serif;
+  font-size: 1.2rem; font-weight: 800;
+  color: var(--brand-green);
+}
+
+.section-title::after {
+  content: "";
+  display: block;
+  width: 36px; height: 2px;
+  margin-top: 5px;
+  background: var(--brand-gold);
+  border-radius: 999px;
+}
+
+.prayer-times-list {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-height: 0;
+}
+
+.prayer-row {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 14px;
+  border-radius: 12px;
+  background: rgba(31,122,99,.04);
+  border: 1px solid rgba(31,122,99,.07);
+  min-height: 48px;
+  max-height: 82px;
+  transition: background .25s, border-color .25s, box-shadow .25s;
+}
+
+.prayer-row.is-next {
+  background: rgba(212,175,55,.10);
+  border-color: rgba(212,175,55,.30);
+  box-shadow: 0 2px 8px rgba(212,175,55,.12);
+}
+
+.prayer-row__icon {
+  width: 36px; height: 36px;
+  border-radius: 10px;
+  background: rgba(31,122,99,.08);
+  display: grid; place-items: center;
+  color: var(--brand-green);
+  flex-shrink: 0;
+}
+
+.prayer-row.is-next .prayer-row__icon {
+  background: rgba(212,175,55,.15);
+  color: #8A6A14;
+}
+
+.prayer-row__icon svg {
+  width: 19px; height: 19px;
+  stroke: currentColor;
+}
+
+.prayer-row__name {
+  font-size: 1.08rem; font-weight: 600;
+  color: var(--brand-text);
+}
+
+.prayer-row.is-next .prayer-row__name {
+  color: var(--brand-green);
+  font-weight: 700;
+}
+
+.prayer-row__time {
+  font-family: "Cairo", sans-serif;
+  font-size: 1.28rem; font-weight: 800;
+  color: var(--brand-green);
+  direction: ltr;
+  text-rendering: geometricPrecision;
+  font-variant-numeric: tabular-nums;
+}
+
+.prayer-row.is-next .prayer-row__time {
+  color: #8A6A14;
+}
+
+/* ================================================================
+   بطاقة الاقتباس التربوي
+   ================================================================ */
+.quote-card {
+  padding: 14px 22px;
+  background: rgba(31,122,99,.06);
+  border-color: rgba(31,122,99,.14);
+  text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 60px;
+}
+
+.quote-text {
+  margin: 0;
+  font-family: "Cairo", sans-serif;
+  font-size: 1rem; font-weight: 700;
+  color: var(--brand-green);
+  line-height: 1.6;
+  transition: opacity .5s ease;
+}
+
+.quote-text.fade-out { opacity: 0; }
+
+/* ================================================================
+   بطاقة الطقس
+   ================================================================ */
+.forecast-card {
+  padding: 16px 18px 14px;
+}
+
+.forecast-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.forecast-item {
+  background: rgba(31,122,99,.04);
+  border: 1px solid rgba(31,122,99,.08);
+  border-radius: 12px;
+  padding: 12px 8px;
+  text-align: center;
+}
+
+.forecast-item__day {
+  font-family: "Cairo", sans-serif;
+  font-size: .9rem; font-weight: 700;
+  color: var(--brand-green);
+}
+
+.forecast-item__icon {
+  margin: 8px auto 6px;
+  width: 38px; height: 38px;
+  display: grid; place-items: center;
+}
+
+.forecast-item__icon img {
+  width: 38px; height: 38px;
+  object-fit: contain;
+}
+
+.forecast-item__temp {
+  font-family: "Cairo", sans-serif;
+  font-size: 1.05rem; font-weight: 700;
+  color: var(--brand-text);
+  direction: ltr;
+}
+
+.forecast-item__desc {
+  margin-top: 4px;
+  font-size: .78rem;
+  color: var(--brand-muted);
+  line-height: 1.4;
+}
+
+/* ================================================================
+   بطاقة التهنئة
+   ================================================================ */
+.birthday-card {
+  padding: 14px 18px 12px;
+  border-right: 4px solid var(--brand-green);
+}
+
+.birthday-card__title {
+  font-family: "Cairo", sans-serif;
+  font-size: 1.1rem; font-weight: 800;
+  color: var(--brand-green);
+  margin-bottom: 6px;
+}
+
+.birthday-card__text {
+  font-size: .98rem;
+  line-height: 1.7;
+  color: var(--brand-text);
+}
+
+.birthday-card__list {
+  margin-top: 6px;
   display: flex;
   flex-direction: column;
   gap: 4px;
 }
 
-.site-brand__title{
-  margin: 0;
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: 2rem;
-  font-weight: 800;
-  line-height: 1;
-  color: var(--brand-green);
-  letter-spacing: 0;
-}
-
-.site-brand__subtitle{
-  margin: 0;
-  font-family: "Tajawal", system-ui, sans-serif;
-  font-size: 1rem;
-  color: var(--brand-muted);
-  font-weight: 500;
-}
-
-/* Main */
-.main-layout{
-  max-width: var(--content-max);
-  width: 100%;
-  margin: 0 auto;
-  padding: 18px 30px 18px;
-  display: grid;
-  grid-template-columns: 1.14fr .96fr;
-  grid-template-rows: auto 1fr;
-  gap: 18px;
-  min-height: 0;
-  overflow: hidden;
-}
-
-.hero-panel{
-  grid-column: 1;
-  grid-row: 1 / span 2;
-  display: grid;
-  grid-template-rows: auto auto 1fr;
-  gap: 18px;
-  min-height: 0;
-}
-
-.hero-panel__top{
-  display: grid;
-  grid-template-columns: 1fr minmax(280px, 360px);
-  gap: 18px;
-  align-items: stretch;
-}
-
-.clock-card,
-.next-prayer-card,
-.prayer-times-card,
-.forecast-card,
-.birthday-card{
-  background: rgba(255,255,255,.78);
-  border: 1px solid rgba(31,122,99,.10);
-  border-radius: var(--radius-xl);
-  box-shadow: var(--brand-shadow-soft);
-  backdrop-filter: blur(8px);
-  transition:
-    background 350ms ease,
-    border-color 350ms ease,
-    box-shadow 350ms ease,
-    transform 350ms ease,
-    opacity 350ms ease;
-}
-
-/* بطاقة الساعة */
-.clock-card{
-  padding: 22px 28px 18px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  min-height: 245px;
-}
-
-.clock{
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: clamp(3.3rem, 5.6vw, 6rem);
-  line-height: 1;
-  font-weight: 800;
-  color: var(--brand-green);
-  letter-spacing: 3px;
-  direction: ltr;
-  text-align: right;
-  transition: font-size 350ms ease, color 350ms ease, transform 350ms ease;
-}
-
-.date-line{
-  margin-top: 14px;
-  font-family: "Tajawal", system-ui, sans-serif;
-  font-size: clamp(1.08rem, 1.4vw, 1.45rem);
-  color: var(--brand-text);
-  font-weight: 600;
-}
-
-.weather-now{
-  margin-top: 10px;
-  font-size: 1rem;
-  color: var(--brand-muted);
-  font-weight: 500;
-}
-
-/* بطاقة التهنئة */
-.birthday-card{
-  padding: 18px 18px 16px;
-  min-height: 245px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 10px;
-  position: relative;
-  overflow: hidden;
-}
-
-.birthday-card::before{
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 5px;
-  background: linear-gradient(to bottom, var(--brand-green), var(--brand-gold));
-  opacity: .9;
-}
-
-.birthday-card__title{
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 800;
-  color: var(--brand-green);
-  padding-inline-start: 10px;
-}
-
-.birthday-card__text{
-  padding-inline-start: 10px;
-  font-size: 1.06rem;
-  line-height: 1.85;
-  color: var(--brand-text);
-  font-weight: 500;
-}
-
-.birthday-card__list{
-  margin-top: 10px;
-  display: grid;
-  gap: 6px;
-}
-
-.birthday-card__person{
-  line-height: 1.45;
-  font-size: 0.98rem;
-}
-
-.birthday-card__person strong{
-  display: inline-block;
-  margin-inline-end: 4px;
-}
-
-.birthday-card__person span{
-  color: var(--brand-muted);
-  font-size: 0.9em;
-}
-
-/* عناوين الأقسام */
-.section-title-wrap{
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.section-title{
-  margin: 0;
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: 1.42rem;
-  font-weight: 800;
-  color: var(--brand-green);
-  line-height: 1.1;
-  position: relative;
-  transition: color 300ms ease, transform 300ms ease;
-}
-
-.section-title::after{
-  content: "";
-  display: block;
-  width: 46px;
-  height: 2px;
-  margin-top: 8px;
-  background: var(--brand-gold);
-  border-radius: 999px;
-  opacity: .9;
-}
-
-/* بطاقة الصلاة القادمة */
-.next-prayer-card{
-  padding: 22px 24px 20px;
-}
-
-.next-prayer-grid{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-}
-
-.info-item{
-  border: 1px solid rgba(31,122,99,.10);
-  border-radius: var(--radius-lg);
-  background: rgba(248,250,249,.85);
-  padding: 14px 16px;
-  min-height: 106px;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 8px;
-  transition:
-    min-height 300ms ease,
-    transform 300ms ease,
-    background 300ms ease,
-    border-color 300ms ease;
-}
-
-.info-item__label{
-  font-size: .98rem;
-  color: var(--brand-muted);
-  font-weight: 500;
-}
-
-.info-item__value{
-  font-family: "Tajawal", system-ui, sans-serif;
-  font-size: clamp(1.5rem, 2vw, 2rem);
-  color: var(--brand-green);
-  font-weight: 700;
-  line-height: 1.15;
-  transition: font-size 300ms ease, color 300ms ease, transform 300ms ease;
-}
-
-.info-item__value--countdown{
-  color: var(--brand-gold);
-  direction: ltr;
-  text-align: right;
-  font-family: "Cairo", system-ui, sans-serif;
-  font-weight: 800;
-}
-
-/* بطاقة جدول الصلاة */
-.prayer-times-card{
-  grid-column: 2;
-  grid-row: 1;
-  padding: 20px 22px 18px;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-}
-
-.prayer-times-list{
-  display: grid;
-  gap: 10px;
-  min-height: 0;
-}
-
-.prayer-row{
-  display: grid;
-  grid-template-columns: 44px 1fr auto;
-  align-items: center;
-  gap: 12px;
-  padding: 16px 16px;
-  border: 1px solid rgba(31,122,99,.08);
-  background: rgba(255,255,255,.74);
-  border-radius: 18px;
-  transition: transform .2s ease, border-color .2s ease, background-color .2s ease, box-shadow .2s ease, opacity .2s ease;
-}
-
-.prayer-row__icon{
-  width: 48px;
-  height: 48px;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  border: 1px solid rgba(31,122,99,.10);
-  background: rgba(31,122,99,.05);
-  color: var(--brand-green);
-  transition: background 300ms ease, border-color 300ms ease, opacity 300ms ease;
-}
-
-.prayer-row__icon svg{
-  width: 22px;
-  height: 22px;
-  stroke: currentColor;
-}
-
-.prayer-row__name{
-  font-size: 1.12rem;
-  color: var(--brand-text);
-  font-weight: 600;
-}
-
-.prayer-row__time{
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: 1.34rem;
-  color: var(--brand-green);
-  font-weight: 800;
-  direction: ltr;
-  text-align: left;
-}
-
-.prayer-row.is-next{
-  border-color: rgba(212,175,55,.25);
-  background: linear-gradient(to left, rgba(212,175,55,.12), rgba(255,255,255,.78));
-  box-shadow: 0 8px 18px rgba(212,175,55,.10);
-}
-
-.prayer-row.is-next .prayer-row__icon{
-  background: rgba(212,175,55,.12);
-  border-color: rgba(212,175,55,.25);
-  color: #9A7A1A;
-}
-
-.prayer-row.is-next .prayer-row__name{
-  color: var(--brand-green);
-  font-weight: 700;
-}
-
-.prayer-row.is-next .prayer-row__time{
-  color: #8A6A14;
-}
-
-/* بطاقة التوقعات */
-.forecast-card{
-  grid-column: 2;
-  grid-row: 2;
-  padding: 20px 22px 18px;
-  min-height: 0;
-  display: flex;
-  flex-direction: column;
-  margin-bottom: 4px !important;
-}
-
-.forecast-grid{
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 12px;
-}
-
-.forecast-item{
-  border: 1px solid rgba(31,122,99,.08);
-  border-radius: 18px;
-  background: rgba(248,250,249,.76);
-  padding: 16px 12px 14px;
-  text-align: center;
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-.forecast-item__day{
-  font-family: "Cairo", system-ui, sans-serif;
-  font-size: 1rem;
-  color: var(--brand-green);
-  font-weight: 700;
-}
-
-.forecast-item__icon{
-  margin: 10px auto 8px;
-  width: 44px;
-  height: 44px;
-  display: grid;
-  place-items: center;
-  color: var(--brand-green);
-}
-
-.forecast-item__icon img{
-  width: 44px;
-  height: 44px;
-  object-fit: contain;
-}
-
-.forecast-item__temp{
-  font-family: "Cairo", system-ui, sans-serif;
-  direction: ltr;
-  font-size: 1.2rem;
-  color: var(--brand-text);
-  font-weight: 700;
-}
-
-.forecast-item__desc{
-  margin-top: 6px;
+.birthday-card__person {
   font-size: .95rem;
-  color: var(--brand-muted);
-  line-height: 1.5;
+  line-height: 1.4;
 }
 
-/* الشريط السفلي */
-.bottom-ticker{
-  grid-row: 3;
-  background: rgba(255,255,255,.94);
-  border-top: 1px solid rgba(31,122,99,.08);
+.birthday-card__person strong { color: var(--brand-green); }
+.birthday-card__person span   { color: var(--brand-muted); font-size: .9em; }
+
+/* ================================================================
+   الشريط السفلي — خلفية خضراء
+   ================================================================ */
+.bottom-ticker {
+  flex-shrink: 0;
+  height: var(--ticker-h);
+  background: var(--brand-green);
+  border-top: 3px solid var(--brand-gold);
   overflow: hidden;
-  transition: opacity 300ms ease, transform 300ms ease;
+  transition: opacity .3s ease;
 }
 
-.bottom-ticker__track{
-  max-width: var(--content-max);
+.bottom-ticker__track {
   height: 100%;
-  margin: 0 auto;
-  position: relative;
   display: flex;
   align-items: center;
   overflow: hidden;
-  padding: 0 22px;
-  mask-image: linear-gradient(to left, transparent, #000 4%, #000 96%, transparent);
-  -webkit-mask-image: linear-gradient(to left, transparent, #000 4%, #000 96%, transparent);
+  padding: 0 18px;
+  mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
+  -webkit-mask-image: linear-gradient(to left, transparent, #000 5%, #000 95%, transparent);
 }
 
-.bottom-ticker__content{
+.bottom-ticker__content {
   display: inline-flex;
   align-items: center;
   gap: 14px;
@@ -566,518 +439,47 @@ img{
   min-width: max-content;
   padding-inline-start: 100%;
   animation: tickerMove var(--ticker-speed) linear infinite;
-  font-family: "Tajawal", system-ui, sans-serif;
-  font-size: 1.02rem;
-  color: var(--brand-text);
-  font-weight: 600;
+  font-size: 1rem; font-weight: 600;
+  color: #fff;
 }
 
-.bottom-ticker__content .sep{
+.bottom-ticker__content .sep {
   color: var(--brand-gold);
-  font-size: 1rem;
-  opacity: .95;
+  opacity: .9;
 }
 
-@keyframes tickerMove{
-  from{
-    transform: translateX(0);
-  }
-  to{
-    transform: translateX(-100%);
-  }
+@keyframes tickerMove {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-100%); }
 }
 
-/* حالات عامة */
-.is-athan-mode .events-layer{
-  opacity: .05;
-}
+/* ================================================================
+   الأوضاع البصرية
+   ================================================================ */
 
-.is-athan-mode .page-overlay{
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.94), rgba(255,255,255,.90)),
-    linear-gradient(135deg, rgba(31,122,99,.03), rgba(212,175,55,.025));
-}
+/* وضع الأذان */
+.is-athan-mode .events-layer { opacity: .03; }
 
 /* وضع قبل الأذان */
-.is-pre-athan-mode .events-layer{
-  opacity: .04;
-  filter: saturate(.75) blur(2px);
-}
-
-.is-pre-athan-mode .page-overlay{
-  background:
-    linear-gradient(to bottom, rgba(255,255,255,.95), rgba(255,255,255,.92)),
-    linear-gradient(135deg, rgba(31,122,99,.025), rgba(212,175,55,.02));
-}
-
-.is-pre-athan-mode .brand-pattern{
-  opacity: .18;
-}
+.is-pre-athan-mode .events-layer { opacity: .02; }
 
 .is-pre-athan-mode .birthday-card,
-.is-pre-athan-mode .forecast-card{
+.is-pre-athan-mode .forecast-card,
+.is-pre-athan-mode .quote-card {
   opacity: 0;
-  transform: translateY(8px);
   pointer-events: none;
+  transition: opacity .4s ease;
 }
 
-.is-pre-athan-mode .site-header{
-  background: rgba(255,255,255,.97);
-  border-bottom-color: rgba(212,175,55,.14);
+.is-pre-athan-mode .prayer-times-card {
+  flex: 1;
 }
 
-.is-pre-athan-mode .clock-card,
-.is-pre-athan-mode .next-prayer-card{
-  border-color: rgba(212,175,55,.22);
-  box-shadow: 0 14px 36px rgba(138, 106, 20, .08);
-}
-
-.is-pre-athan-mode .clock{
-  color: var(--brand-green);
-  transform: scale(1.03);
-}
-
-.is-pre-athan-mode .section-title{
-  color: #8A6A14;
-}
-
-.is-pre-athan-mode .next-prayer-card{
-  transform: scale(1.01);
-}
-
-.is-pre-athan-mode .info-item{
-  background: rgba(255,255,255,.92);
-  border-color: rgba(212,175,55,.20);
-}
-
-.is-pre-athan-mode .info-item__value--countdown{
-  color: #B38A14;
-}
-
-.is-pre-athan-mode .prayer-times-card{
-  opacity: .72;
-}
-
-.is-pre-athan-mode .prayer-row{
-  background: rgba(255,255,255,.58);
-}
-
-/* تحسين القراءة على الشاشات */
-.clock,
-.info-item__value,
-.prayer-row__time{
-  text-rendering: geometricPrecision;
-  font-variant-numeric: tabular-nums;
-}
-
-/* شاشات أعرض */
-@media (min-width: 1700px){
-  :root{
-    --content-max: 1660px;
-  }
-
-  .site-brand__title{
-    font-size: 2.2rem;
-  }
-
-  .site-brand__subtitle{
-    font-size: 1.05rem;
-  }
-
-  .clock-card{
-    min-height: 270px;
-  }
-}
-
-/* شاشات أضيق */
-@media (max-width: 1280px){
-  .main-layout{
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-    overflow-y: auto;
-    padding-bottom: 24px;
-  }
-
-  .hero-panel{
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .prayer-times-card,
-  .forecast-card{
-    grid-column: 1;
-    grid-row: auto;
-  }
-
-  .hero-panel__top{
-    grid-template-columns: 1fr;
-  }
-}
-
-/* نسخة Kiosk احترافية للشاشة العمودية */
-@media (max-aspect-ratio: 10/16){
-  :root{
-    --header-h: 120px;
-    --ticker-h: 62px;
-  }
-
-  html,
-  body{
-    overflow: hidden;
-  }
-
-  .app-shell{
-    height: 100vh;
-    grid-template-rows: var(--header-h) 1fr var(--ticker-h);
-  }
-
-  .site-header{
-    background: rgba(255,255,255,.96);
-  }
-
-  .site-header__inner{
-    height: calc(var(--header-h) - 4px);
-    padding: 0 20px;
-  }
-
-  .site-brand{
-    width: 100%;
-    justify-content: flex-start;
-    gap: 14px;
-  }
-
-  .site-brand__logo{
-    width: 90px;
-    height: 90px;
-    object-fit: contain;
-    filter: drop-shadow(0 2px 6px rgba(0,0,0,.06));
-  }
-
-  .site-brand__title{
-    font-size: 2rem;
-  }
-
-  .site-brand__subtitle{
-    font-size: 1rem;
-  }
-
-  .main-layout{
-    max-width: 100%;
-    height: 100%;
-    padding: 14px 16px 6px !important;
-    display: grid;
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto 1fr;
-    gap: 14px;
-    overflow: hidden;
-    align-content: start;
-  }
-
-  .birthday-card__text{
-  font-size: 0.95rem;
-  line-height: 1.6;
-}
-
-.birthday-card__list{
-  gap: 5px;
-}
-
-.birthday-card__person{
-  font-size: 0.92rem;
-  line-height: 1.4;
-}
-
-  .hero-panel{
-  grid-column: 1;
-  grid-row: auto;
-  display: grid;
-  grid-template-rows: auto;
-  gap: 14px;
-}
-
-  .hero-panel__top{
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .clock-card{
-    min-height: 0;
-    padding: 22px 18px 18px;
-    border-radius: 22px;
-    text-align: right;
-  }
-
-  .clock{
-    font-size: clamp(5.5rem, 11vw, 7.5rem);
-    line-height: 1;
-  }
-
-  .date-line{
-    margin-top: 12px;
-    font-size: 1.18rem;
-  }
-
-  .weather-now{
-    margin-top: 8px;
-    font-size: 1rem;
-  }
-
-  .birthday-card{
-    min-height: 0;
-    padding: 16px 18px;
-    border-radius: 22px;
-  }
-
-  .birthday-card__title{
-    font-size: 1.25rem;
-  }
-
-  .birthday-card__text{
-    font-size: 1rem;
-    line-height: 1.8;
-  }
-
-  .next-prayer-card{
-    padding: 20px;
-    border-radius: 22px;
-    border: 2px solid rgba(31,122,99,.15);
-  }
-
-  .section-title{
-    font-size: 1.45rem;
-  }
-
-  .next-prayer-grid{
-    grid-template-columns: 1fr 1fr;
-    grid-template-areas:
-      "name time"
-      "countdown countdown";
-    gap: 10px;
-  }
-
-  .info-item:nth-child(1){
-    grid-area: name;
-  }
-
-  .info-item:nth-child(2){
-    grid-area: time;
-  }
-
-  .info-item:nth-child(3){
-    grid-area: countdown;
-  }
-
-  .info-item{
-    min-height: 80px;
-    padding: 12px 12px;
-    border-radius: 16px;
-  }
-
-  .info-item__label{
-    font-size: .95rem;
-  }
-
-  .info-item__value{
-    font-size: 1.8rem;
-  }
-
-  .info-item__value--countdown{
-    font-size: clamp(3.2rem, 6vw, 4.2rem);
-    letter-spacing: 2px;
-    color: var(--brand-gold);
-    text-align: center;
-  }
-
-  .prayer-times-card{
-    grid-column: 1;
-    grid-row: auto;
-    padding: 22px 18px 18px;
-    border-radius: 22px;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  .prayer-times-list{
-    gap: 6px;
-  }
-
-  .prayer-row{
-    grid-template-columns: 40px 1fr auto;
-    gap: 10px;
-    padding: 16px 16px;
-    border-radius: 15px;
-    background: rgba(255,255,255,.55);
-    border: 1px solid rgba(31,122,99,.06);
-  }
-
-  .prayer-row__icon{
-    width: 40px;
-    height: 40px;
-    border-radius: 12px;
-    background: transparent;
-    border: none;
-  }
-
-  .prayer-row__icon svg{
-    width: 20px;
-    height: 20px;
-  }
-
-  .prayer-row__name{
-    font-size: 1.3rem;
-    font-weight: 600;
-  }
-
-  .prayer-row__time{
-    font-size: 1.8rem;
-    font-weight: 800;
-    letter-spacing: 1px;
-  }
-
-  .prayer-row.is-next{
-    background: rgba(212,175,55,.12);
-    border-color: rgba(212,175,55,.25);
-    box-shadow: none;
-  }
-
-  .forecast-card{
-    grid-column: 1;
-    grid-row: auto;
-    padding: 12px;
-    border-radius: 22px;
-  }
-
-  .forecast-grid{
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-  }
-
-  .forecast-item{
-    padding: 10px 6px;
-    border-radius: 15px;
-  }
-
-  .forecast-item__day{
-    font-size: .85rem;
-  }
-
-  .forecast-item__icon{
-    width: 36px;
-    height: 36px;
-    margin: 8px auto 6px;
-    font-size: 1.2rem;
-  }
-
-  .forecast-item__temp{
-    font-size: .95rem;
-  }
-
-  .forecast-item__desc{
-    font-size: .75rem;
-    line-height: 1.4;
-  }
-
-  .bottom-ticker{
-    height: var(--ticker-h);
-  }
-
-  .bottom-ticker__track{
-    padding: 0 12px;
-  }
-
-  .bottom-ticker__content{
-    font-size: .96rem;
-    gap: 12px;
-  }
-
-  /* وضع قبل الأذان داخل الشاشة العمودية */
-  .is-pre-athan-mode .main-layout{
-    grid-template-rows: auto auto 1fr;
-    gap: 12px;
-  }
-
-  .is-pre-athan-mode .clock-card{
-    padding: 24px 18px 20px;
-  }
-
-  .is-pre-athan-mode .clock{
-    font-size: clamp(6rem, 13vw, 8.3rem);
-  }
-
-  .is-pre-athan-mode .next-prayer-card{
-    padding: 22px 20px;
-    border-color: rgba(212,175,55,.28);
-    box-shadow: 0 16px 40px rgba(179, 138, 20, .10);
-  }
-
-  .is-pre-athan-mode .next-prayer-grid{
-    grid-template-columns: 1fr;
-    grid-template-areas:
-      "name"
-      "time"
-      "countdown";
-    gap: 12px;
-  }
-
-  .is-pre-athan-mode .info-item{
-    min-height: 88px;
-  }
-
-  .is-pre-athan-mode .info-item:nth-child(1),
-  .is-pre-athan-mode .info-item:nth-child(2),
-  .is-pre-athan-mode .info-item:nth-child(3){
-    grid-area: auto;
-  }
-
-  .is-pre-athan-mode .info-item__label{
-    font-size: 1rem;
-  }
-
-  .is-pre-athan-mode .info-item__value{
-    font-size: 2rem;
-  }
-
-  .is-pre-athan-mode .info-item__value--countdown{
-    font-size: clamp(3.4rem, 8vw, 4.8rem);
-    line-height: 1;
-    color: #B38A14;
-  }
-
-  .is-pre-athan-mode .prayer-times-card{
-    opacity: .38;
-    transform: scale(.985);
-  }
-
-  .is-pre-athan-mode .section-title{
-    color: #8A6A14;
-    transform: translateY(-1px);
-  }
-}
-
-/* تقليل الحركة */
-@media (prefers-reduced-motion: reduce){
-  .events-layer,
-  .prayer-row,
-  .bottom-ticker__content,
-  .clock,
-  .next-prayer-card,
-  .forecast-item,
-  .info-item{
-    transition: none !important;
-    animation: none !important;
-  }
-}
-
-/* Anti Burn-in (تحريك خفيف جدًا) */
-@keyframes antiBurn {
-  0%   { transform: translate(0px, 0px); }
-  25%  { transform: translate(0.5px, 0.3px); }
-  50%  { transform: translate(-0.5px, 0.4px); }
-  75%  { transform: translate(0.4px, -0.3px); }
-  100% { transform: translate(0px, 0px); }
-}
-
-.app-shell{
-  animation: antiBurn 120s infinite linear;
+/* ================================================================
+   تقليل الحركة
+   ================================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .app-shell              { animation: none !important; }
+  .bottom-ticker__content { animation: none !important; }
+  .quote-text             { transition: none !important; }
 }
