@@ -101,6 +101,7 @@ img{
   position: relative;
   z-index: 2;
   height: 100vh;
+  overflow: hidden;
   display: grid;
   grid-template-rows: var(--header-h) 1fr var(--ticker-h);
 }
@@ -178,6 +179,7 @@ img{
   grid-template-rows: auto 1fr;
   gap: 18px;
   min-height: 0;
+  overflow: hidden;
 }
 
 .hero-panel{
