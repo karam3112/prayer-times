@@ -52,6 +52,12 @@
       "كل طالب يسير في طريقه... ونحن نضيء له الاتجاه",
       "نرافق الطالب في رحلته نحو ذاته",
       "الصلاة نور وانتظام"
+    ],
+
+    quotes: [
+      "كل طالب يسير في طريقه... ونحن نضيء له الاتجاه",
+      "نرافق الطالب في رحلته نحو ذاته",
+      "مدرسة الغزالي … هوية واحدة، رسالة واحدة، أثر مستمر."
     ]
   };
 
@@ -75,7 +81,9 @@
     prayerTimesList: document.getElementById("prayerTimesList"),
     forecast3Days: document.getElementById("forecast3Days"),
     tickerTrack: document.getElementById("tickerTrack"),
-    eventsLayer: document.getElementById("eventsLayer")
+    eventsLayer:    document.getElementById("eventsLayer"),
+    hijriDate:      document.getElementById("hijriDate"),
+    rotatingQuote:  document.getElementById("rotatingQuote")
   };
 
     function getTzOffsetMinutes(date, timeZone) {
@@ -127,6 +135,41 @@
     };
   }
 
+  // ── التاريخ الهجري ──
+  const HIJRI_MONTHS = [
+    "", "محرم", "صفر", "ربيع الأول", "ربيع الثاني",
+    "جمادى الأولى", "جمادى الآخرة", "رجب", "شعبان",
+    "رمضان", "شوال", "ذو القعدة", "ذو الحجة"
+  ];
+
+  function gregorianToHijri(date) {
+    const d = date.getDate();
+    const m = date.getMonth() + 1;
+    const y = date.getFullYear();
+    const a = Math.floor((14 - m) / 12);
+    const yy = y + 4800 - a;
+    const mm = m + 12 * a - 3;
+    const jdn = d + Math.floor((153 * mm + 2) / 5) + 365 * yy
+              + Math.floor(yy / 4) - Math.floor(yy / 100)
+              + Math.floor(yy / 400) - 32045;
+    let l = jdn - 1948440 + 10632;
+    const n = Math.floor((l - 1) / 10631);
+    l = l - 10631 * n + 354;
+    const j = Math.floor((10985 - l) / 5316) * Math.floor((50 * l) / 17719)
+            + Math.floor(l / 5670) * Math.floor((43 * l) / 15238);
+    l = l - Math.floor((30 - j) / 15) * Math.floor((17719 * j) / 50)
+          - Math.floor(j / 16) * Math.floor((15238 * j) / 43) + 29;
+    const hYear  = 30 * n + j - 30;
+    const hMonth = Math.floor((24 * l) / 709);
+    const hDay   = l - Math.floor((709 * hMonth) / 24);
+    return { day: hDay, month: hMonth, year: hYear };
+  }
+
+  function formatHijriDate(date) {
+    const h = gregorianToHijri(date);
+    return `${h.day} ${HIJRI_MONTHS[h.month]} ${h.year} هـ`;
+  }
+
   function formatArabicDate(date) {
     const weekday = new Intl.DateTimeFormat("ar", {
       weekday: "long",
@@ -152,6 +195,7 @@
     });
 
     els.dateLine.textContent = formatArabicDate(now);
+    if (els.hijriDate) els.hijriDate.textContent = formatHijriDate(now);
   }
 
   function updateNextPrayerUi() {
@@ -276,6 +320,22 @@
     }
   }
 
+  function initRotatingQuote() {
+    if (!els.rotatingQuote) return;
+    const quotes = CONFIG.quotes;
+    if (!quotes || !quotes.length) return;
+    let idx = 0;
+    els.rotatingQuote.textContent = quotes[0];
+    setInterval(() => {
+      els.rotatingQuote.classList.add("fade-out");
+      setTimeout(() => {
+        idx = (idx + 1) % quotes.length;
+        els.rotatingQuote.textContent = quotes[idx];
+        els.rotatingQuote.classList.remove("fade-out");
+      }, 500);
+    }, 8000);
+  }
+
   function refreshTicker() {
     TickerModule.renderTicker(els.tickerTrack, CONFIG.tickerMessages);
   }
@@ -328,6 +388,7 @@
 
   async function init() {
     refreshTicker();
+    initRotatingQuote();
     updateClockAndDate();
 
     await Promise.all([
