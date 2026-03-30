@@ -72,9 +72,6 @@
     dateLine: document.getElementById("dateLine"),
     weatherNow: document.getElementById("weatherNow"),
     birthdayCard: document.getElementById("birthdayCard"),
-    nextPrayerName: document.getElementById("nextPrayerName"),
-    nextPrayerTime: document.getElementById("nextPrayerTime"),
-    countdown: document.getElementById("countdown"),
     prayerTimesList: document.getElementById("prayerTimesList"),
     forecast3Days: document.getElementById("forecast3Days"),
     tickerTrack: document.getElementById("tickerTrack"),
@@ -159,11 +156,22 @@
 
   function updateNextPrayerUi() {
     if (!state.nextPrayer) {
-      els.nextPrayerName.textContent = "--";
-      els.nextPrayerTime.textContent = "--:--";
-      els.countdown.textContent = "00:00:00";
+      PrayerModule.renderPrayerRows(
+        els.prayerTimesList,
+        state.todayTimings || {},
+        null
+      );
       return;
     }
+
+    PrayerModule.renderPrayerRows(
+      els.prayerTimesList,
+      state.todayTimings || {},
+      state.nextPrayer.key
+    );
+
+    updateVisualModes(new Date());
+  }
 
     const now = new Date();
     const secondsLeft = PrayerModule.secondsUntil(now, state.nextPrayer.timeDate);
