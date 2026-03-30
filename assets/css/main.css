@@ -622,8 +622,7 @@ img{
 }
 
 .is-pre-athan-mode .birthday-card,
-.is-pre-athan-mode .forecast-card,
-.is-pre-athan-mode .bottom-ticker{
+.is-pre-athan-mode .forecast-card{
   opacity: 0;
   transform: translateY(8px);
   pointer-events: none;
