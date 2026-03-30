@@ -170,18 +170,30 @@
     return `${h.day} ${HIJRI_MONTHS[h.month]} ${h.year} هـ`;
   }
 
+  const LEVANTINE_MONTHS = [
+    "كانون الثاني", "شباط", "آذار", "نيسان", "أيار", "حزيران",
+    "تموز", "آب", "أيلول", "تشرين الأول", "تشرين الثاني", "كانون الأول"
+  ];
+
   function formatArabicDate(date) {
     const weekday = new Intl.DateTimeFormat("ar", {
       weekday: "long",
       timeZone: CONFIG.tz
     }).format(date);
 
-    const fullDate = new Intl.DateTimeFormat("ar", {
+    const parts = new Intl.DateTimeFormat("ar", {
       year: "numeric",
       month: "long",
       day: "numeric",
       timeZone: CONFIG.tz
-    }).format(date);
+    }).formatToParts(date);
+
+    const monthIndex = date.toLocaleDateString("en-US", { timeZone: CONFIG.tz, month: "numeric" }) - 1;
+    const levantineMonth = LEVANTINE_MONTHS[monthIndex];
+
+    const fullDate = parts
+      .map(p => p.type === "month" ? levantineMonth : p.value)
+      .join("");
 
     return `${weekday} | ${fullDate}`;
   }
