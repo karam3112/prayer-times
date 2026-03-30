@@ -76,7 +76,8 @@ img { max-width: 100%; display: block; }
 .site-header {
   flex-shrink: 0;
   height: var(--header-h);
-  background: var(--brand-green);
+  background: #fff;
+  border-bottom: 4px solid var(--brand-green);
   display: flex;
   flex-direction: column;
 }
@@ -85,45 +86,43 @@ img { max-width: 100%; display: block; }
   flex: 1;
   display: flex;
   align-items: center;
+  justify-content: center;
   padding: 0 22px;
 }
 
 .site-brand {
   display: flex;
   align-items: center;
-  gap: 14px;
+  gap: 18px;
 }
 
 .site-brand__logo {
-  width: 80px; height: 80px;
+  width: 110px; height: 110px;
   object-fit: contain;
-  border-radius: 50%;
-  background: rgba(255,255,255,.15);
-  padding: 4px;
   flex-shrink: 0;
 }
 
 .site-brand__text {
-  display: flex; flex-direction: column; gap: 3px;
+  display: flex; flex-direction: column; gap: 4px;
 }
 
 .site-brand__title {
   margin: 0;
   font-family: "Cairo", sans-serif;
-  font-size: 1.9rem; font-weight: 800;
-  color: #fff;
+  font-size: 2.4rem; font-weight: 800;
+  color: var(--brand-green);
   line-height: 1.1;
 }
 
 .site-brand__subtitle {
   margin: 0;
-  font-size: .9rem; font-weight: 500;
-  color: rgba(255,255,255,.80);
+  font-size: 1rem; font-weight: 500;
+  color: var(--brand-muted);
 }
 
 /* خط ذهبي أسفل الهيدر */
 .site-header__gold-line {
-  height: 3px;
+  height: 4px;
   flex-shrink: 0;
   background: var(--brand-gold);
 }
