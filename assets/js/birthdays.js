@@ -88,11 +88,21 @@
     return value.includes("معلم") || value.includes("معلمة");
   }
 
+  function getTitle(role) {
+    const r = String(role || "").trim();
+    if (r === "ذكر") return "الطالب";
+    if (r === "انثى") return "الطالبة";
+    if (r === "معلم") return "الأستاذ";
+    if (r === "معلمة") return "مربية";
+    return "";
+  }
+
   function buildBirthdayLine(record) {
     const teacher = isTeacherRole(record.role);
-    const label = teacher ? "من طاقم المدرسة" : "طالب/ة";
+    const title = getTitle(record.role);
+    const displayName = title ? `${title} ${record.name}` : record.name;
     const classLine = !teacher && record.className ? ` - ${record.className}` : "";
-    return `<div class="birthday-card__person"><strong>${record.name}</strong> <span>${label}${classLine}</span></div>`;
+    return `<div class="birthday-card__person"><strong>${displayName}</strong><span>${classLine}</span></div>`;
   }
 
   function renderBirthdayCard(element, todayBirthdays) {
