@@ -438,7 +438,6 @@ img { max-width: 100%; display: block; }
   white-space: nowrap;
   min-width: max-content;
   direction: ltr;
-  padding-left: 100%;
   animation: tickerMove var(--ticker-speed) linear infinite;
   font-size: 1rem; font-weight: 600;
   color: #fff;
@@ -451,7 +450,7 @@ img { max-width: 100%; display: block; }
 
 @keyframes tickerMove {
   from { transform: translateX(-100%); }
-  to   { transform: translateX(0); }
+  to   { transform: translateX(100vw); }
 }
 
 /* ================================================================
