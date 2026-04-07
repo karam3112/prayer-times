@@ -191,7 +191,7 @@
         // ====================================================
         // 🔴 ضعي مفتاح Gemini API هنا
         // ====================================================
-        const apiUrl = "https://script.google.com/macros/s/AKfycbx0PUYHIsUDu9QPAtUXlq7zhpFfjALNEOzvAlCMlJ46iKH4g80vYZaAvX5rrW7SCqqV/exec";
+        const appsScriptAI = "https://script.google.com/macros/s/AKfycbyGIna53UbEFaJDaEHz10kE_AkqNAeyYTWf5tXmYAZiRg5j0lNX42Czg_kRMEp4NS_I-A/exec";
 
         // ====================================================
         // منطق الأدوات
@@ -257,7 +257,7 @@
 
             showLoader(true);
 
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiUrl}`;
+            const apiUrl = appsScriptAI;
             const payload = {
                 contents: [{ parts: [{ text: userPrompt }] }],
                 systemInstruction: { parts: [{ text: systemPrompt }] }
