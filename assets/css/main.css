@@ -232,6 +232,19 @@ img { max-width: 100%; display: block; }
   min-height: 0;
 }
 
+.prayer-times-notice {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 12px;
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--brand-text);
+  opacity: .65;
+}
+
 .prayer-row {
   flex: 1;
   display: flex;

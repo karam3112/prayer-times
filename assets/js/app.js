@@ -81,7 +81,15 @@
     prayerMoments: [],
     weatherData: null,
     eventRotator: null,
-    currentDateKey: null
+    currentDateKey: null,
+
+    // تهدئة تصاعدية بين محاولات تحميل dehri.json حتى لا تتحول إعادة المحاولة إلى إغراق
+    dehriRetryAt: 0,
+    dehriFailures: 0,
+
+    // المواليد تتبع تاريخها الخاص، فلا يجرّها تعثّرُ المواقيت إلى طلب كل ثانية
+    birthdaysDateKey: null,
+    birthdaysRetryAt: 0
   };
 
   const els = {
@@ -222,6 +230,16 @@
   }
 
   function updateNextPrayerUi() {
+    // بطاقة فارغة لا تخبر أحدًا بشيء؛ الموظف يحتاج أن يعرف أن هناك خللًا
+    if (!state.todayTimings) {
+      if (els.prayerTimesList) {
+        els.prayerTimesList.innerHTML =
+          '<div class="prayer-times-notice">المواقيت غير متاحة حاليًا — تُعاد المحاولة تلقائيًا</div>';
+      }
+      updateVisualModes(new Date());
+      return;
+    }
+
     if (!state.nextPrayer) {
       PrayerModule.renderPrayerRows(
         els.prayerTimesList,
@@ -281,7 +299,19 @@
     const tomorrowKey = PrayerModule.tomorrowKey(now);
 
     if (!state.dehriData) {
-      state.dehriData = await PrayerModule.loadDehriFile(CONFIG.dehriFile);
+      // ما زلنا داخل فترة التهدئة بعد فشل سابق
+      if (now.getTime() < state.dehriRetryAt) return;
+
+      try {
+        state.dehriData = await PrayerModule.loadDehriFile(CONFIG.dehriFile);
+        state.dehriFailures = 0;
+      } catch (_) {
+        // لا نرمي الخطأ: فشل التحميل يجب ألا يوقف الساعة ولا بقية الشاشة
+        state.dehriFailures = Math.min(state.dehriFailures + 1, 6);
+        state.dehriRetryAt = now.getTime() + Math.min(60000, 2000 * 2 ** (state.dehriFailures - 1));
+        updateNextPrayerUi();
+        return;
+      }
     }
 
     const todayRecord = PrayerModule.getDayRecord(state.dehriData, todayKey);
@@ -315,12 +345,18 @@
   }
 
   async function refreshBirthdays() {
+    const dateKey = PrayerModule.todayKey(new Date());
+
     try {
       const todayBirthdays = await BirthdaysModule.fetchTodayBirthdays(CONFIG.birthdaysEndpoint);
       BirthdaysModule.renderBirthdayCard(els.birthdayCard, todayBirthdays);
 
+      state.birthdaysDateKey = dateKey;
+      state.birthdaysRetryAt = 0;
+
       updateVisualModes(new Date());
     } catch (_) {
+      state.birthdaysRetryAt = Date.now() + 5 * 60000;
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
     }
@@ -388,9 +424,12 @@
 
     const newDateKey = PrayerModule.todayKey(new Date());
 
+    if (newDateKey !== state.birthdaysDateKey && Date.now() >= state.birthdaysRetryAt) {
+      await refreshBirthdays();
+    }
+
     if (newDateKey !== state.currentDateKey) {
       await refreshPrayerData();
-      await refreshBirthdays();
     } else if (state.nextPrayer) {
       const now = new Date();
       const needsRecalc = state.nextPrayer.timeDate <= now;
@@ -410,13 +449,8 @@
     initRotatingQuote();
     updateClockAndDate();
 
-    await Promise.all([
-      refreshPrayerData(),
-      refreshWeather(),
-      refreshBirthdays(),
-      initEvents()
-    ]);
-
+    // تُسجَّل المؤقتات قبل أي تحميل: الشاشة تعمل ٢٤ ساعة، ولا يجوز أن يمنع
+    // فشلُ طلبٍ واحد عند الإقلاع الساعةَ من الدوران أو التعافي من الحدوث لاحقًا.
     scheduleDailyRefresh();
 
     setInterval(() => {
@@ -432,6 +466,14 @@
     setInterval(() => {
       refreshBirthdays().catch(() => {});
     }, 60 * 60 * 1000);
+
+    // allSettled لا allAll: فشل أي منها لا يُسقط البقية
+    await Promise.allSettled([
+      refreshPrayerData(),
+      refreshWeather(),
+      refreshBirthdays(),
+      initEvents()
+    ]);
   }
 
   document.addEventListener("DOMContentLoaded", () => {
