@@ -9,7 +9,9 @@
     lon: 35.0405,
 
     dehriFile: "dehri.json",
-    birthdaysFile: "birthdays.csv",
+
+    // نقطة وصول تُرجع مواليد اليوم فقط، ولا تستجيب إلا بمفتاح يأتي من رابط الشاشة (?k=...)
+    birthdaysEndpoint: "https://script.google.com/macros/s/AKfycbwdUSKunHyYUNNghXl-XDRwdt08PFr5cAJCbndczt4lGX4wgOmaytLL7IdV4L896xLzkA/exec",
 
     refreshHour: 7,
     refreshMinute: 0,
@@ -78,7 +80,6 @@
     nextPrayer: null,
     prayerMoments: [],
     weatherData: null,
-    birthdayRecords: [],
     eventRotator: null,
     currentDateKey: null
   };
@@ -315,11 +316,7 @@
 
   async function refreshBirthdays() {
     try {
-      if (!state.birthdayRecords.length) {
-        state.birthdayRecords = await BirthdaysModule.loadBirthdaysCsv(CONFIG.birthdaysFile);
-      }
-
-      const todayBirthdays = BirthdaysModule.findTodayBirthdays(state.birthdayRecords, new Date());
+      const todayBirthdays = await BirthdaysModule.fetchTodayBirthdays(CONFIG.birthdaysEndpoint);
       BirthdaysModule.renderBirthdayCard(els.birthdayCard, todayBirthdays);
 
       updateVisualModes(new Date());
@@ -430,9 +427,11 @@
       refreshWeather().catch(() => {});
     }, 15 * 60 * 1000);
 
+    // المواليد تتغير مرة واحدة عند منتصف الليل، و tick() يلتقط تغيّر التاريخ فورًا.
+    // هذا المؤقت شبكة أمان فقط، فلا داعي لإرهاق نقطة الوصول.
     setInterval(() => {
       refreshBirthdays().catch(() => {});
-    }, 5 * 60 * 1000);
+    }, 60 * 60 * 1000);
   }
 
   document.addEventListener("DOMContentLoaded", () => {
