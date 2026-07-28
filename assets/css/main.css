@@ -304,7 +304,7 @@ img { max-width: 100%; display: block; }
 .section-title {
   margin: 0;
   font-family: "Cairo", sans-serif;
-  font-size: 1.2rem; font-weight: 800;
+  font-size: clamp(1.2rem, 1.8vh, 2.6rem); font-weight: 800;
   color: var(--brand-green);
 }
 
@@ -348,7 +348,11 @@ img { max-width: 100%; display: block; }
   background: rgba(31,122,99,.04);
   border: 1px solid rgba(31,122,99,.07);
   min-height: 48px;
-  max-height: 82px;
+
+  /* سقف نسبي لا ثابت: 82px كان يترك 420 بكسل فراغًا على شاشة المدخل،
+     لأن القائمة تعطي الصفوف مساحة لا تستطيع ملأها. الحد الأدنى يبقي
+     السلوك كما هو على نافذة متصفح عادية. */
+  max-height: clamp(82px, 9vh, 260px);
   transition: background .25s, border-color .25s, box-shadow .25s;
 }
 
@@ -359,7 +363,8 @@ img { max-width: 100%; display: block; }
 }
 
 .prayer-row__icon {
-  width: 36px; height: 36px;
+  width: clamp(36px, 4.5vh, 110px);
+  height: clamp(36px, 4.5vh, 110px);
   border-radius: 10px;
   background: rgba(31,122,99,.08);
   display: grid; place-items: center;
@@ -373,12 +378,13 @@ img { max-width: 100%; display: block; }
 }
 
 .prayer-row__icon svg {
-  width: 19px; height: 19px;
+  width: clamp(19px, 2.4vh, 58px);
+  height: clamp(19px, 2.4vh, 58px);
   stroke: currentColor;
 }
 
 .prayer-row__name {
-  font-size: 1.08rem; font-weight: 600;
+  font-size: clamp(1.08rem, 2.1vh, 3.4rem); font-weight: 600;
   color: var(--brand-text);
 }
 
@@ -389,7 +395,7 @@ img { max-width: 100%; display: block; }
 
 .prayer-row__time {
   font-family: "Cairo", sans-serif;
-  font-size: 1.28rem; font-weight: 800;
+  font-size: clamp(1.28rem, 2.5vh, 4rem); font-weight: 800;
   color: var(--brand-green);
   direction: ltr;
   text-rendering: geometricPrecision;
