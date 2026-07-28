@@ -16,6 +16,9 @@
 
     announcementRotateSeconds: 10,
 
+    // خانة واحدة تتناوب بين الاقتباس ولوحة التقدير
+    highlightRotateSeconds: 8,
+
     refreshHour: 7,
     refreshMinute: 0,
 
@@ -119,6 +122,7 @@
     feedDateKey: null,
     feedRetryAt: 0,
     announcementBoard: null,
+    highlightRotator: null,
 
     // بصمة آخر قائمة مواقيت رُسمت، لتفادي إعادة بنائها بلا تغيير
     renderedRowsKey: null,
@@ -142,7 +146,9 @@
     scheduleTitle:  document.getElementById("scheduleTitle"),
     scheduleDetail: document.getElementById("scheduleDetail"),
     scheduleBar:    document.getElementById("scheduleBar"),
-    announcementsCard: document.getElementById("announcementsCard")
+    announcementsCard: document.getElementById("announcementsCard"),
+    highlightBody:  document.getElementById("highlightBody"),
+    honorSlot:      document.getElementById("honorSlot")
   };
 
     function getTzOffsetMinutes(date, timeZone) {
@@ -499,6 +505,7 @@
 
       BirthdaysModule.renderBirthdayCard(els.birthdayCard, feed.birthdays);
       state.announcementBoard?.setItems(feed.announcements);
+      state.highlightRotator?.setHonors(feed.honors);
 
       state.feedDateKey = dateKey;
       state.feedRetryAt = 0;
@@ -510,6 +517,7 @@
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
       state.announcementBoard?.setItems([]);
+      state.highlightRotator?.setHonors([]);
     }
   }
 
@@ -530,20 +538,18 @@
     }
   }
 
-  function initRotatingQuote() {
-    if (!els.rotatingQuote) return;
-    const quotes = CONFIG.quotes;
-    if (!quotes || !quotes.length) return;
-    let idx = 0;
-    els.rotatingQuote.textContent = quotes[0];
-    setInterval(() => {
-      els.rotatingQuote.classList.add("fade-out");
-      setTimeout(() => {
-        idx = (idx + 1) % quotes.length;
-        els.rotatingQuote.textContent = quotes[idx];
-        els.rotatingQuote.classList.remove("fade-out");
-      }, 500);
-    }, 8000);
+  function initHighlightSlot() {
+    if (!window.HighlightModule) return;
+
+    state.highlightRotator = HighlightModule.createRotator({
+      body: els.highlightBody,
+      quoteEl: els.rotatingQuote,
+      honorEl: els.honorSlot,
+      quotes: CONFIG.quotes,
+      intervalMs: CONFIG.highlightRotateSeconds * 1000
+    });
+
+    state.highlightRotator.start();
   }
 
   function refreshTicker() {
@@ -609,7 +615,7 @@
       : null;
 
     refreshTicker();
-    initRotatingQuote();
+    initHighlightSlot();
     updateClockAndDate();
     updateSchedule(new Date());
 

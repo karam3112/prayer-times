@@ -15,7 +15,7 @@
   // طلب واحد يُرجع محتوى اليوم كله: المواليد والإعلانات معًا.
   // بلا مفتاح لا يُرسل طلب أصلًا.
   async function fetchToday(endpoint) {
-    const empty = { birthdays: [], announcements: [] };
+    const empty = { birthdays: [], announcements: [], honors: [] };
 
     const key = getAccessKey();
     if (!endpoint || !key) return empty;
@@ -44,7 +44,15 @@
           text: cleanText(item?.text),
           audience: cleanText(item?.audience)
         }))
-        .filter((item) => item.text)
+        .filter((item) => item.text),
+
+      honors: (Array.isArray(data?.honors) ? data.honors : [])
+        .map((item) => ({
+          title: cleanText(item?.title),
+          names: cleanText(item?.names),
+          note: cleanText(item?.note)
+        }))
+        .filter((item) => item.title)
     };
   }
 
