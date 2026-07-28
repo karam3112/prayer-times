@@ -28,11 +28,12 @@
     eventImagesPath: "images/events",
 
     // تُكتشف الصور وحدها: ارفع 11.jpg إلى images/events فتظهر على الشاشة،
-    // بلا تعديل أي كود. الترقيم يبدأ من 1 ويقبل jpg / jpeg / png / webp.
+    // بلا تعديل أي كود. الترقيم يبدأ من 1.
     // ولمن أراد أسماء غير رقمية: اذكرها هنا صراحةً فتُستخدم بدل الاستكشاف.
     eventImages: [],
     eventImagesMaxIndex: 40,
-    eventImagesStopAfterMisses: 5,
+    eventImagesStopAfterMisses: 3,
+    eventImageExtensions: ["jpg", "png"],
 
     eventRotateSeconds: 20,
 
@@ -384,7 +385,8 @@
     try {
       const images = await EventsModule.discoverImages(CONFIG.eventImagesPath, CONFIG.eventImages, {
         maxIndex: CONFIG.eventImagesMaxIndex,
-        stopAfterMisses: CONFIG.eventImagesStopAfterMisses
+        stopAfterMisses: CONFIG.eventImagesStopAfterMisses,
+        extensions: CONFIG.eventImageExtensions
       });
       state.eventRotator.start(images);
     } catch (_) {
