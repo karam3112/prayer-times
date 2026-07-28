@@ -145,6 +145,7 @@ img { max-width: 100%; display: block; }
 .clock-card,
 .prayer-times-card,
 .schedule-card,
+.announcements-card,
 .quote-card,
 .forecast-card,
 .birthday-card {
@@ -229,6 +230,50 @@ img { max-width: 100%; display: block; }
   border-radius: 999px;
   background: linear-gradient(90deg, var(--brand-green), var(--brand-green-2));
   transition: width 1s linear;
+}
+
+/* ================================================================
+   بطاقة إعلانات اليوم
+   ================================================================ */
+.announcements-card {
+  padding: 13px 16px 14px;
+  border-inline-start: 4px solid var(--brand-gold);
+}
+
+.announcements-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.announcements-card__label {
+  font-family: "Cairo", sans-serif;
+  font-size: .92rem; font-weight: 700;
+  color: var(--brand-green);
+}
+
+.announcements-card__counter {
+  font-size: .82rem; font-weight: 500;
+  color: var(--brand-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.announcements-card__text {
+  margin-top: 6px;
+  font-size: 1.28rem; font-weight: 700;
+  line-height: 1.45;
+  color: var(--brand-text);
+}
+
+.announcements-card__audience {
+  margin-top: 8px;
+  display: inline-block;
+  padding: 3px 11px;
+  border-radius: 999px;
+  background: rgba(31,122,99,.10);
+  color: var(--brand-green);
+  font-size: .86rem; font-weight: 700;
 }
 
 /* ================================================================

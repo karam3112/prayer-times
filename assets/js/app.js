@@ -10,8 +10,11 @@
 
     dehriFile: "dehri.json",
 
-    // نقطة وصول تُرجع مواليد اليوم فقط، ولا تستجيب إلا بمفتاح يأتي من رابط الشاشة (?k=...)
-    birthdaysEndpoint: "https://script.google.com/macros/s/AKfycbwdUSKunHyYUNNghXl-XDRwdt08PFr5cAJCbndczt4lGX4wgOmaytLL7IdV4L896xLzkA/exec",
+    // نقطة وصول تُرجع محتوى اليوم وحده — مواليد وإعلانات — ولا تستجيب
+    // إلا بمفتاح يأتي من رابط الشاشة (?k=...)
+    schoolFeedEndpoint: "https://script.google.com/macros/s/AKfycbwdUSKunHyYUNNghXl-XDRwdt08PFr5cAJCbndczt4lGX4wgOmaytLL7IdV4L896xLzkA/exec",
+
+    announcementRotateSeconds: 10,
 
     refreshHour: 7,
     refreshMinute: 0,
@@ -112,9 +115,10 @@
     dehriRetryAt: 0,
     dehriFailures: 0,
 
-    // المواليد تتبع تاريخها الخاص، فلا يجرّها تعثّرُ المواقيت إلى طلب كل ثانية
-    birthdaysDateKey: null,
-    birthdaysRetryAt: 0,
+    // محتوى المدرسة يتبع تاريخه الخاص، فلا يجرّه تعثّرُ المواقيت إلى طلب كل ثانية
+    feedDateKey: null,
+    feedRetryAt: 0,
+    announcementBoard: null,
 
     // بصمة آخر قائمة مواقيت رُسمت، لتفادي إعادة بنائها بلا تغيير
     renderedRowsKey: null,
@@ -137,7 +141,8 @@
     scheduleCard:   document.getElementById("scheduleCard"),
     scheduleTitle:  document.getElementById("scheduleTitle"),
     scheduleDetail: document.getElementById("scheduleDetail"),
-    scheduleBar:    document.getElementById("scheduleBar")
+    scheduleBar:    document.getElementById("scheduleBar"),
+    announcementsCard: document.getElementById("announcementsCard")
   };
 
     function getTzOffsetMinutes(date, timeZone) {
@@ -486,21 +491,25 @@
     }
   }
 
-  async function refreshBirthdays() {
+  async function refreshSchoolFeed() {
     const dateKey = PrayerModule.todayKey(new Date());
 
     try {
-      const todayBirthdays = await BirthdaysModule.fetchTodayBirthdays(CONFIG.birthdaysEndpoint);
-      BirthdaysModule.renderBirthdayCard(els.birthdayCard, todayBirthdays);
+      const feed = await SchoolFeed.fetchToday(CONFIG.schoolFeedEndpoint);
 
-      state.birthdaysDateKey = dateKey;
-      state.birthdaysRetryAt = 0;
+      BirthdaysModule.renderBirthdayCard(els.birthdayCard, feed.birthdays);
+      state.announcementBoard?.setItems(feed.announcements);
+
+      state.feedDateKey = dateKey;
+      state.feedRetryAt = 0;
 
       updateVisualModes(new Date());
     } catch (_) {
-      state.birthdaysRetryAt = Date.now() + 5 * 60000;
+      state.feedRetryAt = Date.now() + 5 * 60000;
+
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
+      state.announcementBoard?.setItems([]);
     }
   }
 
@@ -571,8 +580,8 @@
 
     const newDateKey = PrayerModule.todayKey(new Date());
 
-    if (newDateKey !== state.birthdaysDateKey && Date.now() >= state.birthdaysRetryAt) {
-      await refreshBirthdays();
+    if (newDateKey !== state.feedDateKey && Date.now() >= state.feedRetryAt) {
+      await refreshSchoolFeed();
     }
 
     if (newDateKey !== state.currentDateKey) {
@@ -592,6 +601,13 @@
   }
 
   async function init() {
+    // كما في بطاقة الحصص: ملف مفقود يُسقط ميزته وحدها لا الشاشة كلها
+    state.announcementBoard = window.AnnouncementsModule
+      ? AnnouncementsModule.createBoard(els.announcementsCard, {
+          intervalMs: CONFIG.announcementRotateSeconds * 1000
+        })
+      : null;
+
     refreshTicker();
     initRotatingQuote();
     updateClockAndDate();
@@ -609,17 +625,17 @@
       refreshWeather().catch(() => {});
     }, 15 * 60 * 1000);
 
-    // المواليد تتغير مرة واحدة عند منتصف الليل، و tick() يلتقط تغيّر التاريخ فورًا.
-    // هذا المؤقت شبكة أمان فقط، فلا داعي لإرهاق نقطة الوصول.
+    // المواليد تكفيها مرة يوميًا، لكن الإعلانات تُكتب أثناء الدوام ويجب أن
+    // تظهر بسرعة معقولة. خمس دقائق ≈ 288 طلبًا يوميًا، وهو لا شيء على Apps Script.
     setInterval(() => {
-      refreshBirthdays().catch(() => {});
-    }, 60 * 60 * 1000);
+      refreshSchoolFeed().catch(() => {});
+    }, 5 * 60 * 1000);
 
     // allSettled لا allAll: فشل أي منها لا يُسقط البقية
     await Promise.allSettled([
       refreshPrayerData(),
       refreshWeather(),
-      refreshBirthdays(),
+      refreshSchoolFeed(),
       initEvents()
     ]);
   }

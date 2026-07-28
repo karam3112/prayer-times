@@ -1,12 +1,5 @@
 (function () {
-  // المفتاح يأتي من رابط الشاشة (?k=...) ولا يوجد في الكود إطلاقًا
-  function getAccessKey() {
-    try {
-      return new URLSearchParams(window.location.search).get("k") || "";
-    } catch (_) {
-      return "";
-    }
-  }
+  // الجلب صار في SchoolFeed؛ هذه الوحدة للعرض فقط.
 
   function escapeHtml(value) {
     return String(value == null ? "" : value)
@@ -14,31 +7,6 @@
       .replace(/</g, "&lt;")
       .replace(/>/g, "&gt;")
       .replace(/"/g, "&quot;");
-  }
-
-  // تُرجع مواليد اليوم فقط، كما تحسبها نقطة الوصول. بلا مفتاح لا يُرسل طلب أصلًا.
-  async function fetchTodayBirthdays(endpoint) {
-    const key = getAccessKey();
-    if (!endpoint || !key) return [];
-
-    const response = await fetch(`${endpoint}?k=${encodeURIComponent(key)}`, {
-      cache: "no-store"
-    });
-
-    if (!response.ok) {
-      throw new Error(`Failed to load birthdays: ${response.status}`);
-    }
-
-    const data = await response.json();
-    const list = Array.isArray(data?.birthdays) ? data.birthdays : [];
-
-    return list
-      .map((item) => ({
-        name: String(item?.name || "").trim(),
-        role: String(item?.role || "").trim(),
-        className: String(item?.className || "").trim()
-      }))
-      .filter((item) => item.name);
   }
 
   function isTeacherRole(role) {
@@ -87,7 +55,6 @@
   }
 
   window.BirthdaysModule = {
-    fetchTodayBirthdays,
     renderBirthdayCard
   };
 })();
