@@ -59,14 +59,6 @@
     return `${pad(hours)}:${pad(minutes)}`;
   }
 
-  function formatCountdown(totalSeconds) {
-    const safe = Math.max(0, Math.floor(totalSeconds));
-    const hours = Math.floor(safe / 3600);
-    const minutes = Math.floor((safe % 3600) / 60);
-    const seconds = safe % 60;
-    return `${pad(hours)}:${pad(minutes)}:${pad(seconds)}`;
-  }
-
   function parseTimeString(timeString) {
     if (!timeString || typeof timeString !== "string") return null;
 
@@ -193,10 +185,6 @@
     return Math.floor((dateB.getTime() - dateA.getTime()) / 60000);
   }
 
-  function secondsUntil(dateA, dateB) {
-    return Math.floor((dateB.getTime() - dateA.getTime()) / 1000);
-  }
-
   function renderPrayerRows(container, timings, nextPrayerKey) {
     if (!container) return;
 
@@ -223,7 +211,6 @@
   window.PrayerModule = {
     PRAYER_ORDER,
     PRAYER_NAMES,
-    formatCountdown,
     todayKey,
     tomorrowKey,
     loadDehriFile,
@@ -232,7 +219,6 @@
     buildPrayerMoments,
     findNextPrayer,
     minutesUntil,
-    secondsUntil,
     renderPrayerRows
   };
 })();

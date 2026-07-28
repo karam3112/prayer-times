@@ -16,18 +16,62 @@
     });
   }
 
-  async function discoverImages(basePath, fileList = []) {
-    const valid = fileList.filter(isImageFile).map((name) => buildImagePath(basePath, name));
-    const loaded = [];
+  const DEFAULT_EXTENSIONS = ["jpg", "jpeg", "png", "webp"];
 
-    for (const url of valid) {
-      try {
-        await preloadImage(url);
-        loaded.push(url);
-      } catch (_) {}
+  // استكشاف رقمي: يجرّب 1 ثم 2 … ويتوقف بعد عدة أرقام متتالية بلا صورة.
+  // الفجوة الواحدة (حذف 5.jpg مثلًا) لا توقفه.
+  async function probeIndexed(basePath, options) {
+    const maxIndex = Number(options.maxIndex) || 40;
+    const stopAfterMisses = Number(options.stopAfterMisses) || 5;
+    const extensions = options.extensions || DEFAULT_EXTENSIONS;
+
+    const found = [];
+    let consecutiveMisses = 0;
+
+    for (let index = 1; index <= maxIndex; index++) {
+      let hit = null;
+
+      for (const ext of extensions) {
+        const url = buildImagePath(basePath, `${index}.${ext}`);
+        try {
+          await preloadImage(url);
+          hit = url;
+          break;
+        } catch (_) {}
+      }
+
+      if (hit) {
+        found.push(hit);
+        consecutiveMisses = 0;
+        continue;
+      }
+
+      consecutiveMisses++;
+      if (consecutiveMisses >= stopAfterMisses) break;
     }
 
-    return loaded;
+    return found;
+  }
+
+  async function discoverImages(basePath, fileList = [], options = {}) {
+    // قائمة صريحة إن وُجدت (للأسماء غير الرقمية)، وإلا الاستكشاف الرقمي
+    const explicit = (fileList || []).filter(isImageFile);
+
+    if (explicit.length) {
+      const loaded = [];
+
+      for (const name of explicit) {
+        const url = buildImagePath(basePath, name);
+        try {
+          await preloadImage(url);
+          loaded.push(url);
+        } catch (_) {}
+      }
+
+      return loaded;
+    }
+
+    return probeIndexed(basePath, options);
   }
 
   function createRotator(layerElement, options = {}) {

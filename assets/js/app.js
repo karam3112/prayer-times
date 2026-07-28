@@ -26,20 +26,14 @@
     },
 
     eventImagesPath: "images/events",
-    eventImages: [
-      // ضع هنا أسماء الصور الموجودة داخل images/events
-      // مثال:
-      // "1.jpg",
-      // "2.jpg",
-      // "3.jpg",
-      "4.jpg",
-      "5.jpg",
-      "6.jpg",
-      "7.jpg",
-      "8.jpg",
-      "9.jpg",
-      "10.jpg"
-    ],
+
+    // تُكتشف الصور وحدها: ارفع 11.jpg إلى images/events فتظهر على الشاشة،
+    // بلا تعديل أي كود. الترقيم يبدأ من 1 ويقبل jpg / jpeg / png / webp.
+    // ولمن أراد أسماء غير رقمية: اذكرها هنا صراحةً فتُستخدم بدل الاستكشاف.
+    eventImages: [],
+    eventImagesMaxIndex: 40,
+    eventImagesStopAfterMisses: 5,
+
     eventRotateSeconds: 20,
 
     hideImagesBeforePrayerMinutes: 12,
@@ -89,7 +83,10 @@
 
     // المواليد تتبع تاريخها الخاص، فلا يجرّها تعثّرُ المواقيت إلى طلب كل ثانية
     birthdaysDateKey: null,
-    birthdaysRetryAt: 0
+    birthdaysRetryAt: 0,
+
+    // بصمة آخر قائمة مواقيت رُسمت، لتفادي إعادة بنائها بلا تغيير
+    renderedRowsKey: null
   };
 
   const els = {
@@ -229,35 +226,48 @@
     if (els.hijriDate) els.hijriDate.textContent = formatHijriDate(now);
   }
 
-  function updateNextPrayerUi() {
+  // محتوى القائمة لا يتغير إلا ست مرات يوميًا، بينما tick يعمل كل ثانية.
+  // إعادة بناء innerHTML في كل دورة تعني 86400 عملية يوميًا بلا مقابل.
+  function renderRowsIfChanged(nextPrayerKey) {
+    if (!els.prayerTimesList) return;
+
+    const signature = state.todayTimings
+      ? PrayerModule.PRAYER_ORDER
+          .map((key) => `${key}:${state.todayTimings[key] || ""}`)
+          .join("|") + `#${nextPrayerKey || ""}`
+      : "unavailable";
+
+    if (signature === state.renderedRowsKey) return;
+    state.renderedRowsKey = signature;
+
     // بطاقة فارغة لا تخبر أحدًا بشيء؛ الموظف يحتاج أن يعرف أن هناك خللًا
     if (!state.todayTimings) {
-      if (els.prayerTimesList) {
-        els.prayerTimesList.innerHTML =
-          '<div class="prayer-times-notice">المواقيت غير متاحة حاليًا — تُعاد المحاولة تلقائيًا</div>';
-      }
-      updateVisualModes(new Date());
+      els.prayerTimesList.innerHTML =
+        '<div class="prayer-times-notice">المواقيت غير متاحة حاليًا — تُعاد المحاولة تلقائيًا</div>';
       return;
     }
 
-    if (!state.nextPrayer) {
-      PrayerModule.renderPrayerRows(
-        els.prayerTimesList,
-        state.todayTimings || {},
-        null
-      );
-      return;
-    }
+    PrayerModule.renderPrayerRows(els.prayerTimesList, state.todayTimings, nextPrayerKey);
+  }
 
-    PrayerModule.renderPrayerRows(
-      els.prayerTimesList,
-      state.todayTimings || {},
-      state.nextPrayer.key
-    );
-
+  function updateNextPrayerUi() {
+    renderRowsIfChanged(state.nextPrayer ? state.nextPrayer.key : null);
     updateVisualModes(new Date());
   }
     
+  // الدقائق منذ آخر موعد مضى اليوم، أو null إن لم يمضِ أي موعد بعد
+  function minutesSincePreviousPrayer(now) {
+    let latest = null;
+
+    for (const moment of state.prayerMoments) {
+      if (moment.timeDate <= now && (!latest || moment.timeDate > latest)) {
+        latest = moment.timeDate;
+      }
+    }
+
+    return latest ? PrayerModule.minutesUntil(latest, now) : null;
+  }
+
   function updateVisualModes(now) {
     const body = document.body;
 
@@ -272,14 +282,18 @@
     }
 
     const minutesToNext = PrayerModule.minutesUntil(now, state.nextPrayer.timeDate);
+    const minutesSinceLast = minutesSincePreviousPrayer(now);
 
     const isPreAthan =
       minutesToNext > 0 &&
       minutesToNext <= CONFIG.preAthanMinutes;
 
+    // الشقّ الثاني كان Math.abs(minutesToNext) وهو مُبتلَع داخل الأول لأن
+    // minutesToNext تُحسب دائمًا نحو الصلاة القادمة فلا تكون سالبة. النافذة
+    // البعدية تحتاج المسافة عن الصلاة التي مضت، لا عن القادمة.
     const isAthanMode =
       (minutesToNext >= 0 && minutesToNext <= CONFIG.hideImagesBeforePrayerMinutes) ||
-      Math.abs(minutesToNext) <= CONFIG.hideImagesAfterPrayerMinutes;
+      (minutesSinceLast !== null && minutesSinceLast <= CONFIG.hideImagesAfterPrayerMinutes);
 
     body.classList.toggle("is-pre-athan-mode", isPreAthan);
     body.classList.toggle("is-athan-mode", isAthanMode);
@@ -368,7 +382,10 @@
     });
 
     try {
-      const images = await EventsModule.discoverImages(CONFIG.eventImagesPath, CONFIG.eventImages);
+      const images = await EventsModule.discoverImages(CONFIG.eventImagesPath, CONFIG.eventImages, {
+        maxIndex: CONFIG.eventImagesMaxIndex,
+        stopAfterMisses: CONFIG.eventImagesStopAfterMisses
+      });
       state.eventRotator.start(images);
     } catch (_) {
       state.eventRotator.start([]);
