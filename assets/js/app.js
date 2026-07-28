@@ -615,7 +615,41 @@
     }
   }
 
+  // ‏?diag=1 يُظهر مقاس الشاشة كما يراه المتصفح. الغرض منه أن يُقاس المقاس
+  // الحقيقي من على الشاشة نفسها بدل تخمينه: التلفاز قد يقول 4K بينما يرسل
+  // المشغّل 1080، وقد يقتطع overscan حافةً من كل جانب.
+  function showDiagnosticsIfRequested() {
+    let requested = false;
+    try {
+      requested = new URLSearchParams(window.location.search).get("diag") === "1";
+    } catch (_) {
+      return;
+    }
+    if (!requested) return;
+
+    const badge = document.createElement("div");
+    badge.style.cssText = [
+      "position:fixed", "inset-inline-start:8px", "bottom:8px", "z-index:99",
+      "padding:6px 12px", "border-radius:8px",
+      "background:rgba(0,0,0,.82)", "color:#fff",
+      "font:700 15px/1.5 monospace", "direction:ltr", "white-space:pre"
+    ].join(";");
+
+    function paint() {
+      const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
+      badge.textContent =
+        `${window.innerWidth}x${window.innerHeight}  dpr ${window.devicePixelRatio}\n` +
+        `screen ${window.screen.width}x${window.screen.height}  root ${root.toFixed(1)}px`;
+    }
+
+    paint();
+    window.addEventListener("resize", paint);
+    document.body.appendChild(badge);
+  }
+
   async function init() {
+    showDiagnosticsIfRequested();
+
     // كما في بطاقة الحصص: ملف مفقود يُسقط ميزته وحدها لا الشاشة كلها
     state.announcementBoard = window.AnnouncementsModule
       ? AnnouncementsModule.createBoard(els.announcementsCard, {

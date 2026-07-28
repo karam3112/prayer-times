@@ -6,17 +6,39 @@
   --brand-green:   #1F7A63;
   --brand-green-2: #4CAF7A;
   --brand-gold:    #D4AF37;
+  --brand-green-deep: #17604E;   /* للنصوص الخضراء الصغيرة: الأخضر الأساسي
+                                    يعطي 4.6:1 على الأبيض، وهو كافٍ للأحجام
+                                    الكبيرة لا للتسميات في قاعة مضيئة */
   --brand-text:    #2F2F2F;
-  --brand-muted:   #6F6F6F;
-  --header-h:      110px;
-  --ticker-h:       58px;
-  --radius:         16px;
-  --gap:            12px;
-  --ticker-speed:   42s;
+  --brand-muted:   #5C5C5C;
+  --header-h:      clamp(110px, 6vh,   240px);
+  --ticker-h:      clamp( 58px, 4.2vh, 150px);
+  --radius:        clamp( 16px, 1vh,    34px);
+  --gap:           clamp( 12px,  .65vh, 24px);
+  --hairline:      clamp(  3px,  .28vh,  9px);
+  --ticker-speed:  42s;
+}
+
+/* الشريط يقطع مسافة ثابتة في زمن ثابت، فكلما كبر الخط طال المحتوى وزادت
+   سرعته بالبكسل في الثانية. على شاشة المدخل يكبر الخط مرة ونصفًا، فتطول
+   المدة بالقدر نفسه كي تبقى سرعة القراءة كما هي. */
+@media (min-height: 1200px) {
+  :root { --ticker-speed: 62s; }
 }
 
 /* ── Reset ── */
 *, *::before, *::after { box-sizing: border-box; }
+
+/* شاشة المدخل عمودية وتُقرأ من مسافتين: الساعةُ ومواقيتُ الصلاة من آخر
+   القاعة، وبقيةُ البطاقات — الإعلان والتهنئة والطقس — ممن يقف أمامها.
+   الأولان مقيسان بـ vh فيبقيان كبيرين مهما كان الجذر؛ وما عداهما بـ rem،
+   فربطُ الجذر بارتفاع الشاشة يكبّره معًا بدل ملاحقة كل قيمة على حدة.
+
+   1.12vh لا أكثر: عند 1.35vh كانت البطاقات الثانوية تلتهم من العمود ٢٠٠
+   بكسل تدفع صفوف الصلاة إلى أرضيتها يوم تظهر الحصة والإعلان والتهنئة معًا.
+   الحد الأدنى 16px يُبقي نافذة المتصفح العادية على ما هي عليه، والقيد بـ vw
+   يمنع التضخم حين تكون النافذة قصيرة وعريضة. */
+html { font-size: clamp(16px, min(1.12vh, 1.9vw), 44px); }
 
 html, body {
   margin: 0; padding: 0;
@@ -32,12 +54,14 @@ img { max-width: 100%; display: block; }
 .hidden { display: none !important; }
 
 /* ── خلفية الصور ── */
+/* القاعة يدخلها ضوء النهار من جدار زجاجي، واللوح لامع. صورة الخلفية كانت
+   تسرق من تباين النص أكثر مما تضيف، فخُفّفت وقُوّي الحجاب الأبيض فوقها. */
 .events-layer {
   position: fixed; inset: 0; z-index: 0;
   background-position: center;
   background-repeat: no-repeat;
   background-size: cover;
-  opacity: .09;
+  opacity: .07;
   filter: saturate(.7) blur(2px);
   transition: opacity 800ms ease, background-image 800ms ease;
 }
@@ -47,8 +71,8 @@ img { max-width: 100%; display: block; }
   position: fixed; inset: 0; z-index: 1;
   pointer-events: none;
   background: linear-gradient(to bottom,
-    rgba(255,255,255,.55),
-    rgba(255,255,255,.45));
+    rgba(255,255,255,.62),
+    rgba(255,255,255,.52));
 }
 
 /* ================================================================
@@ -95,8 +119,11 @@ img { max-width: 100%; display: block; }
   gap: 18px;
 }
 
+/* مقيسًا على الترويسة لا بقيمة ثابتة: كان 110px داخل شريط داخليّ ارتفاعه
+   107px بعد الخط الذهبي، فيفيض بثلاثة بكسلات */
 .site-brand__logo {
-  width: 110px; height: 110px;
+  width:  calc(var(--header-h) * .92);
+  height: calc(var(--header-h) * .92);
   object-fit: contain;
   flex-shrink: 0;
 }
@@ -121,7 +148,7 @@ img { max-width: 100%; display: block; }
 
 /* خط ذهبي أسفل الهيدر */
 .site-header__gold-line {
-  height: 3px;
+  height: var(--hairline);
   flex-shrink: 0;
   background: linear-gradient(to left, var(--brand-gold), rgba(197,160,80,.15));
 }
@@ -151,8 +178,10 @@ img { max-width: 100%; display: block; }
 .birthday-card {
   background: #fff;
   border-radius: var(--radius);
-  border: 1px solid rgba(31,122,99,.10);
-  box-shadow: 0 2px 10px rgba(31,122,99,.06);
+  /* حدّ بـ .10 يختفي تمامًا خلف انعكاس الضوء على اللوح؛ حافة البطاقة هي
+     ما يفصل معلومة عن أخرى من مسافة خمسة أمتار */
+  border: 1px solid rgba(31,122,99,.20);
+  box-shadow: 0 2px 10px rgba(31,122,99,.10);
   flex-shrink: 0;
 }
 
@@ -160,7 +189,7 @@ img { max-width: 100%; display: block; }
    بطاقة الساعة
    ================================================================ */
 .clock-card {
-  padding: 18px 24px 16px;
+  padding: 12px 20px 12px;
   text-align: center;
 }
 
@@ -177,7 +206,7 @@ img { max-width: 100%; display: block; }
 }
 
 .date-line {
-  margin-top: 10px;
+  margin-top: 6px;
   font-size: 1.1rem; font-weight: 700;
   color: var(--brand-text);
 }
@@ -189,18 +218,18 @@ img { max-width: 100%; display: block; }
 }
 
 .weather-now {
-  margin-top: 8px;
+  margin-top: 5px;
   font-size: clamp(.98rem, 1.5vh, 2.1rem); font-weight: 500;
   color: var(--brand-muted);
 }
 
 .weather-advice {
-  margin-top: 7px;
+  margin-top: 5px;
   display: inline-block;
   padding: 4px 14px;
   border-radius: 999px;
-  background: rgba(212,175,55,.16);
-  color: var(--brand-green);
+  background: rgba(212,175,55,.24);
+  color: var(--brand-green-deep);
   font-size: clamp(.95rem, 1.5vh, 2.1rem);
   font-weight: 700;
 }
@@ -209,7 +238,7 @@ img { max-width: 100%; display: block; }
    بطاقة الحصة الحالية
    ================================================================ */
 .schedule-card {
-  padding: 14px 18px 12px;
+  padding: 10px 16px 10px;
   text-align: center;
 }
 
@@ -228,10 +257,10 @@ img { max-width: 100%; display: block; }
 }
 
 .schedule-card__bar {
-  margin-top: 10px;
-  height: 6px;
+  margin-top: 7px;
+  height: clamp(6px, .5vh, 16px);
   border-radius: 999px;
-  background: rgba(31,122,99,.12);
+  background: rgba(31,122,99,.16);
   overflow: hidden;
 }
 
@@ -247,8 +276,8 @@ img { max-width: 100%; display: block; }
    بطاقة إعلانات اليوم
    ================================================================ */
 .announcements-card {
-  padding: 13px 16px 14px;
-  border-inline-start: 4px solid var(--brand-gold);
+  padding: 10px 14px 10px;
+  border-inline-start: clamp(4px, .45vh, 13px) solid var(--brand-gold);
 }
 
 .announcements-card__head {
@@ -261,7 +290,7 @@ img { max-width: 100%; display: block; }
 .announcements-card__label {
   font-family: "Cairo", sans-serif;
   font-size: .92rem; font-weight: 700;
-  color: var(--brand-green);
+  color: var(--brand-green-deep);
 }
 
 .announcements-card__counter {
@@ -287,12 +316,12 @@ img { max-width: 100%; display: block; }
 }
 
 .announcements-card__audience {
-  margin-top: 8px;
+  margin-top: 6px;
   display: inline-block;
   padding: 3px 11px;
   border-radius: 999px;
-  background: rgba(31,122,99,.10);
-  color: var(--brand-green);
+  background: rgba(31,122,99,.14);
+  color: var(--brand-green-deep);
   font-size: .86rem; font-weight: 700;
 }
 
@@ -304,11 +333,15 @@ img { max-width: 100%; display: block; }
   flex: 1;
   display: flex;
   flex-direction: column;
+
+  /* هذه وحدها من بين البطاقات تحمل flex:1، فهي التي تمتص أي عجز في المساحة.
+     الانضغاط بحد ذاته ليس عيبًا ما دامت الصفوف تنكمش كاملةً — أيقونةً ونصًّا —
+     وهو ما لم يكن يحدث قبل أن تصير الأيقونة مقيسة بصفّها. */
   min-height: 0;
 }
 
 .section-title-wrap {
-  margin-bottom: 10px;
+  margin-bottom: 7px;
   flex-shrink: 0;
 }
 
@@ -322,7 +355,8 @@ img { max-width: 100%; display: block; }
 .section-title::after {
   content: "";
   display: block;
-  width: 36px; height: 2px;
+  width: clamp(36px, 2.4vh, 82px);
+  height: clamp(2px, .22vh, 7px);
   margin-top: 5px;
   background: var(--brand-gold);
   border-radius: 999px;
@@ -356,8 +390,13 @@ img { max-width: 100%; display: block; }
   justify-content: space-between;
   padding: 8px 14px;
   border-radius: 12px;
-  background: rgba(31,122,99,.04);
-  border: 1px solid rgba(31,122,99,.07);
+  background: rgba(31,122,99,.07);
+  border: 1px solid rgba(31,122,99,.14);
+
+  /* أرضية لا هدف: الصفوف تكبر بـ flex حتى تملأ ما تبقى، والحدّ الأدنى لا
+     يُستدعى إلا حين تضيق المساحة. رفعُه إلى 5vh جعل الستة تطالب بـ 576px
+     داخل بطاقة تنالها 430px يوم تظهر الحصة والإعلان والتهنئة معًا، فانسكبت
+     القائمة فوق ما تحتها وضاع صف الصلاة القادمة نفسه. */
   min-height: 48px;
 
   /* سقف نسبي لا ثابت: 82px كان يترك 420 بكسل فراغًا على شاشة المدخل،
@@ -367,30 +406,34 @@ img { max-width: 100%; display: block; }
   transition: background .25s, border-color .25s, box-shadow .25s;
 }
 
+/* هذا الصف هو ما يُقرأ من آخر القاعة، فيحتاج فرقًا يُرى لا يُلاحَظ */
 .prayer-row.is-next {
-  background: rgba(212,175,55,.10);
-  border-color: rgba(212,175,55,.30);
-  box-shadow: 0 2px 8px rgba(212,175,55,.12);
+  background: rgba(212,175,55,.18);
+  border-color: rgba(212,175,55,.48);
+  box-shadow: 0 2px 8px rgba(212,175,55,.20);
 }
 
+/* مقيسة بصفّها لا بالشاشة: بـ 4.5vh كانت الحاوية 79px داخل صف عصره الـ flex
+   إلى 54px يوم تزدحم البطاقات، فتفيض الأيقونة صفَّها وتلامس ما فوقها وما
+   تحتها. الآن ترتفع بارتفاع الصف نفسه — تكبر معه حين تتسع الشاشة، وتنكمش
+   معه حين تضيق، ولا تفرض عليه ارتفاعًا لا يملكه. */
 .prayer-row__icon {
-  width: clamp(36px, 4.5vh, 110px);
-  height: clamp(36px, 4.5vh, 110px);
+  align-self: stretch;
+  aspect-ratio: 1;
   border-radius: 10px;
-  background: rgba(31,122,99,.08);
+  background: rgba(31,122,99,.12);
   display: grid; place-items: center;
   color: var(--brand-green);
   flex-shrink: 0;
 }
 
 .prayer-row.is-next .prayer-row__icon {
-  background: rgba(212,175,55,.15);
-  color: #8A6A14;
+  background: rgba(212,175,55,.26);
+  color: #7A5D0F;
 }
 
 .prayer-row__icon svg {
-  width: clamp(19px, 2.4vh, 58px);
-  height: clamp(19px, 2.4vh, 58px);
+  width: 55%; height: 55%;
   stroke: currentColor;
 }
 
@@ -414,7 +457,7 @@ img { max-width: 100%; display: block; }
 }
 
 .prayer-row.is-next .prayer-row__time {
-  color: #8A6A14;
+  color: #7A5D0F;
 }
 
 /* ── تدرّج: الصلاة القادمة تُلتقط بنظرة، والباقي مرجع ── */
@@ -423,16 +466,8 @@ img { max-width: 100%; display: block; }
   max-height: clamp(120px, 20vh, 400px);
 }
 
-.prayer-row.is-next .prayer-row__icon {
-  width: clamp(48px, 7vh, 170px);
-  height: clamp(48px, 7vh, 170px);
-}
-
-.prayer-row.is-next .prayer-row__icon svg {
-  width: clamp(26px, 3.6vh, 88px);
-  height: clamp(26px, 3.6vh, 88px);
-}
-
+/* الأيقونة لم تعد تحتاج مقاسًا خاصًا هنا: الصف القادم أطول بـ flex:2.2،
+   وهي ترتفع بارتفاعه تلقائيًا */
 .prayer-row.is-next .prayer-row__name {
   font-size: clamp(1.4rem, 3.2vh, 5rem);
 }
@@ -445,8 +480,8 @@ img { max-width: 100%; display: block; }
   margin-inline-start: 10px;
   padding: 2px 11px;
   border-radius: 999px;
-  background: rgba(212,175,55,.22);
-  color: #8A6A14;
+  background: rgba(212,175,55,.30);
+  color: #7A5D0F;
   font-family: "Tajawal", sans-serif;
   font-size: clamp(.72rem, 1.1vh, 1.6rem);
   font-weight: 700;
@@ -459,8 +494,8 @@ img { max-width: 100%; display: block; }
    ================================================================ */
 .quote-card {
   padding: 14px 22px;
-  background: rgba(31,122,99,.06);
-  border-color: rgba(31,122,99,.14);
+  background: rgba(31,122,99,.09);
+  border-color: rgba(31,122,99,.22);
   text-align: center;
   display: flex;
   align-items: center;
@@ -468,7 +503,7 @@ img { max-width: 100%; display: block; }
 
   /* ارتفاع محجوز يسع لوحة التقدير، فلا يقفز التخطيط عند التناوب بينها
      وبين اقتباس من سطر واحد */
-  min-height: 92px;
+  min-height: clamp(92px, 6vh, 220px);
 }
 
 .highlight-body {
@@ -495,7 +530,7 @@ img { max-width: 100%; display: block; }
 .honor__title {
   font-family: "Cairo", sans-serif;
   font-size: .95rem; font-weight: 700;
-  color: var(--brand-muted);
+  color: var(--brand-green-deep);
 }
 
 .honor__names {
@@ -512,11 +547,13 @@ img { max-width: 100%; display: block; }
   color: var(--brand-muted);
 }
 
+/* الاقتباس نصٌّ يُقرأ لا تسمية تُلمح، فيأخذ حجمًا قريبًا من أسماء المكرَّمين
+   التي يتناوب معها في الخانة نفسها */
 .quote-text {
   margin: 0;
   font-family: "Cairo", sans-serif;
-  font-size: 1rem; font-weight: 700;
-  color: var(--brand-green);
+  font-size: 1.3rem; font-weight: 700;
+  color: var(--brand-green-deep);
   line-height: 1.6;
   transition: opacity .5s ease;
 }
@@ -527,7 +564,7 @@ img { max-width: 100%; display: block; }
    بطاقة الطقس
    ================================================================ */
 .forecast-card {
-  padding: 16px 18px 14px;
+  padding: 12px 14px 10px;
 }
 
 .forecast-grid {
@@ -537,27 +574,28 @@ img { max-width: 100%; display: block; }
 }
 
 .forecast-item {
-  background: rgba(31,122,99,.04);
-  border: 1px solid rgba(31,122,99,.08);
+  background: rgba(31,122,99,.07);
+  border: 1px solid rgba(31,122,99,.16);
   border-radius: 12px;
-  padding: 12px 8px;
+  padding: 6px 6px;
   text-align: center;
 }
 
 .forecast-item__day {
   font-family: "Cairo", sans-serif;
-  font-size: .9rem; font-weight: 700;
-  color: var(--brand-green);
+  font-size: .95rem; font-weight: 700;
+  color: var(--brand-green-deep);
 }
 
 .forecast-item__icon {
-  margin: 8px auto 6px;
-  width: 38px; height: 38px;
+  margin: 5px auto 4px;
+  width:  clamp(34px, 2vh, 74px);
+  height: clamp(34px, 2vh, 74px);
   display: grid; place-items: center;
 }
 
 .forecast-item__icon img {
-  width: 38px; height: 38px;
+  width: 100%; height: 100%;
   object-fit: contain;
 }
 
@@ -570,7 +608,7 @@ img { max-width: 100%; display: block; }
 
 .forecast-item__desc {
   margin-top: 4px;
-  font-size: .78rem;
+  font-size: .86rem;
   color: var(--brand-muted);
   line-height: 1.4;
 }
@@ -579,8 +617,8 @@ img { max-width: 100%; display: block; }
    بطاقة التهنئة
    ================================================================ */
 .birthday-card {
-  padding: 14px 18px 12px;
-  border-right: 4px solid var(--brand-green);
+  padding: 10px 14px 10px;
+  border-right: clamp(4px, .45vh, 13px) solid var(--brand-green);
 }
 
 .birthday-card__title {
@@ -618,7 +656,7 @@ img { max-width: 100%; display: block; }
   flex-shrink: 0;
   height: var(--ticker-h);
   background: var(--brand-green);
-  border-top: 3px solid var(--brand-gold);
+  border-top: var(--hairline) solid var(--brand-gold);
   overflow: hidden;
   transition: opacity .3s ease;
 }
@@ -642,7 +680,7 @@ img { max-width: 100%; display: block; }
   min-width: max-content;
   direction: ltr;
   animation: tickerMove var(--ticker-speed) linear infinite;
-  font-size: 1rem; font-weight: 600;
+  font-size: 1.15rem; font-weight: 700;
   color: #fff;
 }
 
