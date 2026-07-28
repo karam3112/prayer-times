@@ -191,14 +191,17 @@
     const rows = PRAYER_ORDER
       .filter((key) => timings && timings[key])
       .map((key) => {
-        const activeClass = key === nextPrayerKey ? " is-next" : "";
+        const isNext = key === nextPrayerKey;
+
+        // شارة تشرح لماذا هذا الصف أكبر من غيره، فلا يبقى التدرّج لغزًا
+        const badge = isNext ? '<span class="prayer-row__badge">القادمة</span>' : "";
 
         return `
-          <div class="prayer-row${activeClass}">
+          <div class="prayer-row${isNext ? " is-next" : ""}">
             <div class="prayer-row__icon" aria-hidden="true">
               ${PRAYER_ICONS[key] || ""}
             </div>
-            <div class="prayer-row__name">${PRAYER_NAMES[key]}</div>
+            <div class="prayer-row__name">${PRAYER_NAMES[key]}${badge}</div>
             <div class="prayer-row__time">${timings[key]}</div>
           </div>
         `;

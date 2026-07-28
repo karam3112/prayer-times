@@ -417,6 +417,43 @@ img { max-width: 100%; display: block; }
   color: #8A6A14;
 }
 
+/* ── تدرّج: الصلاة القادمة تُلتقط بنظرة، والباقي مرجع ── */
+.prayer-row.is-next {
+  flex: 2.2;
+  max-height: clamp(120px, 20vh, 400px);
+}
+
+.prayer-row.is-next .prayer-row__icon {
+  width: clamp(48px, 7vh, 170px);
+  height: clamp(48px, 7vh, 170px);
+}
+
+.prayer-row.is-next .prayer-row__icon svg {
+  width: clamp(26px, 3.6vh, 88px);
+  height: clamp(26px, 3.6vh, 88px);
+}
+
+.prayer-row.is-next .prayer-row__name {
+  font-size: clamp(1.4rem, 3.2vh, 5rem);
+}
+
+.prayer-row.is-next .prayer-row__time {
+  font-size: clamp(1.8rem, 4.5vh, 7rem);
+}
+
+.prayer-row__badge {
+  margin-inline-start: 10px;
+  padding: 2px 11px;
+  border-radius: 999px;
+  background: rgba(212,175,55,.22);
+  color: #8A6A14;
+  font-family: "Tajawal", sans-serif;
+  font-size: clamp(.72rem, 1.1vh, 1.6rem);
+  font-weight: 700;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
 /* ================================================================
    بطاقة الاقتباس التربوي
    ================================================================ */
