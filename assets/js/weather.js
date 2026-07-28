@@ -29,6 +29,62 @@
     return response.json();
   }
 
+  // نصيحة عملية بدل رقم مجرد: الرقم لا يغيّر سلوكًا، والجملة تفعل.
+  // في رمضان تُحذف الإشارة إلى شرب الماء — أكثر التلاميذ صغار لا يصومون،
+  // لكن المعلمين يصومون ويقرؤون الشاشة نفسها.
+  const ADVICE = {
+    storm:        "عاصفة رعدية — ابقوا داخل المبنى وقت الاستراحة",
+    snow:         "ثلوج — انتبهوا من الانزلاق",
+    rain:         "الجو ماطر — أحضروا معطفًا",
+    fog:          "ضباب كثيف — انتبهوا عند العبور",
+    veryHot:      "حر شديد — ابقوا في الظل",
+    veryHotDrink: "حر شديد — أكثروا من شرب الماء وابقوا في الظل",
+    hot:          "الجو حار — تجنّبوا الشمس",
+    hotDrink:     "الجو حار — أكثروا من شرب الماء",
+    cold:         "الجو بارد — البسوا معطفًا"
+  };
+
+  function buildAdvice(weatherData, options = {}) {
+    const daily = weatherData?.daily;
+
+    // توقّع اليوم لا القراءة اللحظية: صباحُ تموز معتدل وذروته لاهبة
+    const code = Number(daily?.weathercode?.[0] ?? weatherData?.current_weather?.weathercode);
+    const current = Number(weatherData?.current_weather?.temperature);
+
+    const rawMax = Number(daily?.temperature_2m_max?.[0]);
+    const rawMin = Number(daily?.temperature_2m_min?.[0]);
+    const high = Number.isFinite(rawMax) ? rawMax : current;
+    const low = Number.isFinite(rawMin) ? rawMin : current;
+
+    const fasting = Boolean(options.isRamadan);
+
+    if (Number.isFinite(code)) {
+      if (code >= 95) return ADVICE.storm;
+      if (code >= 71 && code <= 77) return ADVICE.snow;
+      if ((code >= 51 && code <= 67) || (code >= 80 && code <= 82)) return ADVICE.rain;
+      if (code >= 45 && code <= 48) return ADVICE.fog;
+    }
+
+    if (Number.isFinite(high)) {
+      if (high >= 37) return fasting ? ADVICE.veryHot : ADVICE.veryHotDrink;
+      if (high >= 31) return fasting ? ADVICE.hot : ADVICE.hotDrink;
+      if (high <= 14) return ADVICE.cold;
+    }
+
+    if (Number.isFinite(low) && low <= 8) return ADVICE.cold;
+
+    // يوم معتدل لا يحتاج تنبيهًا؛ نصيحة دائمة الظهور يعتادها الناظر فيهملها
+    return "";
+  }
+
+  function renderAdvice(target, weatherData, options) {
+    if (!target) return;
+
+    const text = buildAdvice(weatherData, options);
+    target.textContent = text;
+    target.classList.toggle("hidden", !text);
+  }
+
   function renderCurrentWeather(target, weatherData) {
     if (!target) return;
 
@@ -77,6 +133,8 @@
 
   window.WeatherModule = {
     fetchWeather,
+    buildAdvice,
+    renderAdvice,
     renderCurrentWeather,
     renderForecast
   };

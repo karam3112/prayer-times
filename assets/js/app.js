@@ -135,6 +135,7 @@
     clock: document.getElementById("clock"),
     dateLine: document.getElementById("dateLine"),
     weatherNow: document.getElementById("weatherNow"),
+    weatherAdvice: document.getElementById("weatherAdvice"),
     birthdayCard: document.getElementById("birthdayCard"),
     prayerTimesList: document.getElementById("prayerTimesList"),
     forecast3Days: document.getElementById("forecast3Days"),
@@ -490,9 +491,13 @@
     try {
       state.weatherData = await WeatherModule.fetchWeather(CONFIG);
       WeatherModule.renderCurrentWeather(els.weatherNow, state.weatherData);
+      WeatherModule.renderAdvice(els.weatherAdvice, state.weatherData, {
+        isRamadan: isRamadanToday(new Date())
+      });
       WeatherModule.renderForecast(els.forecast3Days, state.weatherData);
     } catch (_) {
       els.weatherNow.textContent = "الطقس: --";
+      els.weatherAdvice?.classList.add("hidden");
       els.forecast3Days.innerHTML = "";
     }
   }

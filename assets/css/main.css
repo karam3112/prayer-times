@@ -190,8 +190,19 @@ img { max-width: 100%; display: block; }
 
 .weather-now {
   margin-top: 8px;
-  font-size: .98rem; font-weight: 500;
+  font-size: clamp(.98rem, 1.5vh, 2.1rem); font-weight: 500;
   color: var(--brand-muted);
+}
+
+.weather-advice {
+  margin-top: 7px;
+  display: inline-block;
+  padding: 4px 14px;
+  border-radius: 999px;
+  background: rgba(212,175,55,.16);
+  color: var(--brand-green);
+  font-size: clamp(.95rem, 1.5vh, 2.1rem);
+  font-weight: 700;
 }
 
 /* ================================================================
