@@ -42,6 +42,15 @@
         <div id="weatherNow" class="weather-now">الطقس: --°</div>
       </section>
 
+      <!-- الحصة الحالية (تظهر في أيام الدوام فقط) -->
+      <section id="scheduleCard" class="schedule-card hidden" aria-live="polite">
+        <div id="scheduleTitle" class="schedule-card__title"></div>
+        <div id="scheduleDetail" class="schedule-card__detail"></div>
+        <div class="schedule-card__bar" aria-hidden="true">
+          <div id="scheduleBar" class="schedule-card__bar-fill"></div>
+        </div>
+      </section>
+
       <!-- مواقيت الصلاة -->
       <section class="prayer-times-card" aria-labelledby="prayerTimesHeading">
         <div class="section-title-wrap">
@@ -88,6 +97,7 @@
   </div>
 
   <script src="assets/js/prayer.js"></script>
+  <script src="assets/js/schedule.js"></script>
   <script src="assets/js/weather.js"></script>
   <script src="assets/js/events.js"></script>
   <script src="assets/js/birthdays.js"></script>

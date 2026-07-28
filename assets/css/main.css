@@ -144,6 +144,7 @@ img { max-width: 100%; display: block; }
 /* ── قاعدة البطاقات ── */
 .clock-card,
 .prayer-times-card,
+.schedule-card,
 .quote-card,
 .forecast-card,
 .birthday-card {
@@ -190,6 +191,44 @@ img { max-width: 100%; display: block; }
   margin-top: 8px;
   font-size: .98rem; font-weight: 500;
   color: var(--brand-muted);
+}
+
+/* ================================================================
+   بطاقة الحصة الحالية
+   ================================================================ */
+.schedule-card {
+  padding: 14px 18px 12px;
+  text-align: center;
+}
+
+.schedule-card__title {
+  font-family: "Cairo", sans-serif;
+  font-size: 1.5rem; font-weight: 700;
+  color: var(--brand-green);
+  line-height: 1.25;
+}
+
+.schedule-card__detail {
+  margin-top: 4px;
+  font-size: 1rem; font-weight: 500;
+  color: var(--brand-muted);
+  font-variant-numeric: tabular-nums;
+}
+
+.schedule-card__bar {
+  margin-top: 10px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(31,122,99,.12);
+  overflow: hidden;
+}
+
+.schedule-card__bar-fill {
+  height: 100%;
+  width: 0;
+  border-radius: 999px;
+  background: linear-gradient(90deg, var(--brand-green), var(--brand-green-2));
+  transition: width 1s linear;
 }
 
 /* ================================================================

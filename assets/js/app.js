@@ -16,6 +16,36 @@
     refreshHour: 7,
     refreshMinute: 0,
 
+    // ── جدول الدوام ──
+    // 0 = الأحد … 6 = السبت. الدوام من الأحد إلى الخميس.
+    schoolDays: [0, 1, 2, 3, 4],
+
+    // تواريخ ميلادية YYYY-MM-DD. إن مُلئت، تُقدَّم على الحساب الهجري التلقائي.
+    // املأها مرة كل سنة بالتاريخ الرسمي الذي تعتمده المدرسة.
+    ramadanOverride: { start: "", end: "" },
+
+    lessonSchedule: [
+      { label: "الحصة الأولى",   start: "08:00", end: "08:50" },
+      { label: "الحصة الثانية",  start: "08:55", end: "09:45" },
+      { label: "الحصة الثالثة",  start: "09:50", end: "10:35" },
+      { label: "استراحة الطعام", start: "10:35", end: "10:45", isBreak: true },
+      { label: "الحصة الرابعة",  start: "10:50", end: "11:35" },
+      { label: "الحصة الخامسة",  start: "11:40", end: "12:25" },
+      { label: "الحصة السادسة",  start: "12:30", end: "13:15" },
+      { label: "الحصة السابعة",  start: "13:15", end: "14:00" }
+    ],
+
+    ramadanSchedule: [
+      { label: "الحصة الأولى",  start: "08:00", end: "08:40" },
+      { label: "الحصة الثانية", start: "08:45", end: "09:25" },
+      { label: "الحصة الثالثة", start: "09:30", end: "10:05" },
+      { label: "استراحة",       start: "10:05", end: "10:15", isBreak: true },
+      { label: "الحصة الرابعة", start: "10:15", end: "10:50" },
+      { label: "الحصة الخامسة", start: "10:55", end: "11:30" },
+      { label: "الحصة السادسة", start: "11:35", end: "12:10" },
+      { label: "الحصة السابعة", start: "12:10", end: "12:45" }
+    ],
+
     offsets: {
       Fajr: 1,
       Sunrise: 1,
@@ -87,7 +117,10 @@
     birthdaysRetryAt: 0,
 
     // بصمة آخر قائمة مواقيت رُسمت، لتفادي إعادة بنائها بلا تغيير
-    renderedRowsKey: null
+    renderedRowsKey: null,
+
+    // بصمة آخر نص عُرض في بطاقة الحصص
+    scheduleTextKey: null
   };
 
   const els = {
@@ -100,7 +133,11 @@
     tickerTrack: document.getElementById("tickerTrack"),
     eventsLayer:    document.getElementById("eventsLayer"),
     hijriDate:      document.getElementById("hijriDate"),
-    rotatingQuote:  document.getElementById("rotatingQuote")
+    rotatingQuote:  document.getElementById("rotatingQuote"),
+    scheduleCard:   document.getElementById("scheduleCard"),
+    scheduleTitle:  document.getElementById("scheduleTitle"),
+    scheduleDetail: document.getElementById("scheduleDetail"),
+    scheduleBar:    document.getElementById("scheduleBar")
   };
 
     function getTzOffsetMinutes(date, timeZone) {
@@ -225,6 +262,96 @@
 
     els.dateLine.textContent = formatArabicDate(now);
     if (els.hijriDate) els.hijriDate.textContent = formatHijriDate(now);
+  }
+
+  // ── بطاقة الحصص ──
+
+  function pad2(value) {
+    return String(value).padStart(2, "0");
+  }
+
+  function isRamadanToday(date) {
+    const override = CONFIG.ramadanOverride || {};
+
+    if (override.start && override.end) {
+      const key = `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
+      return key >= override.start && key <= override.end;
+    }
+
+    // الحساب الهجري تقويمي وقد ينزاح يومًا عن الإعلان الرسمي،
+    // ولهذا يوجد ramadanOverride أعلاه ليقدَّم عليه.
+    return gregorianToHijri(date).month === 9;
+  }
+
+  function activeSchedule(date) {
+    return isRamadanToday(date) ? CONFIG.ramadanSchedule : CONFIG.lessonSchedule;
+  }
+
+  // كل الاستعمالات تأتي بعد "بعد"، فتُصاغ التثنية مجرورة
+  function minutesText(count) {
+    if (count <= 0) return "أقل من دقيقة";
+    if (count === 1) return "دقيقة واحدة";
+    if (count === 2) return "دقيقتين";
+    if (count <= 10) return `${count} دقائق`;
+    return `${count} دقيقة`;
+  }
+
+  function scheduleLines(status) {
+    switch (status.state) {
+      case "before":
+        return {
+          title: `يبدأ الدوام بعد ${minutesText(status.minutesToNext)}`,
+          detail: `${status.nextLabel} · ${status.nextStartText}`,
+          progress: 0
+        };
+
+      case "period":
+      case "break":
+        return {
+          title: status.label,
+          detail: `تنتهي ${status.endText} · بعد ${minutesText(status.minutesLeft)}`,
+          progress: status.progress
+        };
+
+      case "gap":
+        return {
+          title: "فرصة",
+          detail: `${status.nextLabel} بعد ${minutesText(status.minutesToNext)}`,
+          progress: 0
+        };
+
+      default:
+        return null;
+    }
+  }
+
+  function updateSchedule(now) {
+    // لو تعذّر تحميل schedule.js لسبب ما، تختفي البطاقة ولا تتعطل بقية الشاشة
+    if (!els.scheduleCard || !window.ScheduleModule) return;
+
+    const isSchoolDay = (CONFIG.schoolDays || []).includes(now.getDay());
+    const lines = isSchoolDay
+      ? scheduleLines(ScheduleModule.getStatus(activeSchedule(now), now))
+      : null;
+
+    if (!lines) {
+      els.scheduleCard.classList.add("hidden");
+      state.scheduleTextKey = null;
+      return;
+    }
+
+    const key = `${lines.title}|${lines.detail}`;
+
+    if (key !== state.scheduleTextKey) {
+      state.scheduleTextKey = key;
+      els.scheduleTitle.textContent = lines.title;
+      els.scheduleDetail.textContent = lines.detail;
+    }
+
+    // الشريط وحده يتحرك كل ثانية، وهو تعديل نمط لا إعادة بناء
+    const progress = Math.max(0, Math.min(1, lines.progress)) * 100;
+    els.scheduleBar.style.width = `${progress.toFixed(1)}%`;
+    els.scheduleCard.classList.remove("hidden");
   }
 
   // محتوى القائمة لا يتغير إلا ست مرات يوميًا، بينما tick يعمل كل ثانية.
@@ -440,6 +567,7 @@
 
   async function tick() {
     updateClockAndDate();
+    updateSchedule(new Date());
 
     const newDateKey = PrayerModule.todayKey(new Date());
 
@@ -467,6 +595,7 @@
     refreshTicker();
     initRotatingQuote();
     updateClockAndDate();
+    updateSchedule(new Date());
 
     // تُسجَّل المؤقتات قبل أي تحميل: الشاشة تعمل ٢٤ ساعة، ولا يجوز أن يمنع
     // فشلُ طلبٍ واحد عند الإقلاع الساعةَ من الدوران أو التعافي من الحدوث لاحقًا.
