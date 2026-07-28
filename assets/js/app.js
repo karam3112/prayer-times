@@ -511,6 +511,7 @@
       BirthdaysModule.renderBirthdayCard(els.birthdayCard, feed.birthdays);
       state.announcementBoard?.setItems(feed.announcements);
       state.highlightRotator?.setHonors(feed.honors);
+      refreshTicker(feed.ticker);
 
       state.feedDateKey = dateKey;
       state.feedRetryAt = 0;
@@ -557,8 +558,11 @@
     state.highlightRotator.start();
   }
 
-  function refreshTicker() {
-    TickerModule.renderTicker(els.tickerTrack, CONFIG.tickerMessages);
+  // رسائل الجدول تُقدَّم، وإلا فرسائل الإعدادات — فلا يبقى الشريط فارغًا
+  // إن غابت الورقة أو انقطعت الشبكة.
+  function refreshTicker(messages) {
+    const list = (messages && messages.length) ? messages : CONFIG.tickerMessages;
+    TickerModule.renderTicker(els.tickerTrack, list);
   }
 
   function scheduleDailyRefresh() {
