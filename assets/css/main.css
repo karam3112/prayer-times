@@ -264,6 +264,15 @@ img { max-width: 100%; display: block; }
   font-size: 1.28rem; font-weight: 700;
   line-height: 1.45;
   color: var(--brand-text);
+
+  /* سطران محجوزان دائمًا: فلا يقفز التخطيط عند التناوب بين إعلان قصير وآخر
+     طويل. وثلاثة سطور سقفًا أقصى: فلا يدفع نصٌّ منفلت بقية البطاقات خارج
+     الشاشة، لأن شريط التمرير مخفي ولن يُنبّه أحدًا إلى ذلك. */
+  min-height: calc(1.45em * 2);
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
 }
 
 .announcements-card__audience {
