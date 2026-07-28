@@ -747,9 +747,10 @@ img { max-width: 100%; display: block; }
 /* وضع قبل الأذان */
 .is-pre-athan-mode .events-layer { opacity: .02; }
 
-.is-pre-athan-mode .birthday-card,
-.is-pre-athan-mode .forecast-card,
-.is-pre-athan-mode .quote-card {
+/* توقعات الأيام القادمة وحدها تنسحب قبل الأذان: ما تكتبه المدرسة — تهنئة
+   وإعلان ولوحة تقدير — يبقى. التقدير يسكن داخل .quote-card، فإطفاؤها كان
+   يطفئه معها. */
+.is-pre-athan-mode .forecast-card {
   opacity: 0;
   pointer-events: none;
   transition: opacity .4s ease;

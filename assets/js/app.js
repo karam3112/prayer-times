@@ -440,10 +440,14 @@
 
     state.eventRotator?.setDimmed(isPreAthan || isAthanMode);
 
+    // التهنئة تختفي حين تفرغ لا حين يقترب الأذان. كانت مربوطة بـ isAthanMode،
+    // ونافذته اثنتا عشرة دقيقة قبل كل صلاة وثمانٍ بعدها: ساعتان يوميًا يغيب
+    // فيهما اسمُ صاحب العيد عن شاشة رُفعت البطاقة فيها إلى الأعلى تحديدًا
+    // لأنها أكثر ما يتوقف عنده الطلاب. التركيز وقت الأذان يأتي من خفوت صور
+    // الخلفية، وهو باقٍ، لا من حجب ما تكتبه المدرسة.
     if (els.birthdayCard) {
       const hasBirthdayContent = els.birthdayCard.innerHTML.trim().length > 0;
-      const shouldHideBirthday = isPreAthan || isAthanMode || !hasBirthdayContent;
-      els.birthdayCard.classList.toggle("hidden", shouldHideBirthday);
+      els.birthdayCard.classList.toggle("hidden", !hasBirthdayContent);
     }
   }
 
