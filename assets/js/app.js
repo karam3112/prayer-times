@@ -121,6 +121,9 @@
     // محتوى المدرسة يتبع تاريخه الخاص، فلا يجرّه تعثّرُ المواقيت إلى طلب كل ثانية
     feedDateKey: null,
     feedRetryAt: 0,
+    // آخر جلب لمحتوى المدرسة: للتشخيص على الشاشة، لأن الفشل هنا صامت —
+    // مفتاح مفقود أو شبكة محجوبة أو ورقة فارغة كلها تعطي البطاقة نفسها الخالية
+    feedStatus: null,
     announcementBoard: null,
     highlightRotator: null,
 
@@ -519,10 +522,21 @@
 
       state.feedDateKey = dateKey;
       state.feedRetryAt = 0;
+      state.feedStatus = {
+        at: Date.now(),
+        ok: true,
+        counts: {
+          b: feed.birthdays.length,
+          a: feed.announcements.length,
+          h: feed.honors.length,
+          t: feed.ticker.length
+        }
+      };
 
       updateVisualModes(new Date());
-    } catch (_) {
+    } catch (error) {
       state.feedRetryAt = Date.now() + 5 * 60000;
+      state.feedStatus = { at: Date.now(), ok: false, error: String(error?.message || error) };
 
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
@@ -639,15 +653,30 @@
       "font:700 15px/1.5 monospace", "direction:ltr", "white-space:pre"
     ].join(";");
 
+    function feedLine() {
+      let hasKey = false;
+      try { hasKey = Boolean(new URLSearchParams(window.location.search).get("k")); } catch (_) {}
+
+      const f = state.feedStatus;
+      const when = f ? new Date(f.at).toTimeString().slice(0, 8) : "";
+      const feed = !f ? "pending"
+        : f.ok ? `ok ${when}  b${f.counts.b} a${f.counts.a} h${f.counts.h} t${f.counts.t}`
+        : `FAIL ${when}  ${f.error}`;
+
+      return `key ${hasKey ? "yes" : "MISSING"}  feed ${feed}`;
+    }
+
     function paint() {
       const root = parseFloat(getComputedStyle(document.documentElement).fontSize);
       badge.textContent =
         `${window.innerWidth}x${window.innerHeight}  dpr ${window.devicePixelRatio}\n` +
-        `screen ${window.screen.width}x${window.screen.height}  root ${root.toFixed(1)}px`;
+        `screen ${window.screen.width}x${window.screen.height}  root ${root.toFixed(1)}px\n` +
+        feedLine();
     }
 
     paint();
     window.addEventListener("resize", paint);
+    setInterval(paint, 5000);
     document.body.appendChild(badge);
   }
 
