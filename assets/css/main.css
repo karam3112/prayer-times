@@ -168,6 +168,20 @@ img { max-width: 100%; display: block; }
 }
 .main-layout::-webkit-scrollbar { display: none; }
 
+/* ── تنبيه محتوى المدرسة ──
+   يظهر فقط حين لا يصل المحتوى: رابط بلا مفتاح أو خادم لا يُبلَغ. ذهبيّ لا
+   أحمر — إنذار لمن يشغّل الشاشة، لا إزعاج لمن يمرّ أمامها. */
+.feed-notice {
+  flex-shrink: 0;
+  padding: .5rem 1rem;
+  border-radius: var(--radius);
+  background: rgba(212,175,55,.22);
+  border: 1px solid rgba(212,175,55,.55);
+  color: #7A5D0F;
+  font-size: 1.05rem; font-weight: 700;
+  text-align: center;
+}
+
 /* ── قاعدة البطاقات ── */
 .clock-card,
 .prayer-times-card,

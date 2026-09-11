@@ -151,6 +151,7 @@
     scheduleDetail: document.getElementById("scheduleDetail"),
     scheduleBar:    document.getElementById("scheduleBar"),
     announcementsCard: document.getElementById("announcementsCard"),
+    feedNotice: null,
     highlightBody:  document.getElementById("highlightBody"),
     honorSlot:      document.getElementById("honorSlot")
   };
@@ -509,6 +510,31 @@
     }
   }
 
+  // الفشل في جلب محتوى المدرسة صامت: رابط بلا مفتاح أو شبكة تحجب الخادم
+  // يعطيان بطاقات فارغة لا أكثر، فمرّ أحد عشر يومًا في أيلول ٢٠٢٦ بلا تهنئة
+  // قبل أن يلاحظ أحد. هذا السطر يجعل الغياب مرئيًا في أول يوم لا الحادي عشر.
+  function updateFeedNotice() {
+    const main = document.querySelector(".main-layout");
+    if (!main) return;
+
+    let text = "";
+    if (window.SchoolFeed && !SchoolFeed.hasKey()) {
+      text = "محتوى المدرسة معطّل: رابط الشاشة بلا مفتاح";
+    } else if (state.feedStatus && !state.feedStatus.ok) {
+      text = "محتوى المدرسة لا يصل: تعذّر الاتصال بالخادم";
+    }
+
+    if (!els.feedNotice) {
+      els.feedNotice = document.createElement("div");
+      els.feedNotice.className = "feed-notice hidden";
+      els.feedNotice.setAttribute("role", "status");
+      main.prepend(els.feedNotice);
+    }
+
+    els.feedNotice.textContent = text;
+    els.feedNotice.classList.toggle("hidden", !text);
+  }
+
   async function refreshSchoolFeed() {
     const dateKey = PrayerModule.todayKey(new Date());
 
@@ -534,9 +560,11 @@
       };
 
       updateVisualModes(new Date());
+      updateFeedNotice();
     } catch (error) {
       state.feedRetryAt = Date.now() + 5 * 60000;
       state.feedStatus = { at: Date.now(), ok: false, error: String(error?.message || error) };
+      updateFeedNotice();
 
       els.birthdayCard.classList.add("hidden");
       els.birthdayCard.innerHTML = "";
@@ -682,6 +710,7 @@
 
   async function init() {
     showDiagnosticsIfRequested();
+    updateFeedNotice();
 
     // كما في بطاقة الحصص: ملف مفقود يُسقط ميزته وحدها لا الشاشة كلها
     state.announcementBoard = window.AnnouncementsModule

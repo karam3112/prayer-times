@@ -61,6 +61,7 @@
   }
 
   window.SchoolFeed = {
-    fetchToday
+    fetchToday,
+    hasKey: () => Boolean(getAccessKey())
   };
 })();
