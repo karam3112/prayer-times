@@ -87,18 +87,70 @@
     return `${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   }
 
-  async function loadDehriFile(url) {
-    const response = await fetch(url, { cache: "no-store" });
-    if (!response.ok) {
-      throw new Error(`Failed to load dehri.json: ${response.status}`);
-    }
+  // ── حساب المواقيت فلكيًا ──
+  // كان المصدر جدولًا سنويًا يُرفع يدويًا (dehri.json)، وتبيّن في أيلول ٢٠٢٦ أن
+  // ما بعد نيسان فيه مُلئ تقديرًا: الفجر يتقدّم دقيقة كل يوم بلا استثناء،
+  // والظهر يثبت أسبوعين، حتى بلغ الخطأ ٢١ دقيقة في تشرين الثاني. الحساب
+  // المباشر لا يحتاج رفعًا ولا يفسد. الدقة نحو دقيقة، وهي دقة الجداول نفسها.
+  //
+  // المعادلات من خوارزمية NOAA المبسّطة؛ الزوايا وفق رابطة العالم الإسلامي
+  // (فجر ١٨°، عشاء ١٧°)، والعصر على المذهب الشافعي (ظلّ الشيء مثله).
 
-    return response.json();
+  const DEG = Math.PI / 180;
+
+  function solarCoordinates(date) {
+    // أيام منذ J2000 عند منتصف نهار اليوم بالتوقيت العالمي
+    const days = (Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()) - Date.UTC(2000, 0, 1)) / 86400000 + 0.5;
+
+    const g = ((357.529 + 0.98560028 * days) % 360) * DEG;                 // الشذوذ المتوسط
+    const q = (280.459 + 0.98564736 * days) % 360;                         // خط الطول المتوسط
+    const L = ((q + 1.915 * Math.sin(g) + 0.020 * Math.sin(2 * g)) % 360) * DEG; // خط الطول الظاهري
+    const e = (23.439 - 0.00000036 * days) * DEG;                          // ميل المحور
+
+    const rightAscension = (Math.atan2(Math.cos(e) * Math.sin(L), Math.cos(L)) / DEG + 360) % 360;
+    const declination = Math.asin(Math.sin(e) * Math.sin(L)) / DEG;
+
+    let equationOfTime = (q - rightAscension) / 15; // ساعات
+    if (equationOfTime > 12) equationOfTime -= 24;
+    if (equationOfTime < -12) equationOfTime += 24;
+
+    return { declination, equationOfTime: equationOfTime * 60 };
   }
 
-  function getDayRecord(data, key) {
-    if (!data || typeof data !== "object") return null;
-    return data[key] || null;
+  // دقائق بين الزوال ولحظة بلوغ الشمس ارتفاعًا معيّنًا (سالبًا تحت الأفق)
+  function hourAngleMinutes(altitude, declination, latitude) {
+    const cosH =
+      (Math.sin(altitude * DEG) - Math.sin(latitude * DEG) * Math.sin(declination * DEG)) /
+      (Math.cos(latitude * DEG) * Math.cos(declination * DEG));
+
+    return Math.acos(Math.max(-1, Math.min(1, cosH))) / DEG * 4;
+  }
+
+  function computeTimings(date, options) {
+    const { lat, lon, tzOffsetMinutes, fajrAngle = 18, ishaAngle = 17, asrShadow = 1 } = options;
+    const { declination, equationOfTime } = solarCoordinates(date);
+
+    // الزوال بالتوقيت المحلي: ١٢:٠٠ مصحّحًا بفارق خط الطول عن خط التوقيت ومعادلة الزمن
+    const noon = 12 * 60 + (tzOffsetMinutes / 60 * 15 - lon) * 4 - equationOfTime;
+
+    // ظلّ الشيء مثله + ظلّه عند الزوال
+    const asrAltitude = Math.atan(1 / (asrShadow + Math.tan(Math.abs(lat - declination) * DEG))) / DEG;
+
+    const minutes = {
+      Fajr:    noon - hourAngleMinutes(-fajrAngle, declination, lat),
+      Sunrise: noon - hourAngleMinutes(-0.833, declination, lat),
+      Dhuhr:   noon,
+      Asr:     noon + hourAngleMinutes(asrAltitude, declination, lat),
+      Maghrib: noon + hourAngleMinutes(-0.833, declination, lat),
+      Isha:    noon + hourAngleMinutes(-ishaAngle, declination, lat)
+    };
+
+    const result = {};
+    for (const prayer of PRAYER_ORDER) {
+      const total = ((Math.round(minutes[prayer]) % 1440) + 1440) % 1440;
+      result[prayer] = formatTimeParts(Math.floor(total / 60), total % 60);
+    }
+    return result;
   }
 
   function normalizeTimings(rawRecord, offsets = {}) {
@@ -216,8 +268,7 @@
     PRAYER_NAMES,
     todayKey,
     tomorrowKey,
-    loadDehriFile,
-    getDayRecord,
+    computeTimings,
     normalizeTimings,
     buildPrayerMoments,
     findNextPrayer,

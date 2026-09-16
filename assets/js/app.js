@@ -8,7 +8,8 @@
     lat: 32.4169,
     lon: 35.0405,
 
-    dehriFile: "dehri.json",
+    // المواقيت تُحسب فلكيًا لهذه الإحداثيات؛ الزوايا وفق رابطة العالم الإسلامي
+    prayerMethod: { fajrAngle: 18, ishaAngle: 17 },
 
     // نقطة وصول تُرجع محتوى اليوم وحده — مواليد وإعلانات — ولا تستجيب
     // إلا بمفتاح يأتي من رابط الشاشة (?k=...)
@@ -52,13 +53,15 @@
       { label: "الحصة السابعة", start: "12:10", end: "12:45" }
     ],
 
+    // دقائق تُضاف على الحساب لكل صلاة إن اعتمدت المدرسة احتياطًا محليًا
+    // (مثلًا +5 للمغرب كما في بعض الجداول). صفر = الوقت الفلكي كما هو.
     offsets: {
-      Fajr: 1,
-      Sunrise: 1,
-      Dhuhr: 1,
-      Asr: 1,
-      Maghrib: 1,
-      Isha: 1
+      Fajr: 0,
+      Sunrise: 0,
+      Dhuhr: 0,
+      Asr: 0,
+      Maghrib: 0,
+      Isha: 0
     },
 
     eventImagesPath: "images/events",
@@ -105,7 +108,6 @@
   };
 
   const state = {
-    dehriData: null,
     todayTimings: null,
     tomorrowTimings: null,
     nextPrayer: null,
@@ -113,10 +115,6 @@
     weatherData: null,
     eventRotator: null,
     currentDateKey: null,
-
-    // تهدئة تصاعدية بين محاولات تحميل dehri.json حتى لا تتحول إعادة المحاولة إلى إغراق
-    dehriRetryAt: 0,
-    dehriFailures: 0,
 
     // محتوى المدرسة يتبع تاريخه الخاص، فلا يجرّه تعثّرُ المواقيت إلى طلب كل ثانية
     feedDateKey: null,
@@ -172,37 +170,6 @@
     const minutes = Number(match[3] || 0);
 
     return sign * ((hours * 60) + minutes);
-  }
-
-  function getDstExtraMinutes(timeZone) {
-    const now = new Date();
-    const year = Number(
-      new Intl.DateTimeFormat("en-CA", { timeZone, year: "numeric" }).format(now)
-    );
-
-    const jan = new Date(Date.UTC(year, 0, 15, 12, 0, 0));
-    const jul = new Date(Date.UTC(year, 6, 15, 12, 0, 0));
-    const current = new Date();
-
-    const janOffset = getTzOffsetMinutes(jan, timeZone);
-    const julOffset = getTzOffsetMinutes(jul, timeZone);
-    const currentOffset = getTzOffsetMinutes(current, timeZone);
-
-    const standardOffset = Math.min(janOffset, julOffset);
-    return Math.max(0, currentOffset - standardOffset);
-  }
-
-  function getEffectiveOffsets() {
-    const dstExtra = getDstExtraMinutes(CONFIG.tz);
-
-    return {
-      Fajr: (CONFIG.offsets.Fajr || 0) + dstExtra,
-      Sunrise: (CONFIG.offsets.Sunrise || 0) + dstExtra,
-      Dhuhr: (CONFIG.offsets.Dhuhr || 0) + dstExtra,
-      Asr: (CONFIG.offsets.Asr || 0) + dstExtra,
-      Maghrib: (CONFIG.offsets.Maghrib || 0) + dstExtra,
-      Isha: (CONFIG.offsets.Isha || 0) + dstExtra
-    };
   }
 
   // ── التاريخ الهجري ──
@@ -455,42 +422,30 @@
     }
   }
 
+  // مواقيت يوم بعينه بتوقيته الفعلي: فارق التوقيت يؤخذ عند ظهر ذلك اليوم، فيوم
+  // تبديل الساعة (يقع عند ٠٢:٠٠) تُحسب صلواته كلها بالتوقيت الجديد.
+  function timingsFor(date) {
+    const noon = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 12);
+    const computed = PrayerModule.computeTimings(date, {
+      lat: CONFIG.lat,
+      lon: CONFIG.lon,
+      tzOffsetMinutes: getTzOffsetMinutes(noon, CONFIG.tz),
+      ...CONFIG.prayerMethod
+    });
+    return PrayerModule.normalizeTimings(computed, CONFIG.offsets);
+  }
+
   async function refreshPrayerData() {
     const now = new Date();
-    const todayKey = PrayerModule.todayKey(now);
-    const tomorrowKey = PrayerModule.tomorrowKey(now);
+    const tomorrow = new Date(now);
+    tomorrow.setDate(tomorrow.getDate() + 1);
 
-    if (!state.dehriData) {
-      // ما زلنا داخل فترة التهدئة بعد فشل سابق
-      if (now.getTime() < state.dehriRetryAt) return;
-
-      try {
-        state.dehriData = await PrayerModule.loadDehriFile(CONFIG.dehriFile);
-        state.dehriFailures = 0;
-      } catch (_) {
-        // لا نرمي الخطأ: فشل التحميل يجب ألا يوقف الساعة ولا بقية الشاشة
-        state.dehriFailures = Math.min(state.dehriFailures + 1, 6);
-        state.dehriRetryAt = now.getTime() + Math.min(60000, 2000 * 2 ** (state.dehriFailures - 1));
-        updateNextPrayerUi();
-        return;
-      }
-    }
-
-    const todayRecord = PrayerModule.getDayRecord(state.dehriData, todayKey);
-    const tomorrowRecord = PrayerModule.getDayRecord(state.dehriData, tomorrowKey);
-
-    const effectiveOffsets = getEffectiveOffsets();
-
-    state.todayTimings = PrayerModule.normalizeTimings(todayRecord, effectiveOffsets);
-    state.tomorrowTimings = PrayerModule.normalizeTimings(tomorrowRecord, effectiveOffsets);
-
-    
-    //state.todayTimings = PrayerModule.normalizeTimings(todayRecord, CONFIG.offsets);
-    //state.tomorrowTimings = PrayerModule.normalizeTimings(tomorrowRecord, CONFIG.offsets);
+    state.todayTimings = timingsFor(now);
+    state.tomorrowTimings = timingsFor(tomorrow);
 
     state.prayerMoments = PrayerModule.buildPrayerMoments(state.todayTimings, now);
     state.nextPrayer = PrayerModule.findNextPrayer(state.prayerMoments, state.tomorrowTimings, now);
-    state.currentDateKey = todayKey;
+    state.currentDateKey = PrayerModule.todayKey(now);
 
     updateNextPrayerUi();
   }
