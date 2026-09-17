@@ -1,4 +1,9 @@
 (function () {
+  // يُبدَّل يدويًا عند كل تغيير يهمّ التشخيص. الشاشة تعمل بلا حارس، فإن شغّلت
+  // نسخةً قديمة من هذا الملف بدت أعراضها كأنها عطبٌ في البيانات: ميزةٌ أُصلحت
+  // هنا تبقى مكسورة هناك بلا أثر يدلّ عليها. هذا الرقم هو الأثر.
+  const BUILD = "2026-09-17";
+
   const CONFIG = {
     schoolName: "مدرسة الغزالي",
     subtitle: "شاشة أوقات الأذان في باقة الغربية",
@@ -656,6 +661,7 @@
       badge.textContent =
         `${window.innerWidth}x${window.innerHeight}  dpr ${window.devicePixelRatio}\n` +
         `screen ${window.screen.width}x${window.screen.height}  root ${root.toFixed(1)}px\n` +
+        `build ${BUILD}  page ${document.lastModified}\n` +
         feedLine();
     }
 
