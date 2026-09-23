@@ -2,7 +2,7 @@
   // يُبدَّل يدويًا عند كل تغيير يهمّ التشخيص. الشاشة تعمل بلا حارس، فإن شغّلت
   // نسخةً قديمة من هذا الملف بدت أعراضها كأنها عطبٌ في البيانات: ميزةٌ أُصلحت
   // هنا تبقى مكسورة هناك بلا أثر يدلّ عليها. هذا الرقم هو الأثر.
-  const BUILD = "2026-09-17";
+  const BUILD = "2026-09-23";
 
   const CONFIG = {
     schoolName: "مدرسة الغزالي",
@@ -644,8 +644,10 @@
     ].join(";");
 
     function feedLine() {
-      let hasKey = false;
-      try { hasKey = Boolean(new URLSearchParams(window.location.search).get("k")); } catch (_) {}
+      let key = "";
+      try { key = new URLSearchParams(window.location.search).get("k") || ""; } catch (_) {}
+      // طول المفتاح وآخر أحرفه يكفيان لمقارنة رابط التلفاز برابط الحاسوب
+      const keyInfo = key ? `yes ${key.length}…${key.slice(-4)}` : "MISSING";
 
       const f = state.feedStatus;
       const when = f ? new Date(f.at).toTimeString().slice(0, 8) : "";
@@ -653,7 +655,7 @@
         : f.ok ? `ok ${when}  b${f.counts.b} a${f.counts.a} h${f.counts.h} t${f.counts.t}`
         : `FAIL ${when}  ${f.error}`;
 
-      return `key ${hasKey ? "yes" : "MISSING"}  feed ${feed}`;
+      return `key ${keyInfo}  feed ${feed}`;
     }
 
     function paint() {

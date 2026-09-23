@@ -20,7 +20,9 @@
     const key = getAccessKey();
     if (!endpoint || !key) return empty;
 
-    const response = await fetch(`${endpoint}?k=${encodeURIComponent(key)}`, {
+    // ‏t= يجعل كل طلب فريدًا، فلا يعيد وسيطٌ في الطريق (فلتر شبكة، proxy)
+    // ردًّا قديمًا؛ ‏cache: "no-store" لا يُلزم إلا المتصفح نفسه.
+    const response = await fetch(`${endpoint}?k=${encodeURIComponent(key)}&t=${Date.now()}`, {
       cache: "no-store"
     });
 
@@ -29,6 +31,13 @@
     }
 
     const data = await response.json();
+
+    // مفتاح خاطئ يعود من Apps Script بحالة 200 لكن بلا قوائم، فيبدو كيوم
+    // لا مواليد فيه. نعدّه فشلًا حتى يظهر على الشاشة بدل أن يمرّ صامتًا.
+    const lists = ["birthdays", "announcements", "honors", "ticker"];
+    if (data?.error || !lists.some((name) => Array.isArray(data?.[name]))) {
+      throw new Error(`feed refused: ${cleanText(data?.error) || "no lists"}`);
+    }
 
     return {
       birthdays: (Array.isArray(data?.birthdays) ? data.birthdays : [])
