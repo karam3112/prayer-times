@@ -2,7 +2,7 @@
   // يُبدَّل يدويًا عند كل تغيير يهمّ التشخيص. الشاشة تعمل بلا حارس، فإن شغّلت
   // نسخةً قديمة من هذا الملف بدت أعراضها كأنها عطبٌ في البيانات: ميزةٌ أُصلحت
   // هنا تبقى مكسورة هناك بلا أثر يدلّ عليها. هذا الرقم هو الأثر.
-  const BUILD = "2026-09-23";
+  const BUILD = "2026-09-24";
 
   const CONFIG = {
     schoolName: "مدرسة الغزالي",
@@ -646,8 +646,12 @@
     function feedLine() {
       let key = "";
       try { key = new URLSearchParams(window.location.search).get("k") || ""; } catch (_) {}
-      // طول المفتاح وآخر أحرفه يكفيان لمقارنة رابط التلفاز برابط الحاسوب
-      const keyInfo = key ? `yes ${key.length}…${key.slice(-4)}` : "MISSING";
+      // مفتاح خاطئ يُرجع قوائم فارغة كيوم عادي، فالطول وآخر الأحرف لا يكفيان:
+      // بصمة المفتاح كله (FNV-1a) تكشف أي حرف مختلف في وسطه أيضًا.
+      let hash = 0x811c9dc5;
+      for (const ch of key) hash = Math.imul(hash ^ ch.codePointAt(0), 0x01000193);
+      const print = (hash >>> 0).toString(16).padStart(8, "0").toUpperCase();
+      const keyInfo = key ? `yes ${key.length}…${key.slice(-4)} #${print}` : "MISSING";
 
       const f = state.feedStatus;
       const when = f ? new Date(f.at).toTimeString().slice(0, 8) : "";
